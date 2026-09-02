@@ -6,8 +6,7 @@ if quickshell ipc -p "$CONFIG_PATH" call omnicast toggle 2>/dev/null; then
     exit 0
 fi
 
-# If not responding, ensure old dead process is cleaned and daemonize
-pkill -f "$CONFIG_PATH" 2>/dev/null || true
-quickshell -p "$CONFIG_PATH" -d
+# If not running, spawn daemonized quickshell instance
+quickshell -n -d -p "$CONFIG_PATH"
 sleep 0.25
 quickshell ipc -p "$CONFIG_PATH" call omnicast show 2>/dev/null || true

@@ -3,7 +3,6 @@ import os
 import sys
 import json
 import re
-import subprocess
 import time
 from pathlib import Path
 
@@ -61,7 +60,7 @@ def rgb_to_hsl(r, g, b):
     return f"hsl({h}, {s}%, {l}%)"
 
 def detect_code_language(text):
-    text_sample = text[:500].strip()
+    text_sample = text[:300].strip()
     if text_sample.startswith("{") or text_sample.startswith("["):
         try:
             json.loads(text)
@@ -76,7 +75,7 @@ def detect_code_language(text):
         return "rust"
     if "<html" in text_sample or "<div" in text_sample or "/>" in text_sample:
         return "html"
-    if "SELECT " in text_sample.upper() or "INSERT INTO" in text_sample.upper() or "WHERE " in text_sample.upper():
+    if "SELECT " in text_sample.upper() or "INSERT INTO" in text_sample.upper():
         return "sql"
     if text_sample.startswith("#!") or "sudo " in text_sample or "grep " in text_sample or "echo " in text_sample:
         return "bash"
@@ -97,12 +96,12 @@ def detect_content_type(text):
         
     # Code detection
     lang = detect_code_language(text)
-    if lang or "\n" in text or (len(text) > 120 and ("=" in text or "(" in text)):
+    if lang or "\n" in text or (len(text) > 100 and ("=" in text or "(" in text)):
         return "code", lang or "code", ""
         
     return "text", "text", "📄"
 
-def read_omarchy_history(query="", filter_type="all"):
+def read_omarchy_history(query="", filter_type="all", limit=40):
     if not HISTORY_FILE.exists():
         return []
         
@@ -115,7 +114,8 @@ def read_omarchy_history(query="", filter_type="all"):
     pinned_keys = set(get_pinned())
     results = []
     
-    for idx, entry in enumerate(raw_entries):
+    # Process newest entries up to limit
+    for idx, entry in enumerate(raw_entries[:limit]):
         etype = entry.get("type", "text")
         entry_key = f"image:{entry.get('path')}" if etype == "image" else f"text:{entry.get('text', '')}"
         is_pinned = entry_key in pinned_keys
@@ -129,31 +129,20 @@ def read_omarchy_history(query="", filter_type="all"):
                 continue
                 
             captured_at = entry.get("capturedAt", "Recent")
-            mime = entry.get("mime", "image/png")
             fsize = os.path.getsize(img_path) if os.path.exists(img_path) else 0
             
-            # Extract image dimensions
-            dims = "Image Preview"
-            try:
-                proc = subprocess.run(["file", img_path], capture_output=True, text=True)
-                dim_match = re.search(r'(\d+)\s*x\s*(\d+)', proc.stdout)
-                if dim_match:
-                    dims = f"{dim_match.group(1)}×{dim_match.group(2)}"
-            except:
-                pass
-                
             if filter_type not in ["all", "pinned", "image"]:
                 continue
                 
             if query and query.strip():
                 q = query.strip().lower()
-                if q not in "image" and q not in "screenshot" and q not in dims.lower():
+                if q not in "image" and q not in "screenshot":
                     continue
                     
             results.append({
                 "id": f"omarchy-clip-{idx}",
                 "key": entry_key,
-                "title": f"Screenshot / Image ({dims})",
+                "title": f"Screenshot / Image",
                 "subtitle": f"{captured_at} • PNG • {fsize // 1024} KB",
                 "icon": "📌" if is_pinned else "🖼️",
                 "badge": ("📌 " if is_pinned else "") + "Image",
@@ -161,12 +150,11 @@ def read_omarchy_history(query="", filter_type="all"):
                 "content": "",
                 "imagePath": img_path,
                 "image": f"file://{img_path}",
-                "markdown": f"### Image Preview\n\n**Dimensions:** `{dims}`\n**File Size:** `{fsize // 1024} KB`\n\nPress **↵** to paste image into active application.",
+                "markdown": f"### Image Preview\n\n- **File Size:** `{fsize // 1024} KB`\n- **Captured:** `{captured_at}`\n\nPress **↵** to paste image into active application.",
                 "color": "",
                 "isPinned": is_pinned,
                 "metadata": [
                     { "label": "Type", "value": "PNG Image" },
-                    { "label": "Dimensions", "value": dims },
                     { "label": "File Size", "value": f"{fsize // 1024} KB" },
                     { "label": "Status", "value": "📌 Pinned" if is_pinned else "Recent" },
                     { "label": "Captured", "value": captured_at }
@@ -230,7 +218,7 @@ def read_omarchy_history(query="", filter_type="all"):
                 ]
             elif ctype == "code":
                 lang = stype if stype != "code" else ""
-                markdown = f"```{lang}\n{text[:2500]}\n```"
+                markdown = f"```{lang}\n{text[:2000]}\n```"
                 metadata = [
                     { "label": "Type", "value": f"Code ({lang.upper() or 'Snippet'})" },
                     { "label": "Lines", "value": f"{line_count} lines" },
@@ -239,7 +227,7 @@ def read_omarchy_history(query="", filter_type="all"):
                     { "label": "Status", "value": "📌 Pinned" if is_pinned else "Recent" }
                 ]
             else:
-                markdown = f"{text[:2500]}"
+                markdown = f"{text[:2000]}"
                 metadata = [
                     { "label": "Type", "value": "Plain Text" },
                     { "label": "Characters", "value": f"{char_count} chars" },
@@ -265,7 +253,6 @@ def read_omarchy_history(query="", filter_type="all"):
                 "metadata": metadata
             })
             
-    # Sort pinned items first, then preserve chronological order
     sorted_results = sorted(results, key=lambda x: not x["isPinned"])
     return sorted_results
 
