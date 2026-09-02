@@ -13,6 +13,7 @@ Item {
   property var allItems: []
   property var filteredItems: []
   property var scriptCommands: []
+  property var omarchyCommands: []
   property var desktopApps: []
 
   signal requestActionPalette(var actions)
@@ -20,10 +21,9 @@ Item {
   signal requestPushViewWithProps(string title, var component, var props)
   signal requestDismiss()
 
-  // Selected item reference
   readonly property var selectedItem: filteredItems.length > 0 && selectedIndex < filteredItems.length ? filteredItems[selectedIndex] : null
 
-  // Component references for sub-views
+  // Sub-view Components
   property Component clipboardViewComp: Qt.createComponent("ClipboardView.qml")
   property Component themePickerComp: Qt.createComponent("ThemePickerView.qml")
   property Component windowTilerComp: Qt.createComponent("WindowTilerView.qml")
@@ -42,6 +42,16 @@ Item {
     }
   }
 
+  // Process to scan native Omarchy system commands
+  property Process omarchyScanner: Process {
+    command: ["python3", "/home/iamkxyz/Projects/omnicast/src/backend/omarchy_commands.py"]
+    running: false
+    stdout: StdioCollector {
+      waitForEnd: true
+      onStreamFinished: text => root.handleOmarchyScan(text)
+    }
+  }
+
   // Process to index installed desktop apps dynamically
   property Process appScanner: Process {
     command: ["python3", "/home/iamkxyz/Projects/omnicast/src/backend/app_indexer.py"]
@@ -49,6 +59,58 @@ Item {
     stdout: StdioCollector {
       waitForEnd: true
       onStreamFinished: text => root.handleAppScan(text)
+    }
+  }
+
+  function handleOmarchyScan(raw) {
+    try {
+      var cmds = JSON.parse(raw || "[]")
+      omarchyCommands = []
+      for (var i = 0; i < cmds.length; i++) {
+        var c = cmds[i]
+        omarchyCommands.push({
+          id: c.id,
+          title: c.title,
+          subtitle: c.subtitle || ("Execute " + c.route),
+          icon: c.icon || "⚙️",
+          category: c.category || "Omarchy",
+          badge: "Omarchy",
+          route: c.route,
+          action: (function(cmdRoute) {
+            return function() {
+              Qt.createQmlObject('import Quickshell.Io; Process { command: ["sh", "-c", "' + cmdRoute.replace(/'/g, "'\\''") + ' &"]; running: true }', root)
+              root.requestDismiss()
+            }
+          })(c.route),
+          actions: [
+            {
+              title: "Run Command",
+              icon: "⚡",
+              shortcut: "↵",
+              callback: (function(cmdRoute) {
+                return function() {
+                  Qt.createQmlObject('import Quickshell.Io; Process { command: ["sh", "-c", "' + cmdRoute.replace(/'/g, "'\\''") + ' &"]; running: true }', root)
+                  root.requestDismiss()
+                }
+              })(c.route)
+            },
+            {
+              title: "Run in Terminal",
+              icon: "",
+              callback: (function(cmdRoute) {
+                return function() {
+                  Qt.createQmlObject('import Quickshell.Io; Process { command: ["ghostty", "-e", "bash", "-c", "' + cmdRoute.replace(/'/g, "'\\''") + '; echo; read -p \\"Press enter to close...\\""]; running: true }', root)
+                  root.requestDismiss()
+                }
+              })(c.route)
+            }
+          ]
+        })
+      }
+      buildFullItemList()
+    } catch (e) {
+      console.error("Error parsing Omarchy commands:", e)
+      buildFullItemList()
     }
   }
 
@@ -199,15 +261,26 @@ Item {
       {
         id: "clipboard",
         title: "Clipboard History",
-        subtitle: "Search and paste copied text, images, and color codes",
+        subtitle: "Search and paste copied text, images, and color codes (Omarchy Native)",
         icon: "📋",
         category: "Productivity",
         badge: "Built-in",
         shortcut: "Ctrl+Shift+V",
         action: function() { root.requestPushView("Clipboard History", root.clipboardViewComp) },
         actions: [
-          { title: "Open Clipboard View", icon: "📋", shortcut: "↵", callback: function() { root.requestPushView("Clipboard History", root.clipboardViewComp) } },
-          { title: "Clear Clipboard History", icon: "🗑️", shortcut: "Ctrl+Shift+Del", callback: function() {} }
+          { title: "Open Clipboard View", icon: "📋", shortcut: "↵", callback: function() { root.requestPushView("Clipboard History", root.clipboardViewComp) } }
+        ]
+      },
+      {
+        id: "theme",
+        title: "Change Theme",
+        subtitle: "Browse & switch Omarchy global desktop themes",
+        icon: "🎨",
+        category: "Appearance",
+        badge: "Omarchy",
+        action: function() { root.requestPushView("Theme Selector", root.themePickerComp) },
+        actions: [
+          { title: "Open Theme Selector", icon: "🎨", shortcut: "↵", callback: function() { root.requestPushView("Theme Selector", root.themePickerComp) } }
         ]
       },
       {
@@ -223,18 +296,6 @@ Item {
         ]
       },
       {
-        id: "ai",
-        title: "Ask AI Assistant",
-        subtitle: "Query LLM, summarize text, or generate code",
-        icon: "🤖",
-        category: "Intelligence",
-        badge: "AI",
-        action: function() { root.requestPushView("Ask AI Assistant", root.aiAssistComp) },
-        actions: [
-          { title: "Open AI Assistant", icon: "🤖", shortcut: "↵", callback: function() { root.requestPushView("Ask AI Assistant", root.aiAssistComp) } }
-        ]
-      },
-      {
         id: "window",
         title: "Window Management",
         subtitle: "Tile windows, move workspaces, split monitors (Hyprland)",
@@ -245,9 +306,30 @@ Item {
         actions: [
           { title: "Open Window Actions", icon: "🪟", shortcut: "↵", callback: function() { root.requestPushView("Window Management", root.windowTilerComp) } }
         ]
+      },
+      {
+        id: "ai",
+        title: "Ask AI Assistant",
+        subtitle: "Query LLM, summarize text, or generate code",
+        icon: "🤖",
+        category: "Intelligence",
+        badge: "AI",
+        action: function() { root.requestPushView("Ask AI Assistant", root.aiAssistComp) },
+        actions: [
+          { title: "Open AI Assistant", icon: "🤖", shortcut: "↵", callback: function() { root.requestPushView("Ask AI Assistant", root.aiAssistComp) } }
+        ]
       }
     ]
 
+    // Section: OMARCHY COMMANDS
+    if (omarchyCommands.length > 0) {
+      items.push({ section: "OMARCHY SYSTEM COMMANDS", isHeader: true, title: "OMARCHY SYSTEM COMMANDS" })
+      for (var oc = 0; oc < omarchyCommands.length; oc++) {
+        items.push(omarchyCommands[oc])
+      }
+    }
+
+    // Section: SCRIPT COMMANDS
     if (scriptCommands.length > 0) {
       items.push({ section: "SCRIPT COMMANDS", isHeader: true, title: "SCRIPT COMMANDS" })
       for (var k = 0; k < scriptCommands.length; k++) {
@@ -255,37 +337,7 @@ Item {
       }
     }
 
-    items.push({ section: "SYSTEM & SETTINGS", isHeader: true, title: "SYSTEM & SETTINGS" })
-    items.push({
-      id: "theme",
-      title: "Change Theme",
-      subtitle: "Switch Omarchy global desktop themes",
-      icon: "🎨",
-      category: "Appearance",
-      badge: "Omarchy",
-      action: function() { root.requestPushView("Theme Selector", root.themePickerComp) },
-      actions: [
-        { title: "Open Theme Selector", icon: "🎨", shortcut: "↵", callback: function() { root.requestPushView("Theme Selector", root.themePickerComp) } }
-      ]
-    })
-    items.push({
-      id: "lock",
-      title: "Lock Screen",
-      subtitle: "Lock current session (Hyprlock)",
-      icon: "🔒",
-      category: "System",
-      action: function() {
-        Qt.createQmlObject('import Quickshell.Io; Process { command: ["omarchy", "lock", "screen"]; running: true }', root)
-        root.requestDismiss()
-      },
-      actions: [
-        { title: "Lock Now", icon: "🔒", shortcut: "↵", callback: function() {
-          Qt.createQmlObject('import Quickshell.Io; Process { command: ["omarchy", "lock", "screen"]; running: true }', root)
-          root.requestDismiss()
-        }}
-      ]
-    })
-
+    // Section: APPLICATIONS
     if (desktopApps.length > 0) {
       items.push({ section: "APPLICATIONS", isHeader: true, title: "APPLICATIONS" })
       for (var m = 0; m < desktopApps.length; m++) {
@@ -431,5 +483,6 @@ Item {
   Component.onCompleted: {
     scriptScanner.running = true
     appScanner.running = true
+    omarchyScanner.running = true
   }
 }

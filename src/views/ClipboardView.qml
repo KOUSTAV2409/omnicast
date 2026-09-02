@@ -9,16 +9,15 @@ Item {
 
   property var navStack: null
   property string filterText: ""
-  property string activeCategory: "all" // "all", "pinned", "text", "code", "color", "url", "image"
+  property string activeCategory: "all"
 
   signal requestActionPalette(var actions)
   signal requestDismiss()
 
-  // Selected item proxy
   readonly property var selectedItem: listDetail.selectedItem
 
   property Process clipLoader: Process {
-    command: ["python3", "/home/iamkxyz/Projects/omnicast/src/backend/clipboard_manager.py", "list", root.filterText, root.activeCategory]
+    command: ["python3", "/home/iamkxyz/Projects/omnicast/src/backend/omarchy_clipboard.py", "list", root.filterText, root.activeCategory]
     running: false
     stdout: StdioCollector {
       waitForEnd: true
@@ -28,7 +27,7 @@ Item {
 
   function reloadData() {
     if (!clipLoader.running) {
-      clipLoader.command = ["python3", "/home/iamkxyz/Projects/omnicast/src/backend/clipboard_manager.py", "list", root.filterText, root.activeCategory]
+      clipLoader.command = ["python3", "/home/iamkxyz/Projects/omnicast/src/backend/omarchy_clipboard.py", "list", root.filterText, root.activeCategory]
       clipLoader.running = true
     }
   }
@@ -64,7 +63,7 @@ Item {
             icon: "📌",
             shortcut: "Ctrl+P",
             callback: (function(it) {
-              return function() { root.togglePin(it.raw_id) }
+              return function() { root.togglePin(it.key) }
             })(item)
           }
         ]
@@ -99,16 +98,9 @@ Item {
           title: "Delete from History",
           icon: "🗑️",
           shortcut: "Del",
-          callback: (function(cid) {
-            return function() { root.deleteItem(cid) }
-          })(item.raw_id)
-        })
-
-        actionsList.push({
-          title: "Clear History (Keep Pinned)",
-          icon: "🧹",
-          shortcut: "Ctrl+Shift+Del",
-          callback: function() { root.clearHistory() }
+          callback: (function(keyStr) {
+            return function() { root.deleteItem(keyStr) }
+          })(item.key)
         })
 
         item.actions = actionsList
@@ -117,7 +109,7 @@ Item {
       listDetail.items = data
       listDetail.filter(root.filterText)
     } catch (e) {
-      console.error("Error parsing clipboard JSON:", e)
+      console.error("Error parsing Omarchy clipboard JSON:", e)
     }
   }
 
@@ -139,18 +131,13 @@ Item {
     root.requestDismiss()
   }
 
-  function togglePin(cid) {
-    Qt.createQmlObject('import Quickshell.Io; Process { command: ["python3", "/home/iamkxyz/Projects/omnicast/src/backend/clipboard_manager.py", "pin", "' + cid + '"]; running: true }', root)
+  function togglePin(keyStr) {
+    Qt.createQmlObject('import Quickshell.Io; Process { command: ["python3", "/home/iamkxyz/Projects/omnicast/src/backend/omarchy_clipboard.py", "pin", "' + keyStr.replace(/'/g, "'\\''") + '"]; running: true }', root)
     reloadData()
   }
 
-  function deleteItem(cid) {
-    Qt.createQmlObject('import Quickshell.Io; Process { command: ["python3", "/home/iamkxyz/Projects/omnicast/src/backend/clipboard_manager.py", "delete", "' + cid + '"]; running: true }', root)
-    reloadData()
-  }
-
-  function clearHistory() {
-    Qt.createQmlObject('import Quickshell.Io; Process { command: ["python3", "/home/iamkxyz/Projects/omnicast/src/backend/clipboard_manager.py", "clear"]; running: true }', root)
+  function deleteItem(keyStr) {
+    Qt.createQmlObject('import Quickshell.Io; Process { command: ["python3", "/home/iamkxyz/Projects/omnicast/src/backend/omarchy_clipboard.py", "delete", "' + keyStr.replace(/'/g, "'\\''") + '"]; running: true }', root)
     reloadData()
   }
 
