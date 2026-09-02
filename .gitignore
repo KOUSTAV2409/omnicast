@@ -1,0 +1,14 @@
+# Python & Bytecode
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Temporary DBs and logs
+*.db
+*.db-journal
+*.log
+*.qslog
+
+# Editor / OS metadata
+.DS_Store
+*.bak.*

@@ -1,0 +1,11 @@
+ActionPalette 1.0 ActionPalette.qml
+DetailPane 1.0 DetailPane.qml
+EmptyState 1.0 EmptyState.qml
+FooterBar 1.0 FooterBar.qml
+FormView 1.0 FormView.qml
+GridCard 1.0 GridCard.qml
+GridView 1.0 GridView.qml
+ItemRow 1.0 ItemRow.qml
+ListDetailView 1.0 ListDetailView.qml
+NavigationStack 1.0 NavigationStack.qml
+SearchBar 1.0 SearchBar.qml
