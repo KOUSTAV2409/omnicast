@@ -29,4 +29,11 @@ QtObject {
   function py(scriptName) {
     return backend + "/" + scriptName
   }
+
+  function cacheFile(name) {
+    var home = Quickshell.env("HOME") || ""
+    var xdg = Quickshell.env("XDG_CACHE_HOME") || ""
+    var base = xdg.length ? xdg : (home + "/.cache")
+    return base + "/omnicast/" + name
+  }
 }

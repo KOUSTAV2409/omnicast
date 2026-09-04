@@ -40,7 +40,7 @@ QtObject {
     return score(query, text) > 0
   }
 
-  // Match against title/subtitle/category/keywords
+  // Match against title/subtitle/category/keywords/route
   function itemScore(query, item) {
     if (!query || query.trim() === "")
       return 1
@@ -54,6 +54,10 @@ QtObject {
       best = Math.max(best, score(query, item.keyword) * 1.2)
     if (item.alias)
       best = Math.max(best, score(query, item.alias) * 1.5)
+    if (item.route)
+      best = Math.max(best, score(query, item.route) * 1.1)
+    if (item.exec)
+      best = Math.max(best, score(query, String(item.exec)) * 0.9)
     return best
   }
 }

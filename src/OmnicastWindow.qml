@@ -300,8 +300,12 @@ PanelWindow {
     isVisible = false
     actionPalette.active = false
     toast.hide()
-    navStack.reset()
+    // Keep root view warm so Omarchy/app catalogs aren't rescanned every open
+    while (navStack.depth > 1)
+      navStack.pop()
     searchBar.clear()
+    if (navStack.currentViewItem && typeof navStack.currentViewItem.filter === "function")
+      navStack.currentViewItem.filter("")
   }
 
   // Allow pending Hud to show after window hides

@@ -77,7 +77,7 @@ Omnicast dismisses and opens the native surface:
 
 ### Own (Omnicast fills the gap)
 - **Apps & commands** — `.desktop` apps + Omarchy CLI catalog  
-  - Try: `foot`, `screenshot`, `nightlight`
+  - Try: `foot`, `screenshot`, `nightlight` (→ Omarchy: Toggle Nightlight)
 - **Calculator** — math, `#hex` colors, simple unit conversion  
   - Try: `12*7+3` · `#ff8800` · `10 km to mi` · `72 f to c`
 - **Quicklinks** — bookmarks with `{argument}` / `{clipboard}` placeholders  
