@@ -1,5 +1,7 @@
 # Omnicast
 
+> First we take Manhattan, then we take Berlin.
+
 **Alt+Space for Omarchy** — one launcher that searches your machine and either **hands off** to native Omarchy tools or **owns** the gaps they don’t cover.
 
 Not a Raycast UI clone. An **Omarchy umbrella**: same muscle memory as a modern launcher, styled like Omarchy’s menu/clipboard surfaces, wired into Hyprland and the Omarchy CLI.
