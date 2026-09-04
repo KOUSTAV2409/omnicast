@@ -54,11 +54,29 @@ QtObject {
     detached(["python3", Paths.py("util_io.py"), "paste-image", path || ""])
   }
 
+  // Omarchy Hyprland is Lua-first: classic `hyprctl dispatch togglefloating`
+  // fails. Pass a Lua dispatcher expression, e.g. hl.dsp.window.float({ action = "toggle" }).
+  function hyprLua(expr) {
+    if (!expr || !String(expr).length)
+      return
+    detached(["hyprctl", "dispatch", String(expr)])
+  }
+
   function hypr(dispatchArgs) {
+    // Legacy helper — prefer hyprLua on Omarchy. Still used for simple argv joins.
     var argv = ["hyprctl", "dispatch"]
     for (var i = 0; i < dispatchArgs.length; i++)
       argv.push(String(dispatchArgs[i]))
     detached(argv)
+  }
+
+  // Run after overlay dismisses so Omarchy helpers see the real active window.
+  function afterDismiss(argv, delayMs) {
+    var ms = delayMs === undefined ? 80 : delayMs
+    var parts = []
+    for (var i = 0; i < argv.length; i++)
+      parts.push("'" + String(argv[i]).replace(/'/g, "'\\''") + "'")
+    detached(["sh", "-c", "sleep " + (ms / 1000) + "; exec " + parts.join(" ")])
   }
 
   function openUrl(url) {

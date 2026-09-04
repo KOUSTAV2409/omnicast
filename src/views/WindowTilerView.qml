@@ -1,136 +1,154 @@
 import QtQuick
-import Quickshell
-import Quickshell.Io
 import "../services"
 import "../components"
 
+// Curated Omarchy / Hyprland window actions.
+// Omarchy Hyprland is Lua-first — never use classic `dispatch setfloating` batches.
 Item {
   id: root
 
   property var navStack: null
   property string filterText: ""
+  property int selectedIndex: 0
+  property var allItems: []
+  property var filteredItems: []
 
   signal requestActionPalette(var actions)
   signal requestDismiss()
 
-  readonly property var selectedItem: listDetail.selectedItem
+  readonly property var selectedItem: filteredItems.length > 0 && selectedIndex < filteredItems.length
+                                      ? filteredItems[selectedIndex] : null
 
-  function loadWindowActions() {
-    function mk(id, title, subtitle, icon, badge, md, meta, argv, primary) {
-      return {
-        id: id,
-        title: title,
-        subtitle: subtitle,
-        icon: icon,
-        badge: badge,
-        primaryActionTitle: primary || title,
-        markdown: md,
-        metadata: meta,
-        action: function() { root.hyprDispatch(argv) },
-        actions: [
-          { title: primary || title, icon: icon, shortcut: "↵", callback: function() { root.hyprDispatch(argv) } }
-        ]
-      }
+  function mkOmarchy(id, title, subtitle, icon, argv) {
+    var item = {
+      id: id, title: title, subtitle: subtitle, icon: icon,
+      badge: "", category: "Windows", primaryActionTitle: title, actions: []
     }
-
-    var items = [
-      mk("win-left", "Tile Left (50%)", "Snap focused window to left half", "◧", "Split",
-         "### Left Half\n\nFloating snap to left 50% via Hyprland batch resize/move.",
-         [{ label: "Ratio", value: "50%" }],
-         ["--batch", "dispatch setfloating 1; dispatch resizeactive exact 50% 100%; dispatch moveactive exact 0 0"], "Tile Left"),
-      mk("win-right", "Tile Right (50%)", "Snap focused window to right half", "◨", "Split",
-         "### Right Half\n\nFloating snap to right 50%.",
-         [{ label: "Ratio", value: "50%" }],
-         ["--batch", "dispatch setfloating 1; dispatch resizeactive exact 50% 100%; dispatch moveactive exact 50% 0"], "Tile Right"),
-      mk("win-top", "Tile Top (50%)", "Snap focused window to top half", "⬒", "Split",
-         "### Top Half", [{ label: "Ratio", value: "50%" }],
-         ["--batch", "dispatch setfloating 1; dispatch resizeactive exact 100% 50%; dispatch moveactive exact 0 0"], "Tile Top"),
-      mk("win-bottom", "Tile Bottom (50%)", "Snap focused window to bottom half", "⬓", "Split",
-         "### Bottom Half", [{ label: "Ratio", value: "50%" }],
-         ["--batch", "dispatch setfloating 1; dispatch resizeactive exact 100% 50%; dispatch moveactive exact 0 50%"], "Tile Bottom"),
-      mk("win-left-third", "Tile Left (33%)", "Left third of the monitor", "▎", "Split",
-         "### Left Third", [{ label: "Ratio", value: "33%" }],
-         ["--batch", "dispatch setfloating 1; dispatch resizeactive exact 33% 100%; dispatch moveactive exact 0 0"], "Tile Left 33%"),
-      mk("win-center-third", "Tile Center (33%)", "Center third of the monitor", "▮", "Split",
-         "### Center Third", [{ label: "Ratio", value: "33%" }],
-         ["--batch", "dispatch setfloating 1; dispatch resizeactive exact 34% 100%; dispatch moveactive exact 33% 0"], "Tile Center"),
-      mk("win-right-third", "Tile Right (33%)", "Right third of the monitor", "▍", "Split",
-         "### Right Third", [{ label: "Ratio", value: "33%" }],
-         ["--batch", "dispatch setfloating 1; dispatch resizeactive exact 33% 100%; dispatch moveactive exact 67% 0"], "Tile Right 33%"),
-      mk("win-tl", "Top Left Quarter", "Quarter snap", "◰", "Quarter",
-         "### Top Left", [{ label: "Ratio", value: "50%×50%" }],
-         ["--batch", "dispatch setfloating 1; dispatch resizeactive exact 50% 50%; dispatch moveactive exact 0 0"], "Top Left"),
-      mk("win-tr", "Top Right Quarter", "Quarter snap", "東北", "Quarter",
-         "### Top Right", [{ label: "Ratio", value: "50%×50%" }],
-         ["--batch", "dispatch setfloating 1; dispatch resizeactive exact 50% 50%; dispatch moveactive exact 50% 0"], "Top Right"),
-      mk("win-bl", "Bottom Left Quarter", "Quarter snap", "◱", "Quarter",
-         "### Bottom Left", [{ label: "Ratio", value: "50%×50%" }],
-         ["--batch", "dispatch setfloating 1; dispatch resizeactive exact 50% 50%; dispatch moveactive exact 0 50%"], "Bottom Left"),
-      mk("win-br", "Bottom Right Quarter", "Quarter snap", "◲", "Quarter",
-         "### Bottom Right", [{ label: "Ratio", value: "50%×50%" }],
-         ["--batch", "dispatch setfloating 1; dispatch resizeactive exact 50% 50%; dispatch moveactive exact 50% 50%"], "Bottom Right"),
-      mk("win-center", "Center Window", "Center the focused window", "🎯", "Layout",
-         "### Center", [{ label: "Dispatcher", value: "centerwindow" }],
-         ["centerwindow"], "Center"),
-      mk("win-full", "Toggle Fullscreen", "Fullscreen without borders", "⛶", "Layout",
-         "### Fullscreen", [{ label: "Dispatcher", value: "fullscreen 1" }],
-         ["fullscreen", "1"], "Fullscreen"),
-      mk("win-float", "Toggle Floating", "Floating vs tiling", "🪟", "State",
-         "### Toggle Floating", [{ label: "Dispatcher", value: "togglefloating" }],
-         ["togglefloating"], "Toggle Float"),
-      mk("win-max", "Maximize", "Maximize on current monitor", "⬜", "Layout",
-         "### Maximize", [{ label: "Dispatcher", value: "fullscreen 0" }],
-         ["fullscreen", "0"], "Maximize"),
-      mk("win-ws-next", "Move to Next Workspace", "Send window to +1 workspace", "→", "Workspace",
-         "### Next Workspace", [{ label: "Dispatcher", value: "movetoworkspace +1" }],
-         ["movetoworkspace", "+1"], "Move +1"),
-      mk("win-ws-prev", "Move to Previous Workspace", "Send window to -1 workspace", "←", "Workspace",
-         "### Previous Workspace", [{ label: "Dispatcher", value: "movetoworkspace -1" }],
-         ["movetoworkspace", "-1"], "Move -1"),
-      mk("win-mon-next", "Move to Next Monitor", "Throw window to next display", "🖥️", "Monitor",
-         "### Next Monitor", [{ label: "Dispatcher", value: "movewindow mon:+1" }],
-         ["movewindow", "mon:+1"], "Next Monitor")
-    ]
-
-    listDetail.items = items
-    listDetail.filter(filterText)
+    item.action = function() { root.runOmarchy(argv, title) }
+    item.actions = [{ title: title, icon: icon, shortcut: "↵", callback: item.action }]
+    return item
   }
 
-  function hyprDispatch(argv) {
-    // Dismiss first so Hyprland restores focus to the real client window.
-    Hud.success("Window updated")
-    root.requestDismiss()
-    if (argv[0] === "--batch") {
-      Exec.detached(["hyprctl", "--batch", argv[1]])
-    } else {
-      var cmd = ["hyprctl", "dispatch"]
-      for (var i = 0; i < argv.length; i++)
-        cmd.push(argv[i])
-      Exec.detached(cmd)
+  function mkLua(id, title, subtitle, icon, expr) {
+    var item = {
+      id: id, title: title, subtitle: subtitle, icon: icon,
+      badge: "", category: "Windows", primaryActionTitle: title, actions: []
     }
+    item.action = function() { root.runLua(expr, title) }
+    item.actions = [{ title: title, icon: icon, shortcut: "↵", callback: item.action }]
+    return item
+  }
+
+  function loadWindowActions() {
+    allItems = [
+      mkOmarchy("om-pop", "Pop Window", "Super+O · float & pin (toggle)", "󰖯",
+                ["omarchy-hyprland-window-pop"]),
+      mkOmarchy("om-gaps", "Toggle Gaps", "No gaps ↔ default gaps", "󰝘",
+                ["omarchy-hyprland-window-gaps-toggle"]),
+      mkOmarchy("om-trans", "Toggle Transparency", "Active window opacity", "󰗔",
+                ["omarchy-hyprland-window-transparency-toggle"]),
+      mkOmarchy("om-tfs", "Tiled Fullscreen", "Borderless tiled fullscreen", "󰊓",
+                ["omarchy-hyprland-window-tiled-fullscreen-toggle"]),
+      mkOmarchy("om-ratio", "1-Window Ratio", "Square aspect for single window", "󰕮",
+                ["omarchy-hyprland-window-single-square-aspect-toggle"]),
+      mkOmarchy("om-layout", "Workspace Layout", "Dwindle ↔ scrolling", "󰕰",
+                ["omarchy-hyprland-workspace-layout-toggle"]),
+      mkOmarchy("om-width-save", "Save Window Width", "Remember focused width", "󰁎",
+                ["omarchy-hyprland-window-width", "save"]),
+      mkOmarchy("om-width-restore", "Restore Window Width", "Apply saved width", "󰁊",
+                ["omarchy-hyprland-window-width", "restore"]),
+      mkOmarchy("om-close-all", "Close All Windows", "Close every client window", "󰅖",
+                ["omarchy-hyprland-window-close-all"]),
+
+      mkLua("win-float", "Toggle Float", "Super+T · tile ↔ float", "󰖲",
+            "hl.dsp.window.float({ action = \"toggle\" })"),
+      mkLua("win-center", "Center Window", "Center floating window", "󰘕",
+            "hl.dsp.window.center()"),
+      mkLua("win-full", "Fullscreen", "Super+F", "󰊓",
+            "hl.dsp.window.fullscreen({ mode = \"fullscreen\" })"),
+      mkLua("win-max", "Maximize", "Super+Alt+F · maximized", "󰁌",
+            "hl.dsp.window.fullscreen({ mode = \"maximized\" })"),
+      mkLua("win-scratch", "Move to Scratchpad", "Super+Alt+S", "󰖯",
+            "hl.dsp.window.move({ workspace = \"special:scratchpad\", follow = false })"),
+      mkLua("win-ws-next", "Next Workspace", "Move window e+1", "󰁔",
+            "hl.dsp.window.move({ workspace = \"e+1\" })"),
+      mkLua("win-ws-prev", "Previous Workspace", "Move window e-1", "󰁍",
+            "hl.dsp.window.move({ workspace = \"e-1\" })")
+    ]
+    filter(filterText)
+  }
+
+  function runOmarchy(argv, title) {
+    Hud.success(title || (selectedItem ? selectedItem.title : "Done"))
+    root.requestDismiss()
+    Exec.afterDismiss(argv, 80)
+  }
+
+  function runLua(expr, title) {
+    Hud.success(title || (selectedItem ? selectedItem.title : "Done"))
+    root.requestDismiss()
+    Exec.afterDismiss(["hyprctl", "dispatch", expr], 80)
   }
 
   function filter(query) {
-    root.filterText = query
-    listDetail.filter(query)
+    root.filterText = query || ""
+    if (!root.filterText.trim().length) {
+      filteredItems = allItems
+    } else {
+      var scored = []
+      for (var i = 0; i < allItems.length; i++) {
+        var s = Fuzzy.itemScore(root.filterText, allItems[i])
+        if (s > 0) scored.push({ item: allItems[i], score: s })
+      }
+      scored.sort(function(a, b) { return b.score - a.score })
+      filteredItems = scored.map(function(x) { return x.item })
+    }
+    selectedIndex = filteredItems.length ? 0 : 0
   }
 
   function moveSelection(delta) {
-    listDetail.moveSelection(delta)
+    if (!filteredItems.length) return
+    var next = selectedIndex + delta
+    if (next < 0) next = filteredItems.length - 1
+    if (next >= filteredItems.length) next = 0
+    selectedIndex = next
+    list.positionViewAtIndex(selectedIndex, ListView.Contain)
   }
 
   function executeCurrent() {
-    listDetail.executeCurrent()
+    if (selectedItem && typeof selectedItem.action === "function")
+      selectedItem.action()
   }
 
   function openActionPalette() {
-    listDetail.openActionPalette()
+    if (selectedItem && selectedItem.actions)
+      root.requestActionPalette(selectedItem.actions)
   }
 
-  ListDetailView {
-    id: listDetail
+  ListView {
+    id: list
     anchors.fill: parent
-    onRequestActionPalette: actions => root.requestActionPalette(actions)
+    clip: true
+    model: root.filteredItems
+    spacing: Theme.rowSpacing
+    boundsBehavior: Flickable.StopAtBounds
+
+    delegate: ItemRow {
+      width: list.width
+      title: modelData.title
+      subtitle: modelData.subtitle || ""
+      iconText: modelData.icon || ""
+      isSelected: index === root.selectedIndex
+      onClicked: { root.selectedIndex = index }
+      onDoubleClicked: { root.selectedIndex = index; root.executeCurrent() }
+    }
+  }
+
+  EmptyState {
+    anchors.centerIn: parent
+    visible: root.filteredItems.length === 0
+    title: "No window actions"
+    subtitle: "Try pop, float, gaps, fullscreen…"
   }
 
   Component.onCompleted: loadWindowActions()

@@ -204,11 +204,15 @@ Adjust if dogfooding reveals a broken hero path — **always prioritize trust (A
 - [ ] Clipboard/selection context actions
 *(UI still mocked — discuss before implementing)*
 
-### M5 — “Manhattan complete” (= Phase E + M1–M4)
-- [ ] File search in Root
-- [ ] Emoji picker
-- [ ] Raycast power-user daily loop possible without friction
-- [ ] Update `research.md` §8 all P0 → ✅/strong
+### M5 — “Manhattan complete” (umbrella edition)
+- [x] Handoff Omarchy-strong tools (clipboard, emoji, theme, images, menu, capture, share, reminders, keybindings)
+- [x] Own calc / quicklinks / scripts / ranking / snippets surface
+- [x] Curate Hyprland + `omarchy-hyprland-*` into searchable Windows palette + root index
+- [x] No-match fallbacks (web search, Ask AI)
+- [ ] Real AI streaming (M4 / Phase D) — next discuss
+- [ ] Optional: light file provider (or keep `omarchy-menu-file` handoff)
+
+**Manhattan daily loop (umbrella):** Alt+Space → apps/commands/calc → handoff clipboard/emoji/theme → Windows tile/pop/gaps → scripts/quicklinks → Esc.
 
 ### M6 — “Berlin underway” (= Phase F)
 - [ ] Deeplinks + packaging
