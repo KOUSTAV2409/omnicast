@@ -165,6 +165,9 @@ Item {
       handoffTool("images", "Images", "Browse Pictures",
                   "󰋫", "Omarchy", "Omarchy", "Open Images",
                   function() { Exec.omarchyImages() }),
+      handoffTool("files", "Find Files", "Portal file picker · open",
+                  "󰈔", "Omarchy", "Omarchy", "Open Files",
+                  function() { Exec.omarchyFileOpen() }),
       handoffTool("keybindings", "Keybindings", "Super+K",
                   "", "Omarchy", "Omarchy", "Open Keybindings",
                   function() { Exec.omarchyKeybindings() }),
@@ -529,6 +532,76 @@ Item {
     return (Math.abs(out) >= 100 ? out.toFixed(2) : out.toFixed(4)).replace(/\.?0+$/, "") + " " + to
   }
 
+  // Approximate static FX vs USD (offline). Labeled in UI as approx.
+  function tryCurrencyConversion(query) {
+    if (!query) return null
+    var m = query.trim().match(/^(-?[\d.]+)\s*(usd|eur|gbp|inr|jpy|aud|cad|\$|€|£|₹)\s*(?:to|in)\s*(usd|eur|gbp|inr|jpy|aud|cad|\$|€|£|₹)$/i)
+    if (!m) return null
+    var n = parseFloat(m[1])
+    if (!isFinite(n)) return null
+    function norm(c) {
+      c = String(c).toLowerCase()
+      if (c === "$") return "usd"
+      if (c === "€") return "eur"
+      if (c === "£") return "gbp"
+      if (c === "₹") return "inr"
+      return c
+    }
+    var from = norm(m[2]), to = norm(m[3])
+    // Rates: 1 USD = X
+    var usd = { usd: 1, eur: 0.92, gbp: 0.79, inr: 83.5, jpy: 150.0, aud: 1.52, cad: 1.36 }
+    if (usd[from] === undefined || usd[to] === undefined) return null
+    var out = n * (usd[to] / usd[from])
+    var rounded = (Math.abs(out) >= 100 ? out.toFixed(2) : out.toFixed(4)).replace(/\.?0+$/, "")
+    return rounded + " " + to.toUpperCase() + " (approx)"
+  }
+
+  function tryDateEvaluation(query) {
+    if (!query) return null
+    var q = query.trim().toLowerCase()
+    var now = new Date()
+    function fmt(d) {
+      var y = d.getFullYear()
+      var m = ("" + (d.getMonth() + 1))
+      var day = ("" + d.getDate())
+      if (m.length < 2) m = "0" + m
+      if (day.length < 2) day = "0" + day
+      return y + "-" + m + "-" + day
+    }
+    function parseYmd(s) {
+      var p = s.match(/^(\d{4})-(\d{2})-(\d{2})$/)
+      if (!p) return null
+      var d = new Date(parseInt(p[1], 10), parseInt(p[2], 10) - 1, parseInt(p[3], 10))
+      return isNaN(d.getTime()) ? null : d
+    }
+    if (q === "today") return fmt(now)
+    if (q === "now") {
+      var hh = ("" + now.getHours())
+      var mm = ("" + now.getMinutes())
+      if (hh.length < 2) hh = "0" + hh
+      if (mm.length < 2) mm = "0" + mm
+      return fmt(now) + " " + hh + ":" + mm
+    }
+    var m = q.match(/^days\s+(until|since)\s+(\d{4}-\d{2}-\d{2})$/)
+    if (m) {
+      var target = parseYmd(m[2])
+      if (!target) return null
+      var start = new Date(now.getFullYear(), now.getMonth(), now.getDate())
+      var diff = Math.round((target - start) / 86400000)
+      if (m[1] === "since") diff = -diff
+      return String(diff) + " day" + (Math.abs(diff) === 1 ? "" : "s")
+    }
+    m = q.match(/^(\d{4}-\d{2}-\d{2})\s*([+-])\s*(\d+)\s*days?$/)
+    if (m) {
+      var base = parseYmd(m[1])
+      if (!base) return null
+      var delta = parseInt(m[3], 10) * (m[2] === "-" ? -1 : 1)
+      base.setDate(base.getDate() + delta)
+      return fmt(base)
+    }
+    return null
+  }
+
   function calcRow(id, title, subtitle, copyValue) {
     var item = {
       id: id, title: title, subtitle: subtitle, icon: "🔢",
@@ -684,6 +757,16 @@ Item {
     if (unitResult) {
       if (!results.length) results.push(header("Calculator"))
       results.push(calcRow("calc-unit", "= " + unitResult, "↵ to copy", unitResult))
+    }
+    var fxResult = tryCurrencyConversion(q)
+    if (fxResult) {
+      if (!results.length) results.push(header("Calculator"))
+      results.push(calcRow("calc-fx", "= " + fxResult, "static rates · ↵ to copy", fxResult))
+    }
+    var dateResult = tryDateEvaluation(q)
+    if (dateResult) {
+      if (!results.length) results.push(header("Calculator"))
+      results.push(calcRow("calc-date", dateResult, "date · ↵ to copy", dateResult))
     }
 
     if (!q.length) {

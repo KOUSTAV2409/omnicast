@@ -40,9 +40,9 @@
 3. **AI context actions** — explain / summarize clipboard or selection
 
 ### Should build (optional Manhattan polish)
-4. **File search** — light provider *or* solid `omarchy-menu-file` handoff
-5. **Snippetd reliability** — settings, delay, clearer failure HUD (`wtype` / `ydotool`)
-6. **Calc depth** — currency / dates (math, units, color already ship)
+4. [x] **File search** — `Find Files` handoff via `omarchy-file-select` (`bin/omnicast-open-file`)
+5. [x] **Snippetd reliability** — `snippetd.json` delay/backend, wtype→ydotool fallback, failure HUD/notify
+6. [x] **Calc depth** — currency (approx static FX) + dates (`today`, `days until …`)
 
 ### Berlin (M6 — after M4)
 7. **Packaging / install path** — public or easy private install

@@ -210,8 +210,9 @@ Adjust if dogfooding reveals a broken hero path — **always prioritize trust (A
 - [x] Curate Hyprland + `omarchy-hyprland-*` into searchable Windows palette + root index
 - [x] No-match fallbacks (web search, Ask AI)
 - [ ] Real AI streaming (M4) — **blocks Manhattan “complete” on paper**
-- [ ] Optional: light file provider (or keep `omarchy-menu-file` handoff)
-- [ ] Optional polish: snippetd reliability; calc currency/dates
+- [x] File search handoff (`Find Files` → omarchy-file-select)
+- [x] Snippetd reliability (delay/backend settings, wtype/ydotool, failure notify/HUD)
+- [x] Calc depth (currency approx + dates)
 
 **Manhattan daily loop (umbrella):** Alt+Space → apps/commands/calc → handoff clipboard/emoji/theme → Windows pop/float/gaps → scripts/quicklinks → Esc.
 

@@ -3,14 +3,16 @@
 Omnicast global snippet expander (best-effort Wayland).
 
 Listens for keyboard events via python-evdev when available and expands
-configured keywords (e.g. :shrug) using backspace + wtype.
+configured keywords (e.g. :shrug) using clipboard + wtype/ydotool.
+
+Settings: ~/.config/omnicast/snippetd.json
+  { "delay_ms": 150, "backend": "auto" }   # auto | wtype | ydotool
 
 Requires: user in `input` group, python-evdev installed.
-Fallback: prints instructions and exits non-zero if evdev unavailable.
+On expand failure: desktop notification (and text still copied when possible).
 
 Usage:
   omnicast-snippetd
-  systemctl --user enable --now omnicast-snippetd.service  # if packaged
 """
 from __future__ import annotations
 
@@ -35,9 +37,16 @@ def load_keywords():
         return {}
 
 
-def expand_and_type(keyword: str, template: str):
-    # Resolve via manager insert by keyword
-    subprocess.run(["python3", str(MANAGER), "insert", keyword], check=False)
+def expand_keyword(keyword: str) -> dict:
+    try:
+        out = subprocess.check_output(
+            ["python3", str(MANAGER), "insert", keyword, "--notify"],
+            text=True,
+            timeout=8,
+        )
+        return json.loads(out or "{}")
+    except Exception as e:
+        return {"ok": False, "error": str(e)}
 
 
 def main():
@@ -54,9 +63,8 @@ def main():
 
     keywords = load_keywords()
     if not keywords:
-        print("[snippetd] no keywords configured", file=sys.stderr)
+        print("[snippetd] no keywords configured — add some in Omnicast → Snippets", file=sys.stderr)
 
-    # Pick first keyboard-like device
     devices = []
     for path in evdev.list_devices():
         try:
@@ -71,12 +79,14 @@ def main():
         print("[snippetd] no input devices readable — check `input` group", file=sys.stderr)
         sys.exit(3)
 
-    print(f"[snippetd] watching {len(devices)} devices, {len(keywords)} keywords", flush=True)
+    print(
+        f"[snippetd] watching {len(devices)} devices, {len(keywords)} keywords "
+        f"(settings: ~/.config/omnicast/snippetd.json)",
+        flush=True,
+    )
 
     buffer = ""
     last_reload = time.time()
-    # Map keycodes to chars for simple US-ish layout (letters, digits, colon)
-    # For a fuller layout, use xkb — this is intentionally minimal.
     SHIFT = set()
 
     from select import select
@@ -124,21 +134,28 @@ def main():
                 if ch is None:
                     continue
                 buffer += ch
-                # Keep buffer short
                 if len(buffer) > 32:
                     buffer = buffer[-32:]
 
-                for kw, template in keywords.items():
+                for kw in keywords:
                     if buffer.endswith(kw):
-                        # Delete keyword chars then expand
                         try:
                             for _ in range(len(kw)):
                                 subprocess.run(
                                     ["wtype", "-k", "BackSpace"],
                                     timeout=0.5,
                                     check=False,
+                                    stdout=subprocess.DEVNULL,
+                                    stderr=subprocess.DEVNULL,
                                 )
-                            expand_and_type(kw, template)
+                            result = expand_keyword(kw)
+                            if result.get("ok"):
+                                print(f"[snippetd] expanded {kw} via {result.get('backend')}", flush=True)
+                            else:
+                                print(
+                                    f"[snippetd] expand failed for {kw}: {result.get('error')}",
+                                    file=sys.stderr,
+                                )
                         except Exception as e:
                             print(f"[snippetd] expand failed: {e}", file=sys.stderr)
                         buffer = ""

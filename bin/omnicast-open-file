@@ -1,0 +1,28 @@
+#!/usr/bin/env bash
+# Dismiss-friendly file open: portal picker → xdg-open.
+# Used by Omnicast "Find Files" handoff.
+
+set -euo pipefail
+
+picked="$(omarchy-file-select --title "Open file" 2>/dev/null)" || status=$?
+status=${status:-0}
+
+if (( status == 1 )); then
+  exit 0  # nothing picked
+fi
+if (( status != 0 )) || [[ -z ${picked//[[:space:]]/} ]]; then
+  command -v omarchy-notification-send >/dev/null 2>&1 && \
+    omarchy-notification-send -g "󰈔" -u critical "File picker" "Could not open file chooser" || true
+  exit "$status"
+fi
+
+while IFS= read -r line; do
+  [[ -z $line ]] && continue
+  path="$line"
+  if [[ $path == file://* ]]; then
+    path="$(python3 -c "import sys,urllib.parse; print(urllib.parse.unquote(sys.argv[1][7:]))" "$path")"
+  fi
+  if [[ -e $path ]]; then
+    xdg-open "$path" >/dev/null 2>&1 &
+  fi
+done <<<"$picked"

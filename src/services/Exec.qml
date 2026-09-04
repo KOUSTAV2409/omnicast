@@ -128,4 +128,9 @@ QtObject {
   function omarchyBackgroundPicker() {
     omarchyMenu("style.background")
   }
+
+  function omarchyFileOpen() {
+    var opener = Paths.projectRoot + "/bin/omnicast-open-file"
+    detached([opener])
+  }
 }
