@@ -8,6 +8,19 @@ Not a Raycast UI clone. An **Omarchy umbrella**: same muscle memory as a modern 
 
 > Private while we dogfood. Not open for public install yet.
 
+### Tell your agent
+
+Paste this to Cursor / Claude / ChatGPT on an Omarchy machine (after you accept the GitHub invite):
+
+```text
+Set up Omnicast on this Omarchy box:
+1. Clone https://github.com/KOUSTAV2409/omnicast.git (private — I have access).
+2. Run ./bin/omnicast once to verify the launcher.
+3. Bind Alt+Space in ~/.config/hypr/bindings.lua to the absolute path of bin/omnicast.
+   Keep Super+Space for the Omarchy menu.
+4. Do not change Hyprland gaps/rounding globally. Follow README Quick start only.
+```
+
 ---
 
 ## Quick start (private testers · Omarchy only)
