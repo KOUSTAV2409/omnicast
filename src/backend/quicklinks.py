@@ -79,7 +79,7 @@ def list_links():
             "primaryActionTitle": "Open Link",
             "markdown": f"### {q.get('title')}\n\n`{q.get('url')}`\n\nKeyword: `{q.get('keyword', '')}`",
         })
-    print(json.dumps(results))
+    return results
 
 
 def open_link(link_id: str, argument: str = ""):
@@ -94,7 +94,13 @@ def open_link(link_id: str, argument: str = ""):
 
 if __name__ == "__main__":
     if len(sys.argv) < 2 or sys.argv[1] == "list":
-        list_links()
+        import os
+        results = list_links()
+        cache_dir = Path(os.environ.get("XDG_CACHE_HOME", Path.home() / ".cache")) / "omnicast"
+        cache_dir.mkdir(parents=True, exist_ok=True)
+        cache_file = cache_dir / "quicklinks.json"
+        cache_file.write_text(json.dumps(results, ensure_ascii=False), encoding="utf-8")
+        print(json.dumps({"ok": True, "count": len(results), "path": str(cache_file)}))
     elif sys.argv[1] == "open" and len(sys.argv) > 2:
         open_link(sys.argv[2], sys.argv[3] if len(sys.argv) > 3 else "")
     else:

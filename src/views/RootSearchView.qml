@@ -39,7 +39,7 @@ Item {
     id: scriptScanner
     command: ["python3", Paths.py("script_runner.py"), "scan"]
     running: false
-    stdout: StdioCollector { waitForEnd: true; onStreamFinished: text => root.handleScriptScan(text) }
+    stdout: StdioCollector { waitForEnd: true; onStreamFinished: text => root.handleScriptScanMeta(text) }
   }
   Process {
     id: omarchyScanner
@@ -71,7 +71,20 @@ Item {
     id: quicklinkScanner
     command: ["python3", Paths.py("quicklinks.py"), "list"]
     running: false
-    stdout: StdioCollector { waitForEnd: true; onStreamFinished: text => root.handleQuicklinkScan(text) }
+    stdout: StdioCollector { waitForEnd: true; onStreamFinished: text => root.handleQuicklinkScanMeta(text) }
+  }
+
+  FileView {
+    id: scriptsCacheFile
+    path: Paths.cacheFile("script-commands.json")
+    blockLoading: true
+    printErrors: true
+  }
+  FileView {
+    id: quicklinksCacheFile
+    path: Paths.cacheFile("quicklinks.json")
+    blockLoading: true
+    printErrors: true
   }
 
   Connections {
@@ -335,12 +348,35 @@ Item {
     buildFullItemList()
   }
 
+  function handleScriptScanMeta(raw) {
+    scriptsCacheFile.path = ""
+    scriptsCacheFile.path = Paths.cacheFile("script-commands.json")
+    var text = ""
+    try { text = scriptsCacheFile.text() || "" } catch (e) {
+      console.error("[Omnicast] scripts cache read failed:", e)
+    }
+    root.handleScriptScan(text)
+  }
+
+  function handleQuicklinkScanMeta(raw) {
+    quicklinksCacheFile.path = ""
+    quicklinksCacheFile.path = Paths.cacheFile("quicklinks.json")
+    var text = ""
+    try { text = quicklinksCacheFile.text() || "" } catch (e) {
+      console.error("[Omnicast] quicklinks cache read failed:", e)
+    }
+    root.handleQuicklinkScan(text)
+  }
+
   function handleScriptScan(raw) {
     try {
       var scripts = JSON.parse(raw || "[]")
+      if (!Array.isArray(scripts))
+        scripts = []
       var list = []
       for (var i = 0; i < scripts.length; i++) list.push(makeScriptItem(scripts[i]))
       scriptCommands = list
+      console.log("[Omnicast] scripts indexed:", list.length)
     } catch (e) {
       console.error("Error parsing script scanner output:", e)
       scriptCommands = []
@@ -351,9 +387,12 @@ Item {
   function handleQuicklinkScan(raw) {
     try {
       var links = JSON.parse(raw || "[]")
+      if (!Array.isArray(links))
+        links = []
       var list = []
       for (var i = 0; i < links.length; i++) list.push(makeQuicklinkItem(links[i]))
       quickLinkItems = list
+      console.log("[Omnicast] quicklinks indexed:", list.length)
     } catch (e) {
       console.error("Error parsing quicklinks:", e)
       quickLinkItems = []
