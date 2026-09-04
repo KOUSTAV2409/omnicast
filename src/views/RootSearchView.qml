@@ -45,13 +45,27 @@ Item {
     id: omarchyScanner
     command: ["python3", Paths.py("omarchy_commands.py")]
     running: false
-    stdout: StdioCollector { waitForEnd: true; onStreamFinished: text => root.handleOmarchyScan(text) }
+    stdout: StdioCollector { waitForEnd: true; onStreamFinished: text => root.handleOmarchyScanMeta(text) }
+  }
+
+  FileView {
+    id: omarchyCacheFile
+    path: Paths.cacheFile("omarchy-commands.json")
+    blockLoading: true
+    printErrors: true
   }
   Process {
     id: appScanner
     command: ["python3", Paths.py("app_indexer.py")]
     running: false
-    stdout: StdioCollector { waitForEnd: true; onStreamFinished: text => root.handleAppScan(text) }
+    stdout: StdioCollector { waitForEnd: true; onStreamFinished: text => root.handleAppScanMeta(text) }
+  }
+
+  FileView {
+    id: appsCacheFile
+    path: Paths.cacheFile("desktop-apps.json")
+    blockLoading: true
+    printErrors: true
   }
   Process {
     id: quicklinkScanner
@@ -178,7 +192,7 @@ Item {
     var item = {
       id: c.id, title: c.title, subtitle: c.subtitle || ("Execute " + route),
       icon: c.icon || "⚙️", category: c.category || "Omarchy", badge: "Omarchy",
-      route: route, primaryActionTitle: "Run", actions: []
+      route: route, keyword: route, primaryActionTitle: "Run", actions: []
     }
     item.action = function() {
       Ranking.bump(item.id)
@@ -250,12 +264,36 @@ Item {
     return item
   }
 
+  function handleOmarchyScanMeta(raw) {
+    // Python prints a tiny {ok,count,path} status; payload is in the cache file
+    // (StdioCollector drops ~100KB+ stdout, so we FileView the cache instead).
+    try {
+      var meta = JSON.parse((raw || "").trim() || "{}")
+      console.log("[Omnicast] omarchy scan meta:", meta.count, meta.path || "")
+    } catch (e) {
+      console.error("[Omnicast] omarchy scan meta parse failed:", e, raw)
+    }
+    // Force reload after writer finished
+    omarchyCacheFile.path = ""
+    omarchyCacheFile.path = Paths.cacheFile("omarchy-commands.json")
+    var text = ""
+    try {
+      text = omarchyCacheFile.text() || ""
+    } catch (e2) {
+      console.error("[Omnicast] omarchy cache read failed:", e2)
+    }
+    root.handleOmarchyScan(text)
+  }
+
   function handleOmarchyScan(raw) {
     try {
       var cmds = JSON.parse(raw || "[]")
+      if (!Array.isArray(cmds))
+        cmds = []
       var list = []
       for (var i = 0; i < cmds.length; i++) list.push(makeOmarchyItem(cmds[i]))
       omarchyCommands = list
+      console.log("[Omnicast] omarchy commands indexed:", list.length)
     } catch (e) {
       console.error("Error parsing Omarchy commands:", e)
       omarchyCommands = []
@@ -263,12 +301,33 @@ Item {
     buildFullItemList()
   }
 
+  function handleAppScanMeta(raw) {
+    try {
+      var meta = JSON.parse((raw || "").trim() || "{}")
+      console.log("[Omnicast] app scan meta:", meta.count, meta.path || "")
+    } catch (e) {
+      console.error("[Omnicast] app scan meta parse failed:", e, raw)
+    }
+    appsCacheFile.path = ""
+    appsCacheFile.path = Paths.cacheFile("desktop-apps.json")
+    var text = ""
+    try {
+      text = appsCacheFile.text() || ""
+    } catch (e2) {
+      console.error("[Omnicast] apps cache read failed:", e2)
+    }
+    root.handleAppScan(text)
+  }
+
   function handleAppScan(raw) {
     try {
       var apps = JSON.parse(raw || "[]")
+      if (!Array.isArray(apps))
+        apps = []
       var list = []
       for (var i = 0; i < apps.length; i++) list.push(makeAppItem(apps[i]))
       desktopApps = list
+      console.log("[Omnicast] apps indexed:", list.length)
     } catch (e) {
       console.error("Error parsing app indexer output:", e)
       desktopApps = []
@@ -599,7 +658,8 @@ Item {
     for (var i = 0; i < catalog.length; i++) {
       var item = catalog[i]
       var fuzzy = Fuzzy.itemScore(q, item)
-      if (fuzzy <= 0 && !(aliasId && aliasId === item.id)) continue
+      // Drop weak / sparse subsequence noise
+      if (fuzzy < 120 && !(aliasId && aliasId === item.id)) continue
       scored.push({
         item: item,
         score: (aliasId && aliasId === item.id ? 100000 : 0) + Ranking.frecencyBoost(item.id) + fuzzy
@@ -609,6 +669,14 @@ Item {
     if (scored.length) {
       results.push(header("Results"))
       for (var s = 0; s < scored.length; s++) results.push(scored[s].item)
+    } else if (root.isLoading) {
+      // Catalogs still scanning — don't falsely fall back to web/AI
+      results.push(header("Loading"))
+      results.push({
+        id: "loading-catalog", title: "Indexing commands…", subtitle: "Try again in a moment",
+        icon: "⏳", badge: "", category: "System", isHeader: false,
+        primaryActionTitle: "", actions: [], action: function() {}
+      })
     } else {
       results.push(header("Fallback"))
       var fb = fallbackItems(q)
