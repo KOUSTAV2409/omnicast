@@ -79,8 +79,8 @@ Omnicast dismisses and opens the native surface:
 ### Own (Omnicast fills the gap)
 - **Apps & commands** — `.desktop` apps + Omarchy CLI catalog  
   - Try: `foot`, `screenshot`, `nightlight` (→ Omarchy: Toggle Nightlight)
-- **Calculator** — math, `#hex` colors, units, currency (approx), dates  
-  - Try: `12*7+3` · `#ff8800` · `10 km to mi` · `72 f to c` · `10 usd to inr` · `days until 2026-12-25` · `today`
+- **Calculator** — math, `#hex` colors, units, rough FX (verify on Google), dates  
+  - Try: `12*7+3` · `#ff8800` · `10 km to mi` · `10 usd to inr` (shows ≈ guess + Google live rate) · `days until 2026-12-25`
 - **Quicklinks** — bookmarks with `{argument}` / `{clipboard}` placeholders  
   - Try: open **Quicklinks**, or search a link title you saved
 - **Script commands** — Raycast-style frontmatter (`@raycast.*` / `@omarchy.*`), form args, `silent` / `compact` / `fullOutput`  
@@ -132,7 +132,7 @@ Full Raycast ↔ Omarchy map: [`docs/raycast-vs-omarchy.md`](docs/raycast-vs-oma
 
 **Manhattan (umbrella):** ~90% — handoffs, search/ranking, calc, scripts, quicklinks, snippets, Windows palette, fallbacks.  
 
-**Next:** real AI streaming (M4), then polish / optional file provider.
+**Next:** real AI streaming (M4). Optional polish (files / snippetd / calc depth) shipped.
 
 Full leftover backlog: [`roadmap.md`](roadmap.md) → **What’s left to build**.
 
