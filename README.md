@@ -49,23 +49,47 @@ Full Raycast ↔ Omarchy map: [`docs/raycast-vs-omarchy.md`](docs/raycast-vs-oma
 
 ---
 
-## Quick start (Omarchy / Hyprland)
+## Quick start (private testers · Omarchy only)
+
+**Needs:** Omarchy (Hyprland) + Quickshell (`qs` on PATH). This will not run on macOS or a generic distro.
+
+### 1. Get repo access
+You’ll get a **GitHub collaborator invite** (to your GitHub account / email). Accept it, then:
 
 ```bash
-git clone <your-private-url> omnicast
+# HTTPS (GitHub will prompt / use credential helper)
+git clone https://github.com/KOUSTAV2409/omnicast.git
 cd omnicast
 
-# Launch / toggle
-./bin/omnicast
+# or SSH, if you use keys
+# git clone git@github.com:KOUSTAV2409/omnicast.git
+```
 
-# Optional: global snippet expander (needs python-evdev + input group)
+### 2. Run once
+```bash
+./bin/omnicast
+```
+
+You should see the launcher. Esc dismisses; run the same command again to toggle.
+
+### 3. Bind Alt+Space
+In `~/.config/hypr/bindings.lua` (or your Omarchy bindings file):
+
+```lua
+o.bind("ALT + SPACE", "Omnicast", "/home/YOURUSER/omnicast/bin/omnicast")
+```
+
+Use the **absolute path** to your clone. Keep **Super+Space** for the Omarchy menu.
+
+### Optional
+```bash
+# Global snippet expander (python-evdev + membership in `input` group)
 ./bin/omnicast-snippetd
 ```
 
-Bind **Alt+Space** to `…/omnicast/bin/omnicast` in Hyprland (keep **Super+Space** for Omarchy menu).
-
 Script commands: drop executables in `~/.config/omnicast/commands/` — see [`docs/script-commands.md`](docs/script-commands.md).
 
+**Stuck?** Open an issue on the private repo or reply to the invite email / DM.
 ---
 
 ## Stack
