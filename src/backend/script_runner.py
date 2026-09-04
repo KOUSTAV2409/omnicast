@@ -116,7 +116,14 @@ def execute_command(script_path, args=None):
 
 if __name__ == "__main__":
     if len(sys.argv) < 2 or sys.argv[1] == "scan":
-        print(json.dumps(scan_commands()))
+        import os
+        from pathlib import Path
+        cmds = scan_commands()
+        cache_dir = Path(os.environ.get("XDG_CACHE_HOME", Path.home() / ".cache")) / "omnicast"
+        cache_dir.mkdir(parents=True, exist_ok=True)
+        cache_file = cache_dir / "script-commands.json"
+        cache_file.write_text(json.dumps(cmds, ensure_ascii=False), encoding="utf-8")
+        print(json.dumps({"ok": True, "count": len(cmds), "path": str(cache_file)}))
     elif sys.argv[1] == "exec" and len(sys.argv) > 2:
         script = sys.argv[2]
         script_args = sys.argv[3:]
