@@ -1,6 +1,6 @@
 # Master Roadmap: Omnicast (Omarchy umbrella)
 
-> **Last Updated:** 2026-09-04  
+> **Last Updated:** 2026-09-05  
 > **Plan:** [`implementation-plan.md`](implementation-plan.md) · **ADRs:** [`memory.md`](memory.md) · **Crosswalk:** [`docs/raycast-vs-omarchy.md`](docs/raycast-vs-omarchy.md)
 
 ---
@@ -10,9 +10,9 @@
 | Layer | Status | Reality |
 | :--- | :--- | :--- |
 | **Identity** | Done | Omarchy umbrella — handoff native tools; match Omarchy menu UX |
-| **Shell & search** | Done | Fuzzy + frecency/favorites/aliases, Form, HUD, script modes |
+| **Shell & search** | Done | Fuzzy + frecency/favorites/aliases, Form, HUD, script modes, catalog cache |
 | **Omarchy handoffs** | Done | Clipboard, emoji, theme, background, images, keybindings, menu, capture, share, reminders |
-| **Omnicast-owned** | Mostly | Apps, calc, quicklinks, scripts, snippets, Windows (Lua/Omarchy), fallbacks |
+| **Omnicast-owned** | Done | Apps, calc, quicklinks, scripts, snippets, Windows (Lua/Omarchy), fallbacks |
 | **AI** | Mock | Ask AI UI only — streaming Ollama/BYOK is next (M4) |
 | **Visual language** | Done | shell.toml menu/launcher tokens + Hyprland rounding |
 | **Public release** | Not yet | Private dogfood |
@@ -26,8 +26,37 @@
 | M1 | Trustworthy prototype | Done |
 | M2 | Ranking / fuzzy / HUD | Done |
 | M3 | Daily tools (calc, scripts, snippets, WM) | Done |
-| M4 | Real AI | Next |
+| M4 | Real AI | **Next** |
 | M5 | Manhattan complete (umbrella) | ~90% — blocked on M4 (+ optional file search) |
+| M6 | Berlin underway | Later |
+
+---
+
+## What’s left to build
+
+### Must build next (M4 — closes Manhattan on paper)
+1. **Real AI streaming** — Ollama default + OpenAI-compatible BYOK (replace mock)
+2. **Quick AI from root** — fallback / question-shaped queries hit the real model
+3. **AI context actions** — explain / summarize clipboard or selection
+
+### Should build (optional Manhattan polish)
+4. **File search** — light provider *or* solid `omarchy-menu-file` handoff
+5. **Snippetd reliability** — settings, delay, clearer failure HUD (`wtype` / `ydotool`)
+6. **Calc depth** — currency / dates (math, units, color already ship)
+
+### Berlin (M6 — after M4)
+7. **Packaging / install path** — public or easy private install
+8. **Deeplinks** — `omnicast://…` style invoke
+9. **One Hyprland-only killer workflow** — clearly better than Raycast
+10. **Extension strategy ADR** — scripts-first vs store later
+
+### Explicitly not building (for now)
+- Raycast extension store / full API clone  
+- Cloud sync, Teams, Enterprise  
+- Dictation, Focus, Calendar, Notes  
+- Rewriting UI outside Quickshell  
+
+Authoritative checkboxes: [`implementation-plan.md`](implementation-plan.md) §5 (M4–M6).
 
 ---
 
