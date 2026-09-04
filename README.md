@@ -77,12 +77,19 @@ Omnicast dismisses and opens the native surface:
 
 ### Own (Omnicast fills the gap)
 - **Apps & commands** — `.desktop` apps + Omarchy CLI catalog  
+  - Try: `foot`, `screenshot`, `nightlight`
 - **Calculator** — math, `#hex` colors, simple unit conversion  
+  - Try: `12*7+3` · `#ff8800` · `10 km to mi` · `72 f to c`
 - **Quicklinks** — bookmarks with `{argument}` / `{clipboard}` placeholders  
+  - Try: open **Quicklinks**, or search a link title you saved
 - **Script commands** — Raycast-style frontmatter (`@raycast.*` / `@omarchy.*`), form args, `silent` / `compact` / `fullOutput`  
+  - Drop scripts in `~/.config/omnicast/commands/` — see [`docs/script-commands.md`](docs/script-commands.md)
 - **Snippets** — manage + optional global expander (`bin/omnicast-snippetd`)  
+  - Try: open **Snippets**, or type a keyword like `:shrug` if snippetd is running
 - **Windows** — curated Omarchy Hyprland helpers (pop, gaps, transparency, layout) + Lua-safe float/fullscreen  
+  - Try: `pop`, `gaps`, `float` — or open **Windows**
 - **Fallbacks** — no match → Search Web or Ask AI  
+  - Try: type nonsense → **Search Web** / **Ask AI** rows appear
 
 ### Not ready yet
 - **AI** — UI exists; responses are still mocked (Ollama / BYOK next)  
