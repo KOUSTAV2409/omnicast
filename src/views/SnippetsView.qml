@@ -27,8 +27,33 @@ Item {
     }
   }
 
+  property Process insertProc: Process {
+    property string pendingId: ""
+    command: ["python3", Paths.py("snippet_manager.py"), "insert", pendingId]
+    running: false
+    stdout: StdioCollector {
+      waitForEnd: true
+      onStreamFinished: text => root.handleInsertResult(text)
+    }
+  }
+
   function reloadData() {
     snippetLoader.running = true
+  }
+
+  function handleInsertResult(raw) {
+    try {
+      var data = JSON.parse(raw || "{}")
+      if (data.ok) {
+        Hud.success("Snippet inserted" + (data.backend ? (" · " + data.backend) : ""))
+      } else if (data.copied) {
+        Hud.info(data.error || "Copied — paste with Shift+Insert")
+      } else {
+        Hud.error(data.error || "Snippet insert failed")
+      }
+    } catch (e) {
+      Hud.error("Snippet insert failed")
+    }
   }
 
   function handleData(raw) {
@@ -118,9 +143,9 @@ Item {
   }
 
   function insertSnippet(sid) {
-    Hud.success("Snippet inserted")
     root.requestDismiss()
-    Exec.python("snippet_manager.py", ["insert", sid])
+    insertProc.pendingId = sid || ""
+    insertProc.running = true
   }
 
   function copySnippet(text) {
