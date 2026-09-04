@@ -160,7 +160,7 @@ Item {
     return [
       pushTool("snippets", "Snippets", "Text expansion",
                "󰅍", "Omnicast", "Omnicast", "Open Snippets", root.snippetsComp, "Snippets"),
-      pushTool("window", "Windows", "Tile · float · move",
+      pushTool("window", "Windows", "Pop · float · gaps · Omarchy hypr",
                "󰖯", "Omnicast", "Omnicast", "Window Management", root.windowTilerComp, "Window Management"),
       pushTool("ai", "Ask AI", "Local / BYOK",
                "󰚩", "Omnicast", "Omnicast", "Ask AI", root.aiAssistComp, "Ask AI"),
@@ -470,13 +470,84 @@ Item {
   }
 
   function catalogItems() {
-    return powerTools().concat(quickLinkItems, omarchyCommands, scriptCommands, desktopApps)
+    return powerTools().concat(quickLinkItems, omarchyCommands, scriptCommands, desktopApps, windowCatalog())
+  }
+
+  // Root-indexed Omarchy window helpers only (no classic hyprctl batches —
+  // those break on Lua Hyprland and left windows floating/overlapping).
+  function windowCatalog() {
+    function wrap(id, title, subtitle, icon, run) {
+      var item = {
+        id: id, title: title, subtitle: subtitle, icon: icon,
+        badge: "", category: "Windows", primaryActionTitle: title, actions: []
+      }
+      item.action = run
+      item.actions = [{ title: title, icon: icon, shortcut: "↵", callback: run }]
+      return item
+    }
+    function oma(id, title, subtitle, icon, argv) {
+      return wrap(id, title, subtitle, icon, function() {
+        Ranking.bump(id)
+        root.requestDismiss()
+        Exec.afterDismiss(argv, 80)
+        Hud.success(title)
+      })
+    }
+    function lua(id, title, subtitle, icon, expr) {
+      return wrap(id, title, subtitle, icon, function() {
+        Ranking.bump(id)
+        root.requestDismiss()
+        Exec.afterDismiss(["hyprctl", "dispatch", expr], 80)
+        Hud.success(title)
+      })
+    }
+    return [
+      oma("om-pop", "Pop Window", "Super+O · float & pin (toggle)", "󰖯",
+          ["omarchy-hyprland-window-pop"]),
+      oma("om-gaps", "Toggle Gaps", "No gaps ↔ default", "󰝘",
+          ["omarchy-hyprland-window-gaps-toggle"]),
+      oma("om-trans", "Toggle Transparency", "Active window opacity", "󰗔",
+          ["omarchy-hyprland-window-transparency-toggle"]),
+      oma("om-tfs", "Tiled Fullscreen", "Borderless tiled fullscreen", "󰊓",
+          ["omarchy-hyprland-window-tiled-fullscreen-toggle"]),
+      lua("win-float", "Toggle Float", "Super+T · tile ↔ float", "󰖲",
+          "hl.dsp.window.float({ action = \"toggle\" })"),
+      lua("win-full", "Fullscreen", "Super+F", "󰊓",
+          "hl.dsp.window.fullscreen({ mode = \"fullscreen\" })")
+    ]
+  }
+
+  function fallbackItems(query) {
+    var q = query
+    var web = {
+      id: "fallback-web", title: "Search Web", subtitle: "Google · " + q,
+      icon: "󰍉", badge: "", category: "Fallback", primaryActionTitle: "Search", actions: []
+    }
+    web.action = function() {
+      Ranking.bump("fallback-web")
+      root.requestDismiss()
+      Exec.openUrl("https://www.google.com/search?q=" + encodeURIComponent(q))
+    }
+    web.actions = [{ title: "Search Web", icon: "󰍉", shortcut: "↵", callback: web.action }]
+
+    var ai = {
+      id: "fallback-ai", title: "Ask AI", subtitle: q,
+      icon: "󰚩", badge: "", category: "Fallback", primaryActionTitle: "Ask", actions: []
+    }
+    ai.action = function() {
+      Ranking.bump("fallback-ai")
+      root.requestPushViewWithProps("Ask AI", root.aiAssistComp, {})
+    }
+    ai.actions = [{ title: "Ask AI", icon: "󰚩", shortcut: "↵", callback: ai.action }]
+    return [web, ai]
   }
 
   function buildFullItemList() {
     var tools = powerTools()
+    var wins = windowCatalog()
     var map = ({})
     registerItems(map, tools)
+    registerItems(map, wins)
     registerItems(map, quickLinkItems)
     registerItems(map, omarchyCommands)
     registerItems(map, scriptCommands)
@@ -503,18 +574,18 @@ Item {
 
     var mathResult = tryMathEvaluation(q)
     if (mathResult !== null) {
-      results.push(header("CALCULATOR"))
-      results.push(calcRow("calc-result", "= " + mathResult, "Calculation · Press ↵ to copy", String(mathResult)))
+      results.push(header("Calculator"))
+      results.push(calcRow("calc-result", "= " + mathResult, "↵ to copy", String(mathResult)))
     }
     var colorResult = tryColorEvaluation(q)
     if (colorResult) {
-      if (!results.length) results.push(header("CALCULATOR"))
-      results.push(calcRow("calc-color", colorResult.label, "Color · Press ↵ to copy hex", colorResult.hex))
+      if (!results.length) results.push(header("Calculator"))
+      results.push(calcRow("calc-color", colorResult.label, "↵ to copy hex", colorResult.hex))
     }
     var unitResult = tryUnitConversion(q)
     if (unitResult) {
-      if (!results.length) results.push(header("CALCULATOR"))
-      results.push(calcRow("calc-unit", "= " + unitResult, "Unit conversion · Press ↵ to copy", unitResult))
+      if (!results.length) results.push(header("Calculator"))
+      results.push(calcRow("calc-unit", "= " + unitResult, "↵ to copy", unitResult))
     }
 
     if (!q.length) {
@@ -536,8 +607,12 @@ Item {
     }
     scored.sort(function(a, b) { return b.score - a.score })
     if (scored.length) {
-      results.push(header("RESULTS"))
+      results.push(header("Results"))
       for (var s = 0; s < scored.length; s++) results.push(scored[s].item)
+    } else {
+      results.push(header("Fallback"))
+      var fb = fallbackItems(q)
+      for (var f = 0; f < fb.length; f++) results.push(fb[f])
     }
     filteredItems = results
     findNextSelectable(0, 1)
