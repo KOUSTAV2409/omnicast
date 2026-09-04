@@ -58,7 +58,14 @@ Item {
     id: appScanner
     command: ["python3", Paths.py("app_indexer.py")]
     running: false
-    stdout: StdioCollector { waitForEnd: true; onStreamFinished: text => root.handleAppScan(text) }
+    stdout: StdioCollector { waitForEnd: true; onStreamFinished: text => root.handleAppScanMeta(text) }
+  }
+
+  FileView {
+    id: appsCacheFile
+    path: Paths.cacheFile("desktop-apps.json")
+    blockLoading: true
+    printErrors: true
   }
   Process {
     id: quicklinkScanner
@@ -294,12 +301,33 @@ Item {
     buildFullItemList()
   }
 
+  function handleAppScanMeta(raw) {
+    try {
+      var meta = JSON.parse((raw || "").trim() || "{}")
+      console.log("[Omnicast] app scan meta:", meta.count, meta.path || "")
+    } catch (e) {
+      console.error("[Omnicast] app scan meta parse failed:", e, raw)
+    }
+    appsCacheFile.path = ""
+    appsCacheFile.path = Paths.cacheFile("desktop-apps.json")
+    var text = ""
+    try {
+      text = appsCacheFile.text() || ""
+    } catch (e2) {
+      console.error("[Omnicast] apps cache read failed:", e2)
+    }
+    root.handleAppScan(text)
+  }
+
   function handleAppScan(raw) {
     try {
       var apps = JSON.parse(raw || "[]")
+      if (!Array.isArray(apps))
+        apps = []
       var list = []
       for (var i = 0; i < apps.length; i++) list.push(makeAppItem(apps[i]))
       desktopApps = list
+      console.log("[Omnicast] apps indexed:", list.length)
     } catch (e) {
       console.error("Error parsing app indexer output:", e)
       desktopApps = []
@@ -630,7 +658,8 @@ Item {
     for (var i = 0; i < catalog.length; i++) {
       var item = catalog[i]
       var fuzzy = Fuzzy.itemScore(q, item)
-      if (fuzzy <= 0 && !(aliasId && aliasId === item.id)) continue
+      // Drop weak / sparse subsequence noise
+      if (fuzzy < 120 && !(aliasId && aliasId === item.id)) continue
       scored.push({
         item: item,
         score: (aliasId && aliasId === item.id ? 100000 : 0) + Ranking.frecencyBoost(item.id) + fuzzy
