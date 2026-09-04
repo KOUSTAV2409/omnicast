@@ -1,8 +1,7 @@
 # Master Roadmap: Omnicast (Omarchy umbrella)
 
-> **Document Type:** High-level status pointer  
 > **Last Updated:** 2026-09-04  
-> **Authoritative plan:** [`implementation-plan.md`](implementation-plan.md) · ADR 014 in [`memory.md`](memory.md) · crosswalk [`docs/raycast-vs-omarchy.md`](docs/raycast-vs-omarchy.md)
+> **Plan:** [`implementation-plan.md`](implementation-plan.md) · **ADRs:** [`memory.md`](memory.md) · **Crosswalk:** [`docs/raycast-vs-omarchy.md`](docs/raycast-vs-omarchy.md)
 
 ---
 
@@ -10,15 +9,30 @@
 
 | Layer | Status | Reality |
 | :--- | :--- | :--- |
-| **Identity** | 🟢 Locked | Omarchy umbrella — handoff native tools; match Omarchy launcher/menu UX |
-| **Shell & search** | 🟢 | Fuzzy + frecency/favorites, Form, HUD, scripts modes |
-| **Omarchy handoffs** | 🟢 | Clipboard, emoji, theme, background, images, keybindings, system menu |
-| **Omnicast-owned** | 🟡 | Snippets, WM helpers, calc, quicklinks, AI (mock) |
-| **Visual language** | 🟢 | `[launcher]`/`[menu]` shell.toml + Hyprland rounding |
-| **Next** | — | M4 AI discussion, then deepen handoffs / polish |
+| **Identity** | Done | Omarchy umbrella — handoff native tools; match Omarchy menu UX |
+| **Shell & search** | Done | Fuzzy + frecency/favorites/aliases, Form, HUD, script modes |
+| **Omarchy handoffs** | Done | Clipboard, emoji, theme, background, images, keybindings, menu, capture, share, reminders |
+| **Omnicast-owned** | Mostly | Apps, calc, quicklinks, scripts, snippets, Windows (Lua/Omarchy), fallbacks |
+| **AI** | Mock | Ask AI UI only — streaming Ollama/BYOK is next (M4) |
+| **Visual language** | Done | shell.toml menu/launcher tokens + Hyprland rounding |
+| **Public release** | Not yet | Private dogfood |
 
 ---
 
-## Historical note
+## Milestones
 
-Earlier “Raycast parity / Manhattan clone” framing is superseded by ADR 014. New work follows the umbrella doctrine.
+| ID | Name | State |
+|---|---|---|
+| M1 | Trustworthy prototype | Done |
+| M2 | Ranking / fuzzy / HUD | Done |
+| M3 | Daily tools (calc, scripts, snippets, WM) | Done |
+| M4 | Real AI | Next |
+| M5 | Manhattan complete (umbrella) | ~90% — blocked on M4 (+ optional file search) |
+
+---
+
+## What “done” means
+
+**Manhattan:** Raycast power-user daily loop on Omarchy without friction — launch, clipboard, snippets, windows, scripts, calc, ask AI — with HUD and ranking.  
+
+**Berlin:** Workflows that feel *better* than Raycast because of Hyprland/Omarchy (deep WM, free clipboard/themes, local AI, `omarchy` as OS API).

@@ -1,50 +1,105 @@
-# Omnicast 🚀
+# Omnicast
 
-> **Raycast-grade command engine, visual productivity launcher, and extension platform for Omarchy and Wayland Linux.**
+**Alt+Space for Omarchy** — one launcher that searches your machine and either **hands off** to native Omarchy tools or **owns** the gaps they don’t cover.
 
-Omnicast brings the unmatched aesthetics, fluid micro-interactions, keyboard-first navigation stack, and extensible power-tools of **Raycast** natively to **Omarchy (Hyprland + Quickshell)**.
+Not a Raycast UI clone. An **Omarchy umbrella**: same muscle memory as a modern launcher, styled like Omarchy’s menu/clipboard surfaces, wired into Hyprland and the Omarchy CLI.
 
----
-
-## 🌟 Key Highlights
-
-- ✨ **Raycast-Level Polish**: Frosted glassmorphism, hardware-accelerated fluid animations, crisp typography, and Omarchy theme synchronization.
-- ⌨️ **Keyboard-First Workflow**: Push/pop view stacks, `Ctrl+K` Action Palette, breadcrumbs, and instant key navigation.
-- 📑 **Declarative Views**: List, Rich Split Markdown Details, Visual Grids, and Dynamic Argument Forms.
-- 🧰 **Built-In Power Tools**:
-  - 📋 Universal Clipboard History (Text, Code, Hex Swatches, Images).
-  - ⚡ Dynamic Snippet Expander with variable templating.
-  - 🪟 Hyprland Window Management & Workspace Dispatcher.
-  - 🤖 Streaming AI Assistant & Contextual Presets.
-- 🔌 **Extensible Script Commands**: Run Bash, Python, and Node scripts with familiar `@omarchy.*` / `@raycast.*` metadata headers.
+> Private while we dogfood. Not open for public install yet.
 
 ---
 
-## 📚 Agent / LLM Knowledge Base & Wiki
+## What you get today
 
-This project is organized following the **LLM Wiki / Agent Knowledge Base** architecture:
+### One entry point
+| | |
+|---|---|
+| Hotkey | **Alt+Space** → `bin/omnicast` |
+| Super+Space | Left for the native Omarchy menu |
+| Search | Fuzzy match + frecency, favorites, aliases |
+| Chrome | Search → list → footer · **Enter** primary · **Ctrl+K** actions · **Esc** dismiss |
+| Look | Omarchy `[menu]` / `[launcher]` tokens, Hyprland rounding |
 
-- [`context.md`](context.md) — Ground-truth product context, system constraints, and architectural vision.
-- [`memory.md`](memory.md) — Living project memory, Architectural Decision Records (ADRs), invariants, and lessons learned.
-- [`research.md`](research.md) — Independent Raycast product / UX / clones research (Manhattan bar).
-- [`analysis.md`](analysis.md) — Current Omnicast codebase audit & gap analysis.
-- [`implementation-plan.md`](implementation-plan.md) — Authoritative Manhattan → Berlin execution plan.
-- [`roadmap.md`](roadmap.md) — High-level status pointer (mirrors implementation plan milestones).
-- [`docs/spec/raycast-feature-matrix.md`](docs/spec/raycast-feature-matrix.md) — Comprehensive Raycast parity audit.
-- [`docs/raycast-vs-omarchy.md`](docs/raycast-vs-omarchy.md) — Raycast features ↔ Omarchy built-in tools crosswalk (umbrella doctrine).
-- [`docs/spec/ui-ux-design-system.md`](docs/spec/ui-ux-design-system.md) — Exact design tokens, layer-shell rules, and interaction curves.
+### Handoff (Omarchy already does this well)
+Omnicast dismisses and opens the native surface:
+
+- Clipboard history  
+- Emoji picker  
+- Theme & background  
+- Images / screenshots browser  
+- Keybindings viewer  
+- System menu, capture, share, reminders  
+
+### Own (Omnicast fills the gap)
+- **Apps & commands** — `.desktop` apps + Omarchy CLI catalog  
+- **Calculator** — math, `#hex` colors, simple unit conversion  
+- **Quicklinks** — bookmarks with `{argument}` / `{clipboard}` placeholders  
+- **Script commands** — Raycast-style frontmatter (`@raycast.*` / `@omarchy.*`), form args, `silent` / `compact` / `fullOutput`  
+- **Snippets** — manage + optional global expander (`bin/omnicast-snippetd`)  
+- **Windows** — curated Omarchy Hyprland helpers (pop, gaps, transparency, layout) + Lua-safe float/fullscreen  
+- **Fallbacks** — no match → Search Web or Ask AI  
+
+### Not ready yet
+- **AI** — UI exists; responses are still mocked (Ollama / BYOK next)  
+- **File search** — prefer Omarchy file menu handoff for now  
+- **Public packaging** — clone-and-run for Omarchy developers only  
+
+Full Raycast ↔ Omarchy map: [`docs/raycast-vs-omarchy.md`](docs/raycast-vs-omarchy.md)
 
 ---
 
-## 🛠️ Tech Stack
+## Quick start (Omarchy / Hyprland)
 
-- **Compositor**: Hyprland (Wayland)
-- **UI Engine**: Quickshell (Qt6 / QML)
-- **Host OS**: Omarchy 4.0.2 (Arch Linux)
-- **IPC Protocols**: `wlr-layer-shell`, Hyprland UNIX Sockets, SQLite FTS5
+```bash
+git clone <your-private-url> omnicast
+cd omnicast
+
+# Launch / toggle
+./bin/omnicast
+
+# Optional: global snippet expander (needs python-evdev + input group)
+./bin/omnicast-snippetd
+```
+
+Bind **Alt+Space** to `…/omnicast/bin/omnicast` in Hyprland (keep **Super+Space** for Omarchy menu).
+
+Script commands: drop executables in `~/.config/omnicast/commands/` — see [`docs/script-commands.md`](docs/script-commands.md).
 
 ---
 
-## 🚀 Getting Started
+## Stack
 
-See [`implementation-plan.md`](implementation-plan.md) for the active plan. Start at **Phase A** (stabilize). Context: [`analysis.md`](analysis.md) · [`research.md`](research.md).
+| Layer | Choice |
+|---|---|
+| OS | Omarchy (Arch) |
+| Compositor | Hyprland (Wayland) |
+| UI | Quickshell (Qt6 / QML), `wlr-layer-shell` |
+| Glue | Omarchy CLI + state, `hyprctl` Lua dispatch |
+
+---
+
+## Repo map
+
+| Path | Role |
+|---|---|
+| [`bin/omnicast`](bin/omnicast) | Launch / IPC toggle |
+| [`src/`](src/) | Shell, views, services, backends |
+| [`docs/script-commands.md`](docs/script-commands.md) | Script command API |
+| [`docs/raycast-vs-omarchy.md`](docs/raycast-vs-omarchy.md) | Feature crosswalk |
+| [`implementation-plan.md`](implementation-plan.md) | Manhattan → Berlin plan |
+| [`roadmap.md`](roadmap.md) | Status snapshot |
+| [`memory.md`](memory.md) | ADRs (incl. umbrella doctrine) |
+| [`context.md`](context.md) | Agent / product context |
+
+---
+
+## Status
+
+**Manhattan (umbrella):** ~90% — handoffs, search/ranking, calc, scripts, quicklinks, snippets, Windows palette, fallbacks.  
+
+**Next:** real AI streaming (M4), then polish / optional file provider.
+
+---
+
+## License
+
+Private / unlicensed while the project stays closed. Terms TBD before any public release.

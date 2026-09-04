@@ -1,70 +1,81 @@
-# Project Context: Omnicast (Raycast for Omarchy & Linux)
+# Project Context: Omnicast
 
 > **Document Type:** Agent & LLM Knowledge Base / Core Context  
-> **Target Audience:** AI Agents (Pair Programmers, Subagents) & Human Developers  
-> **Status:** Active / Foundation Phase  
-> **Last Updated:** 2026-09-02  
+> **Status:** Active — Omarchy umbrella (ADR 014)  
+> **Last Updated:** 2026-09-04  
 
 ---
 
-## 1. Executive Summary & Vision
+## 1. Executive summary
 
-**Omnicast** is a next-generation, keyboard-first command engine, productivity launcher, and extension platform built natively for **Omarchy** and the modern **Wayland / Linux desktop**.
+**Omnicast** is a keyboard-first productivity launcher for **Omarchy** (Hyprland + Quickshell).
 
-Unlike conventional Linux application launchers (e.g., Rofi, Wofi, dmenu) which are limited to fuzzy string matching and single-action execution, Omnicast bridges the gap to the standard set by **Raycast (macOS)**:
-1. **Unmatched Visual Polish & Micro-Interactions**: Hardware-accelerated fluid transitions, acrylic/Kawase background blur, crisp typography, and responsive breadcrumb stacks.
-2. **The Dynamic Interaction Model**: Hierarchical Push/Pop navigation views, secondary Action Sheets (`Ctrl+K`), rich List+Detail split views with live Markdown rendering, Form inputs, and Grid visual views.
-3. **End-to-End Power Tools**: Universal Clipboard History (text/images/colors), dynamic Snippet text expansion, Script Commands with metadata headers, Hyprland window tiling, and streaming AI assistance.
-4. **Deep System Synergy**: Native integration with Omarchy's global theming system, Quickshell (Qt/QML), Hyprland IPC sockets, and Wayland Layer-Shell protocols.
+**Doctrine (ADR 014):** Omnicast is an **Omarchy umbrella**, not a Raycast UI clone.
 
----
+1. **Handoff** where Omarchy is already strong (clipboard, emoji, themes, images, menu, …).  
+2. **Own** true gaps (ranked root search, calc, quicklinks, scripts, snippets, curated WM).  
+3. **Curate** fragmented Hyprland/Omarchy CLIs into searchable lists.
 
-## 2. Core Philosophy & Non-Negotiables
-
-1. **Aesthetics & UX are Tier-1 Requirements**: Visual excellence is not an afterthought. Layouts, border radiuses, shadows, padding, debounce intervals, and animation curves must feel premium and instantaneous.
-2. **Keyboard-First, Zero Mouse Dependency**: Every view, action, form, and dialog must be fully operable via keyboard shortcuts with clear footer hotkey discoverability.
-3. **Deep OS & WM Integration**: Native to Hyprland and Omarchy. Inherit active color schemes (`omarchy theme`), utilize `wlr-layer-shell` overlays, and bind directly to window management events.
-4. **Extensibility Without Bloat**: Support lightweight script commands in any language (Bash, Python, Node, Rust) through simple frontmatter headers (`@omarchy.*` / `@raycast.*` metadata).
-5. **Deterministic State & Zero Latency**: Fast boot times, instant search debounce (<10ms), and reactive data binding without UI stuttering.
+Hotkey: **Alt+Space** → `bin/omnicast` (Super+Space stays Omarchy menu).
 
 ---
 
-## 3. Host Environment & System Profile
+## 2. Non-negotiables
 
-* **Host OS**: Omarchy 4.0.2 (Arch Linux rolling base)
-* **Kernel**: Linux 7.1.9-arch1-2
-* **Display Server / Protocol**: Wayland (`wlr-layer-shell`)
-* **Compositor**: Hyprland 0.56.2 (GPU-accelerated, native Kawase blur, bezier animations)
-* **Shell Engine**: Quickshell (Qt6 / QML Wayland desktop shell engine)
-* **Terminal Ecosystem**: Ghostty, Alacritty, Foot, Kitty
-* **Environment Managers**: `mise` (polyglot runtime manager), `pacman` + `yay` (AUR)
+1. Match Omarchy menu/clipboard visual language — not Raycast chrome.  
+2. Keyboard-first: Enter / Ctrl+K / Esc ladder on every view.  
+3. Prefer Omarchy CLI + state over reimplementing daemons.  
+4. Hyprland via **Lua dispatch** / `omarchy-hyprland-*` — classic `hyprctl dispatch setfloating` is broken on Omarchy.  
+5. Portable paths via `Paths` / `Quickshell.shellDir` — no hardcoded home dirs.
 
 ---
 
-## 4. Key Architectural Decisions (ADR Summary)
+## 3. Host environment
 
-| Domain | Decision | Rationale |
-| :--- | :--- | :--- |
-| **UI Engine** | **Quickshell (QML / QtQuick)** | Native Wayland layer-shell support, hardware-accelerated rendering at high refresh rates (up to 144Hz), dynamic property binding, and seamless integration with existing Omarchy shell components. |
-| **Backend / Daemon** | **Lightweight Node/Python/Rust IPC Service** | Handles clipboard SQLite storage, global hotkey triggers, snippet keyword expansion, and background script command discovery. |
-| **Window Protocol** | **`zwlr_layer_shell_v1` (Overlay Layer)** | Allows keyboard grab, overlay positioning above all tiled windows, and background blur via Hyprland layer rules. |
-| **Theme Sync** | **Omarchy Theme Engine Bridge** | Listens to `~/.config/omarchy/themes/` and live updates colors across all UI components on theme change hooks. |
+- **OS:** Omarchy (Arch)  
+- **Compositor:** Hyprland (Wayland, Lua config)  
+- **UI:** Quickshell (Qt6 / QML), `wlr-layer-shell`  
+- **Terminals:** Ghostty / Foot / Kitty / Alacritty (`$TERMINAL`)
 
 ---
 
-## 5. Directory Structure & Knowledge Base Layout
+## 4. What ships today (product surface)
+
+| Surface | Mode |
+|---|---|
+| Apps, Omarchy commands, scripts | Own |
+| Calc (math / color / units) | Own |
+| Quicklinks, snippets (+ optional snippetd) | Own |
+| Windows (pop, gaps, float, fullscreen, …) | Curate / own |
+| Clipboard, emoji, theme, images, keybindings, menu | Handoff |
+| Ask AI | Mock UI only |
+| File search | Prefer Omarchy handoff |
+
+---
+
+## 5. Layout
 
 ```
-/home/iamkxyz/Projects/omnicast/
-├── context.md                    # THIS FILE: Ground-level context & system architecture
-├── memory.md                     # Living project memory, ADRs, milestones & lessons
-├── roadmap.md                    # Multi-phase execution roadmap & feature tracking
-├── README.md                     # High-level overview & developer onboarding
+omnicast/
+├── README.md                 # Product offering (start here)
+├── roadmap.md                # Status
+├── implementation-plan.md    # Manhattan → Berlin
+├── memory.md                 # ADRs
+├── context.md                # THIS FILE
 ├── docs/
-│   ├── spec/                     # Detailed technical specifications
-│   │   ├── raycast-feature-matrix.md
-│   │   ├── ui-ux-design-system.md
-│   │   └── script-command-api.md
-│   └── wiki/                     # LLM / Agent knowledge base deep dives
-└── src/                          # Source code (QML, shell scripts, backend daemons)
+│   ├── raycast-vs-omarchy.md
+│   ├── script-commands.md
+│   └── spec/
+├── bin/omnicast              # Launch / toggle
+├── bin/omnicast-snippetd     # Optional global expander
+└── src/                      # QML + Python backends
 ```
+
+---
+
+## 6. Agent pointers
+
+- Decisions & invariants → [`memory.md`](memory.md)  
+- Execution checklist → [`implementation-plan.md`](implementation-plan.md)  
+- Raycast vs Omarchy map → [`docs/raycast-vs-omarchy.md`](docs/raycast-vs-omarchy.md)  
+- Do **not** commit `omnicastagentlink.md` or local agent secrets

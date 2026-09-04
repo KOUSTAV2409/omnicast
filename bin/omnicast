@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Toggle / launch Omnicast (Raycast-style launcher for Omarchy).
+# Toggle / launch Omnicast — Alt+Space umbrella launcher for Omarchy.
 # IPC form mirrors omarchy-shell: `qs ipc call -- <target> <method>`
 # The `--` is required so methods like `show` are not eaten as qs subcommands.
 

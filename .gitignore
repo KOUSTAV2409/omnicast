@@ -12,3 +12,7 @@ __pycache__/
 # Editor / OS metadata
 .DS_Store
 *.bak.*
+
+# Local agent / Cursor session links (never commit)
+omnicastagentlink.md
+*.agentlink.md
