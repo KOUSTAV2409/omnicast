@@ -10,45 +10,6 @@ Not a Raycast UI clone. An **Omarchy umbrella**: same muscle memory as a modern 
 
 ---
 
-## What you get today
-
-### One entry point
-| | |
-|---|---|
-| Hotkey | **Alt+Space** → `bin/omnicast` |
-| Super+Space | Left for the native Omarchy menu |
-| Search | Fuzzy match + frecency, favorites, aliases |
-| Chrome | Search → list → footer · **Enter** primary · **Ctrl+K** actions · **Esc** dismiss |
-| Look | Omarchy `[menu]` / `[launcher]` tokens, Hyprland rounding |
-
-### Handoff (Omarchy already does this well)
-Omnicast dismisses and opens the native surface:
-
-- Clipboard history  
-- Emoji picker  
-- Theme & background  
-- Images / screenshots browser  
-- Keybindings viewer  
-- System menu, capture, share, reminders  
-
-### Own (Omnicast fills the gap)
-- **Apps & commands** — `.desktop` apps + Omarchy CLI catalog  
-- **Calculator** — math, `#hex` colors, simple unit conversion  
-- **Quicklinks** — bookmarks with `{argument}` / `{clipboard}` placeholders  
-- **Script commands** — Raycast-style frontmatter (`@raycast.*` / `@omarchy.*`), form args, `silent` / `compact` / `fullOutput`  
-- **Snippets** — manage + optional global expander (`bin/omnicast-snippetd`)  
-- **Windows** — curated Omarchy Hyprland helpers (pop, gaps, transparency, layout) + Lua-safe float/fullscreen  
-- **Fallbacks** — no match → Search Web or Ask AI  
-
-### Not ready yet
-- **AI** — UI exists; responses are still mocked (Ollama / BYOK next)  
-- **File search** — prefer Omarchy file menu handoff for now  
-- **Public packaging** — clone-and-run for Omarchy developers only  
-
-Full Raycast ↔ Omarchy map: [`docs/raycast-vs-omarchy.md`](docs/raycast-vs-omarchy.md)
-
----
-
 ## Quick start (private testers · Omarchy only)
 
 **Needs:** Omarchy (Hyprland) + Quickshell (`qs` on PATH). This will not run on macOS or a generic distro.
@@ -90,6 +51,46 @@ Use the **absolute path** to your clone. Keep **Super+Space** for the Omarchy me
 Script commands: drop executables in `~/.config/omnicast/commands/` — see [`docs/script-commands.md`](docs/script-commands.md).
 
 **Stuck?** Open an issue on the private repo or reply to the invite email / DM.
+
+---
+
+## What you get today
+
+### One entry point
+| | |
+|---|---|
+| Hotkey | **Alt+Space** → `bin/omnicast` |
+| Super+Space | Left for the native Omarchy menu |
+| Search | Fuzzy match + frecency, favorites, aliases |
+| Chrome | Search → list → footer · **Enter** primary · **Ctrl+K** actions · **Esc** dismiss |
+| Look | Omarchy `[menu]` / `[launcher]` tokens, Hyprland rounding |
+
+### Handoff (Omarchy already does this well)
+Omnicast dismisses and opens the native surface:
+
+- Clipboard history  
+- Emoji picker  
+- Theme & background  
+- Images / screenshots browser  
+- Keybindings viewer  
+- System menu, capture, share, reminders  
+
+### Own (Omnicast fills the gap)
+- **Apps & commands** — `.desktop` apps + Omarchy CLI catalog  
+- **Calculator** — math, `#hex` colors, simple unit conversion  
+- **Quicklinks** — bookmarks with `{argument}` / `{clipboard}` placeholders  
+- **Script commands** — Raycast-style frontmatter (`@raycast.*` / `@omarchy.*`), form args, `silent` / `compact` / `fullOutput`  
+- **Snippets** — manage + optional global expander (`bin/omnicast-snippetd`)  
+- **Windows** — curated Omarchy Hyprland helpers (pop, gaps, transparency, layout) + Lua-safe float/fullscreen  
+- **Fallbacks** — no match → Search Web or Ask AI  
+
+### Not ready yet
+- **AI** — UI exists; responses are still mocked (Ollama / BYOK next)  
+- **File search** — prefer Omarchy file menu handoff for now  
+- **Public packaging** — clone-and-run for Omarchy developers only  
+
+Full Raycast ↔ Omarchy map: [`docs/raycast-vs-omarchy.md`](docs/raycast-vs-omarchy.md)
+
 ---
 
 ## Stack
