@@ -9,13 +9,15 @@ Item {
 
   property var navStack: null
   property string filterText: ""
+  property var themeItems: []
 
   signal requestActionPalette(var actions)
   signal requestDismiss()
 
-  // Process to fetch available themes from `omarchy theme list`
+  readonly property var selectedItem: grid.selectedItem
+
   property Process themeScanner: Process {
-    command: ["sh", "-c", "omarchy theme list 2>/dev/null"]
+    command: ["sh", "-c", "omarchy theme list 2>/dev/null; echo; omarchy theme current 2>/dev/null"]
     running: false
     stdout: StdioCollector {
       waitForEnd: true
@@ -23,102 +25,128 @@ Item {
     }
   }
 
-  function initDefaultThemes() {
-    var defaultList = "Eventide\nNord\nCatppuccin\nTokyo Night\nGruvbox\nRose Pine\nKanagawa\nEverforest\nMatte Black\nHackerman\nSolarized Dark\nAether\nAegis Protocol"
-    loadThemes(defaultList)
-  }
+  property string currentThemeName: ""
 
   function loadThemes(raw) {
-    if (!raw || raw.trim() === "") return
-    var lines = raw.trim().split("\n")
-    var themeItems = []
+    var lines = (raw || "").trim().split("\n")
+    var current = ""
+    var names = []
+    for (var i = 0; i < lines.length; i++) {
+      var line = lines[i].replace(/^\s*[\*•-]\s*/, "").trim()
+      if (!line)
+        continue
+      if (line.toLowerCase().indexOf("current") >= 0 && names.length > 0 && line.indexOf("(") < 0) {
+        // trailing "omarchy theme current" output
+        current = line.replace(/\s*\(current\)\s*/i, "").trim()
+        continue
+      }
+      if (line.includes("(current)")) {
+        current = line.replace(/\s*\(current\)\s*/i, "").trim()
+        names.push(current)
+      } else {
+        names.push(line)
+      }
+    }
+    if (current)
+      root.currentThemeName = current
 
     var themePalettes = {
-      "Eventide": { color: "#fa8526", bg: "#141b24", accent: "#fa8526", desc: "Deep twilight blues with sunset warm orange accents" },
-      "Nord": { color: "#88c0d0", bg: "#2e3440", accent: "#88c0d0", desc: "An arctic, north-bluish clean color palette" },
-      "Catppuccin": { color: "#cba6f7", bg: "#1e1e2e", accent: "#cba6f7", desc: "Soothing pastel palette for high-spirited focus" },
-      "Catppuccin Latte": { color: "#8839ef", bg: "#eff1f5", accent: "#8839ef", desc: "Light version of Catppuccin with crisp accents" },
-      "Tokyo Night": { color: "#7aa2f7", bg: "#1a1b26", accent: "#7aa2f7", desc: "A clean dark theme celebrating downtown Tokyo night lights" },
-      "Gruvbox": { color: "#fe8019", bg: "#282828", accent: "#fe8019", desc: "Retro groove warm contrast colors" },
-      "Rose Pine": { color: "#ebbcba", bg: "#191724", accent: "#ebbcba", desc: "All natural pine, faux fur and delicate lilac" },
-      "Kanagawa": { color: "#7e9cd8", bg: "#1f1f28", accent: "#7e9cd8", desc: "Inspired by Katsushika Hokusai woodblock prints" },
-      "Everforest": { color: "#a7c080", bg: "#2d353b", accent: "#a7c080", desc: "Comfortable natural green theme with medium contrast" },
-      "Hackerman": { color: "#00ff66", bg: "#0d1117", accent: "#00ff66", desc: "High-contrast cyber matrix green palette" },
-      "Matte Black": { color: "#ffffff", bg: "#000000", accent: "#888888", desc: "Monochrome pure black OLED theme" },
-      "Solarized Dark": { color: "#268bd2", bg: "#002b36", accent: "#268bd2", desc: "Precision color scheme designed for prolonged screen work" }
+      "Eventide": { color: "#fa8526", bg: "#141b24", desc: "Deep twilight blues with sunset warm orange accents" },
+      "Nord": { color: "#88c0d0", bg: "#2e3440", desc: "Arctic north-bluish palette" },
+      "Catppuccin": { color: "#cba6f7", bg: "#1e1e2e", desc: "Soothing pastel palette" },
+      "Tokyo Night": { color: "#7aa2f7", bg: "#1a1b26", desc: "Downtown Tokyo night lights" },
+      "Gruvbox": { color: "#fe8019", bg: "#282828", desc: "Retro groove warm contrast" },
+      "Rose Pine": { color: "#ebbcba", bg: "#191724", desc: "Natural pine and lilac" },
+      "Kanagawa": { color: "#7e9cd8", bg: "#1f1f28", desc: "Hokusai-inspired blues" },
+      "Everforest": { color: "#a7c080", bg: "#2d353b", desc: "Comfortable natural green" },
+      "Hackerman": { color: "#00ff66", bg: "#0d1117", desc: "Cyber matrix green" },
+      "Matte Black": { color: "#ffffff", bg: "#000000", desc: "Monochrome OLED black" },
+      "Solarized Dark": { color: "#268bd2", bg: "#002b36", desc: "Precision prolonged-screen scheme" }
     }
 
-    for (var i = 0; i < lines.length; i++) {
-      var name = lines[i].replace(/^\s*[\*•-]\s*/, "").trim()
-      if (!name) continue
-      var isCurrent = name.includes("(current)") || name === "Eventide"
-      var cleanName = name.replace(/\s*\(current\)\s*/, "").trim()
-      var p = themePalettes[cleanName] || { color: "#fa8526", bg: "#151820", accent: "#fa8526", desc: "Omarchy curated system theme" }
+    if (names.length === 0) {
+      names = Object.keys(themePalettes)
+    }
 
-      themeItems.push({
+    var items = []
+    for (var j = 0; j < names.length; j++) {
+      var cleanName = names[j].replace(/\s*\(current\)\s*/i, "").trim()
+      if (!cleanName)
+        continue
+      var isCurrent = cleanName === root.currentThemeName
+      var p = themePalettes[cleanName] || { color: "#fa8526", bg: "#151820", desc: "Omarchy curated system theme" }
+      items.push({
+        id: "theme-" + cleanName,
         title: cleanName,
         subtitle: p.desc,
         color: p.color,
         badge: isCurrent ? "Active" : "Theme",
         icon: "🎨",
-        markdown: "### Theme: " + cleanName + "\n\n" + p.desc + "\n\n**Primary Accent:** `" + p.accent + "`\n\n**Background Base:** `" + p.bg + "`\n\nApplies seamlessly across **Hyprland, Quickshell, Ghostty, Alacritty, Neovim, Starship, and GTK**.",
+        primaryActionTitle: "Apply Theme",
+        category: "Appearance",
+        markdown: "### Theme: " + cleanName + "\n\n" + p.desc + "\n\n**Accent:** `" + p.color + "`",
         metadata: [
-          { label: "Accent Color", value: p.accent },
+          { label: "Accent", value: p.color },
           { label: "Background", value: p.bg },
-          { label: "Status", value: isCurrent ? "Currently Active" : "Available" }
+          { label: "Status", value: isCurrent ? "Active" : "Available" }
         ],
         action: (function(themeName) {
-          return function() {
-            Qt.createQmlObject('import Quickshell.Io; Process { command: ["omarchy", "theme", "set", "' + themeName + '"]; running: true }', root)
-            Theme.reloadTheme()
-          }
+          return function() { root.applyTheme(themeName) }
         })(cleanName),
         actions: [
           {
-            title: "Apply Theme (" + cleanName + ")",
+            title: "Apply Theme",
             icon: "✨",
             shortcut: "↵",
             callback: (function(themeName) {
-              return function() {
-                Qt.createQmlObject('import Quickshell.Io; Process { command: ["omarchy", "theme", "set", "' + themeName + '"]; running: true }', root)
-                Theme.reloadTheme()
-              }
+              return function() { root.applyTheme(themeName) }
             })(cleanName)
           }
         ]
       })
     }
+    themeItems = items
+    grid.items = items
+    grid.filter(filterText)
+  }
 
-    listDetail.items = themeItems
-    listDetail.filter(root.filterText)
+  function applyTheme(name) {
+    Exec.omarchyThemeSet(name)
+    Theme.reloadTheme()
+    currentThemeName = name
+    Hud.success("Theme: " + name)
+    root.requestDismiss()
   }
 
   function filter(query) {
     root.filterText = query
-    listDetail.filter(query)
+    grid.filter(query)
   }
 
   function moveSelection(delta) {
-    listDetail.moveSelection(delta)
+    // Grid: map vertical list moves to row steps
+    if (delta > 0)
+      grid.moveDown()
+    else
+      grid.moveUp()
   }
 
   function executeCurrent() {
-    listDetail.executeCurrent()
+    grid.executeCurrent()
   }
 
   function openActionPalette() {
-    listDetail.openActionPalette()
+    grid.openActionPalette()
   }
 
-  ListDetailView {
-    id: listDetail
+  GridView {
+    id: grid
     anchors.fill: parent
-
+    anchors.margins: 8
     onRequestActionPalette: actions => root.requestActionPalette(actions)
   }
 
   Component.onCompleted: {
-    initDefaultThemes()
     themeScanner.running = true
   }
 }

@@ -13,12 +13,18 @@ Item {
   property var scriptArgs: []
   property string outputMarkdown: "Running script..."
   property bool isRunning: false
+  property string lastError: ""
 
   signal requestActionPalette(var actions)
   signal requestDismiss()
 
+  readonly property var selectedItem: ({
+    primaryActionTitle: "Copy Output",
+    category: "Script"
+  })
+
   property Process scriptRunner: Process {
-    command: ["python3", "/home/iamkxyz/Projects/omnicast/src/backend/script_runner.py", "exec", root.scriptPath]
+    command: root._buildCommand()
     running: false
     stdout: StdioCollector {
       waitForEnd: true
@@ -26,9 +32,20 @@ Item {
     }
   }
 
+  function _buildCommand() {
+    var cmd = ["python3", Paths.py("script_runner.py"), "exec", root.scriptPath]
+    if (root.scriptArgs && root.scriptArgs.length) {
+      for (var i = 0; i < root.scriptArgs.length; i++)
+        cmd.push(String(root.scriptArgs[i]))
+    }
+    return cmd
+  }
+
   function runScript() {
     isRunning = true
+    lastError = ""
     outputMarkdown = "### Executing Script...\n\n`" + root.scriptPath + "`"
+    scriptRunner.command = _buildCommand()
     scriptRunner.running = true
   }
 
@@ -38,8 +55,11 @@ Item {
       var res = JSON.parse(raw || "{}")
       if (res.status === "success") {
         root.outputMarkdown = res.stdout || "*Script completed with empty output.*"
+        Hud.success("Script finished")
       } else {
-        root.outputMarkdown = "### ⚠️ Execution Error\n\n```text\n" + (res.stderr || res.error || "Unknown error") + "\n```"
+        root.lastError = res.stderr || res.error || "Unknown error"
+        root.outputMarkdown = "### ⚠️ Execution Error\n\n```text\n" + root.lastError + "\n```"
+        Hud.error("Script failed")
       }
     } catch (e) {
       root.outputMarkdown = raw || "Script finished."
@@ -53,15 +73,16 @@ Item {
     markdownContent: root.outputMarkdown
     metadata: [
       { label: "Script Path", value: root.scriptPath.replace(/.*\/([^\/]+)$/, "$1") },
-      { label: "Status", value: root.isRunning ? "Executing" : "Finished" }
+      { label: "Status", value: root.isRunning ? "Executing" : "Finished" },
+      { label: "Args", value: (root.scriptArgs || []).join(" ") || "—" }
     ]
   }
 
   function filter(query) {}
   function moveSelection(delta) {}
   function executeCurrent() {
-    // Copy output
-    Qt.createQmlObject('import Quickshell.Io; Process { command: ["sh", "-c", "wl-copy \'' + root.outputMarkdown.replace(/'/g, "'\\''") + '\'"]; running: true }', root)
+    Exec.copyText(root.outputMarkdown)
+    Hud.success("Copied output")
     root.requestDismiss()
   }
 

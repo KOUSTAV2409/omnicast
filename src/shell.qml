@@ -6,12 +6,14 @@ import "services"
 ShellRoot {
   id: root
 
-  // Main Omnicast Window Modal
   OmnicastWindow {
     id: omnicastWindow
   }
 
-  // Global IPC Endpoint for Hyprland hotkeys or CLI triggering
+  HudPanel {
+    id: hudPanel
+  }
+
   IpcHandler {
     target: "omnicast"
 
@@ -33,9 +35,14 @@ ShellRoot {
     function ping(): string {
       return "pong"
     }
+
+    function hud(message: string): string {
+      Hud.success(message || "")
+      return "ok"
+    }
   }
 
   Component.onCompleted: {
-    console.log("[Omnicast] Deeply integrated with native Omarchy services on IPC target 'omnicast'")
+    console.log("[Omnicast] shell ready — Paths.srcRoot=", Paths.srcRoot)
   }
 }

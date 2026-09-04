@@ -19,12 +19,17 @@ Item {
     if (!query || query.trim() === "") {
       filteredItems = items
     } else {
-      var q = query.toLowerCase()
-      filteredItems = items.filter(function(it) {
-        return (it.title && it.title.toLowerCase().includes(q)) ||
-               (it.subtitle && it.subtitle.toLowerCase().includes(q)) ||
-               (it.markdown && it.markdown.toLowerCase().includes(q))
-      })
+      var scored = []
+      for (var i = 0; i < items.length; i++) {
+        var it = items[i]
+        if (it.isHeader)
+          continue
+        var s = Fuzzy.itemScore(query, it)
+        if (s > 0)
+          scored.push({ item: it, score: s })
+      }
+      scored.sort(function(a, b) { return b.score - a.score })
+      filteredItems = scored.map(function(x) { return x.item })
     }
     if (filteredItems.length > 0) {
       selectedIndex = Math.min(selectedIndex, filteredItems.length - 1)
@@ -85,14 +90,17 @@ Item {
 
           onClicked: {
             root.selectedIndex = index
+            listView.currentIndex = index
+          }
+          onDoubleClicked: {
+            root.selectedIndex = index
             root.executeCurrent()
           }
         }
       }
 
-      // Empty State in Left Pane
       EmptyState {
-        visible: root.filteredItems.length === 0
+        visible: false
         title: "No Matching Items"
         subtitle: "No items match your search filter"
       }
@@ -117,7 +125,8 @@ Item {
         headerBadge: root.selectedItem ? (root.selectedItem.badge || "") : ""
         markdownContent: root.selectedItem ? (root.selectedItem.markdown || root.selectedItem.subtitle || "") : (root.filteredItems.length === 0 ? "*No item selected.*" : "Select an item from the list to view its details.")
         metadata: root.selectedItem ? (root.selectedItem.metadata || []) : []
-        imageSource: root.selectedItem ? (root.selectedItem.image || "") : ""
+        imageSource: root.selectedItem ? (root.selectedItem.image || root.selectedItem.imagePath || "") : ""
+        swatchColor: root.selectedItem ? (root.selectedItem.color || "") : ""
       }
     }
   }

@@ -16,19 +16,6 @@ Item {
 
   readonly property var selectedItem: filteredItems.length > 0 && selectedIndex < filteredItems.length ? filteredItems[selectedIndex] : null
 
-  function filter(query) {
-    if (!query || query.trim() === "") {
-      filteredItems = items
-    } else {
-      var q = query.toLowerCase()
-      filteredItems = items.filter(function(it) {
-        return (it.title && it.title.toLowerCase().includes(q)) ||
-               (it.subtitle && it.subtitle.toLowerCase().includes(q))
-      })
-    }
-    selectedIndex = Math.min(selectedIndex, Math.max(0, filteredItems.length - 1))
-  }
-
   function moveSelectionHorizontal(delta) {
     if (filteredItems.length === 0) return
     var next = selectedIndex + delta
@@ -45,6 +32,31 @@ Item {
     if (next >= filteredItems.length) next = Math.min(selectedIndex % columns, filteredItems.length - 1)
     selectedIndex = next
     grid.positionViewAtIndex(selectedIndex, GridView.Contain)
+  }
+
+  function moveDown() { moveSelectionVertical(1) }
+  function moveUp() { moveSelectionVertical(-1) }
+  function moveSelection(delta) {
+    if (Math.abs(delta) === 1)
+      moveSelectionHorizontal(delta)
+    else
+      moveSelectionVertical(delta > 0 ? 1 : -1)
+  }
+
+  function filter(query) {
+    if (!query || query.trim() === "") {
+      filteredItems = items
+    } else {
+      var scored = []
+      for (var i = 0; i < items.length; i++) {
+        var s = Fuzzy.itemScore(query, items[i])
+        if (s > 0)
+          scored.push({ item: items[i], score: s })
+      }
+      scored.sort(function(a, b) { return b.score - a.score })
+      filteredItems = scored.map(function(x) { return x.item })
+    }
+    selectedIndex = Math.min(selectedIndex, Math.max(0, filteredItems.length - 1))
   }
 
   function executeCurrent() {

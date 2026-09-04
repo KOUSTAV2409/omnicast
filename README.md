@@ -26,7 +26,10 @@ This project is organized following the **LLM Wiki / Agent Knowledge Base** arch
 
 - [`context.md`](context.md) — Ground-truth product context, system constraints, and architectural vision.
 - [`memory.md`](memory.md) — Living project memory, Architectural Decision Records (ADRs), invariants, and lessons learned.
-- [`roadmap.md`](roadmap.md) — Phased master execution plan and status tracker.
+- [`research.md`](research.md) — Independent Raycast product / UX / clones research (Manhattan bar).
+- [`analysis.md`](analysis.md) — Current Omnicast codebase audit & gap analysis.
+- [`implementation-plan.md`](implementation-plan.md) — Authoritative Manhattan → Berlin execution plan.
+- [`roadmap.md`](roadmap.md) — High-level status pointer (mirrors implementation plan milestones).
 - [`docs/spec/raycast-feature-matrix.md`](docs/spec/raycast-feature-matrix.md) — Comprehensive Raycast parity audit.
 - [`docs/spec/ui-ux-design-system.md`](docs/spec/ui-ux-design-system.md) — Exact design tokens, layer-shell rules, and interaction curves.
 
@@ -43,4 +46,4 @@ This project is organized following the **LLM Wiki / Agent Knowledge Base** arch
 
 ## 🚀 Getting Started
 
-See [`roadmap.md`](roadmap.md) for the active milestone and implementation steps.
+See [`implementation-plan.md`](implementation-plan.md) for the active plan. Start at **Phase A** (stabilize). Context: [`analysis.md`](analysis.md) · [`research.md`](research.md).

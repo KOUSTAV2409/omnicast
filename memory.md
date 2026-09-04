@@ -43,4 +43,23 @@ Whenever any agent or developer touches this project, the following rules MUST b
 
 ## 4. Current Working State
 
-* **System Status**: Fully operational, deeply integrated with Omarchy, pushed to private GitHub repository, and live on `ALT + SPACE`.
+* **System Status**: Umbrella pivot (2026-09-04) — Omnicast is the Omarchy command surface, not a Raycast UI clone. Native handoffs for clipboard/emoji/theme/background/images/keybindings/menu. Omnicast-owned: search, ranking, scripts, calc, snippets, WM helpers, AI (mock).
+* **Live hotkey**: `ALT + SPACE` → `bin/omnicast`
+* **Snippet daemon** (optional): `bin/omnicast-snippetd` (needs `python-evdev` + `input` group)
+
+### ADR 012: Exec + Paths singletons
+* **Status**: Accepted
+* **Decision**: Use `Quickshell.shellDir` + `Quickshell.execDetached` via `Paths`/`Exec` singletons; ban new `createQmlObject(Process)` and absolute home paths.
+
+### ADR 013: Shell-level HUD panel
+* **Status**: Accepted
+* **Decision**: `HudPanel` is a separate layer-shell window so feedback survives launcher dismiss.
+
+### ADR 014: Omarchy umbrella (not Raycast clone)
+* **Status**: Accepted
+* **Context**: Reimplementing Omarchy-owned surfaces (clipboard especially) produced worse UX than the native plugins. Raycast-shaped chrome also felt foreign next to Omarchy menu/clipboard/emoji.
+* **Decision**:
+  1. **Handoff** tools Omarchy already ships (`omarchy-menu-*`, `omarchy menu summon <route>`, shell overlays) — dismiss Omnicast first, then launch.
+  2. **Own** only the umbrella brain: root search, frecency/favorites, scripts/forms, calc, and true gaps (snippets/AI/WM palette).
+  3. **Visual language** matches Omarchy `[launcher]`/`[menu]` tokens from `~/.local/state/omarchy/current/theme/shell.toml` + Hyprland rounding — not Raycast aesthetics.
+* **Consequences**: Faster daily-driver path; less duplicate code; Omnicast identity = “beautiful front door to Omarchy.”

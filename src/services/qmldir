@@ -1,2 +1,6 @@
 singleton Theme 1.0 Theme.qml
-NavStack 1.0 NavStack.qml
+singleton Paths 1.0 Paths.qml
+singleton Exec 1.0 Exec.qml
+singleton Fuzzy 1.0 Fuzzy.qml
+singleton Ranking 1.0 Ranking.qml
+singleton Hud 1.0 Hud.qml

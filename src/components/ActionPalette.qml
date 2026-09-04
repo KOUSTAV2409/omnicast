@@ -126,6 +126,7 @@ Rectangle {
           height: 38
           radius: Theme.itemRadius
           color: index === root.selectedIndex ? Theme.itemSelectedBackground : (rowMouse.containsMouse ? Theme.itemHoverBackground : "transparent")
+          visible: !modelData.isSection
 
           Row {
             anchors.fill: parent
@@ -138,7 +139,7 @@ Rectangle {
               text: modelData.icon || "•"
               font.family: Theme.fontFamily
               font.pixelSize: 13
-              color: index === root.selectedIndex ? Theme.accent : Theme.muted
+              color: modelData.destructive ? "#f07178" : (index === root.selectedIndex ? Theme.accent : Theme.muted)
             }
 
             Text {
@@ -148,7 +149,7 @@ Rectangle {
               font.family: Theme.fontFamily
               font.pixelSize: 13
               font.weight: index === root.selectedIndex ? Font.Medium : Font.Normal
-              color: index === root.selectedIndex ? Theme.brightForeground : Theme.lightForeground
+              color: modelData.destructive ? "#f07178" : (index === root.selectedIndex ? Theme.brightForeground : Theme.lightForeground)
               elide: Text.ElideRight
             }
 
@@ -203,10 +204,17 @@ Rectangle {
     if (!query || query.trim() === "") {
       filteredActions = actions
     } else {
-      var q = query.toLowerCase()
-      filteredActions = actions.filter(function(a) {
-        return a.title.toLowerCase().includes(q) || (a.subtitle && a.subtitle.toLowerCase().includes(q))
-      })
+      var scored = []
+      for (var i = 0; i < actions.length; i++) {
+        var a = actions[i]
+        if (a.isSection)
+          continue
+        var s = Fuzzy.itemScore(query, a)
+        if (s > 0)
+          scored.push({ item: a, score: s })
+      }
+      scored.sort(function(a, b) { return b.score - a.score })
+      filteredActions = scored.map(function(x) { return x.item })
     }
     selectedIndex = 0
   }

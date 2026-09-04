@@ -13,7 +13,7 @@ Rectangle {
   signal actionPaletteClicked()
 
   height: 38
-  color: Qt.rgba(Theme.darkBackground.r, Theme.darkBackground.g, Theme.darkBackground.b, 0.85)
+  color: Qt.rgba(Theme.darkBackground.r, Theme.darkBackground.g, Theme.darkBackground.b, 0.92)
 
   Rectangle {
     anchors.top: parent.top

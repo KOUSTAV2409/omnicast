@@ -3,43 +3,53 @@ import QtQuick
 import Quickshell
 import Quickshell.Io
 
+// Omnicast visual tokens — prefer Omarchy [launcher] / [menu] from shell.toml
+// so the umbrella matches clipboard / menu / emoji surfaces.
 QtObject {
   id: root
 
   property string home: Quickshell.env("HOME")
-  property string colorsPath: home + "/.local/state/omarchy/current/theme/colors.toml"
+  property string themeDir: home + "/.local/state/omarchy/current/theme"
+  property string colorsPath: themeDir + "/colors.toml"
+  property string shellTomlPath: themeDir + "/shell.toml"
 
-  // Base theme palette tokens (defaults to Eventide dark palette)
+  // Foundational palette (colors.toml)
   property color background: "#141b24"
   property color darkBackground: "#0e131b"
   property color darkerBackground: "#090d13"
   property color lighterBackground: "#1b2532"
-  
-  // Solid, high-contrast modal background to prevent background text bleed
-  property color cardBackground: Qt.rgba(0.07, 0.09, 0.13, 0.98)
-  property color itemHoverBackground: Qt.rgba(1.0, 1.0, 1.0, 0.06)
-  property color itemSelectedBackground: Qt.rgba(0.98, 0.52, 0.15, 0.18)
-
   property color foreground: "#d8d4d0"
   property color lightForeground: "#e6e2de"
-  property color brightForeground: "#ffffff"
+  property color brightForeground: "#f5f0ec"
   property color darkForeground: "#6d7c8d"
-  property color muted: "#828d9c"
+  property color muted: "#4c5c72"
   property color accent: "#fa8526"
   property color selection: "#283548"
-  property color border: Qt.rgba(1.0, 1.0, 1.0, 0.12)
-  property color subtleBorder: Qt.rgba(1.0, 1.0, 1.0, 0.06)
+  property color urgent: "#e06553"
 
-  // Typography
-  property string fontFamily: "Inter, 'Noto Sans', sans-serif"
-  property string monoFontFamily: "'JetBrains Mono', 'Fira Code', monospace"
+  // Launcher / menu surface (shell.toml [launcher] then [menu])
+  property color cardBackground: "#141b24"
+  property color scrim: Qt.rgba(0.08, 0.11, 0.14, 0.50)
+  property color border: Qt.rgba(0.85, 0.83, 0.82, 0.35)
+  property color subtleBorder: Qt.rgba(0.85, 0.83, 0.82, 0.12)
+  property color itemHoverBackground: Qt.rgba(0.85, 0.83, 0.82, 0.06)
+  property color itemSelectedBackground: Qt.rgba(0.85, 0.83, 0.82, 0.08)
+  property color itemSelectedText: "#fa8526"
+  property color itemSelectedBorder: Qt.rgba(0.85, 0.83, 0.82, 0.25)
 
-  // Geometry
-  property int windowRadius: 16
-  property int itemRadius: 8
-  property int badgeRadius: 4
+  property string fontFamily: "monospace"
+  property string monoFontFamily: "monospace"
 
-  // Process to read and parse colors.toml
+  // Match Hyprland / Omarchy shell: rounding often 0
+  property int windowRadius: 0
+  property int itemRadius: 0
+  property int badgeRadius: 2
+  property int cardWidth: 720
+  property int cardHeight: 520
+  property int gapsOut: 5
+
+  property var _shellValues: ({})
+
   property Process colorWatcher: Process {
     command: ["cat", root.colorsPath]
     running: false
@@ -49,18 +59,72 @@ QtObject {
     }
   }
 
-  // Periodic check for external theme changes
+  property Process shellTomlWatcher: Process {
+    command: ["cat", root.shellTomlPath]
+    running: false
+    stdout: StdioCollector {
+      waitForEnd: true
+      onStreamFinished: text => root.parseShellToml(text)
+    }
+  }
+
+  property Process fontResolver: Process {
+    command: ["fc-match", "-f", "%{family[0]}", "monospace"]
+    running: false
+    stdout: StdioCollector {
+      waitForEnd: true
+      onStreamFinished: text => {
+        var override = Quickshell.env("OMARCHY_MENU_FONT") || ""
+        var fam = override.length ? override : (text || "").trim()
+        if (fam.length) {
+          root.fontFamily = fam
+          root.monoFontFamily = fam
+        }
+      }
+    }
+  }
+
+  property Process hyprRounding: Process {
+    command: ["hyprctl", "-j", "getoption", "decoration:rounding"]
+    running: false
+    stdout: StdioCollector {
+      waitForEnd: true
+      onStreamFinished: text => {
+        try {
+          var j = JSON.parse(text || "{}")
+          var n = j.int !== undefined ? j.int : parseInt(j.str || "0", 10)
+          if (isFinite(n)) {
+            root.windowRadius = Math.max(0, n)
+            root.itemRadius = Math.max(0, Math.min(6, Math.round(n / 2)))
+          }
+        } catch (e) {}
+      }
+    }
+  }
+
   property Timer themeCheckTimer: Timer {
-    interval: 3000
+    interval: 2500
     repeat: true
     running: true
     onTriggered: root.reloadTheme()
   }
 
-  function reloadTheme() {
-    if (!colorWatcher.running) {
-      colorWatcher.running = true
-    }
+  function withAlpha(c, a) {
+    return Qt.rgba(c.r, c.g, c.b, Math.max(0, Math.min(1, a)))
+  }
+
+  function parseHex(val, fallback) {
+    var s = String(val || "").trim().replace(/['"]/g, "")
+    if (s.indexOf("hyprland.") === 0 || s.indexOf("gradient") >= 0)
+      return fallback
+    if (s.charAt(0) === "#" && (s.length === 7 || s.length === 9))
+      return s
+    if (s === "foreground" || s === "text") return root.foreground
+    if (s === "background") return root.background
+    if (s === "accent") return root.accent
+    if (s === "muted") return root.muted
+    if (s === "urgent") return root.urgent
+    return fallback
   }
 
   function parseColors(raw) {
@@ -68,11 +132,10 @@ QtObject {
     var lines = raw.split("\n")
     for (var i = 0; i < lines.length; i++) {
       var line = lines[i].trim()
-      if (!line || line.startsWith("#") || !line.includes("=")) continue
+      if (!line || line.startsWith("#") || line.indexOf("=") < 0) continue
       var parts = line.split("=")
       var key = parts[0].trim()
-      var val = parts[1].trim().replace(/['"]/g, "")
-
+      var val = parts.slice(1).join("=").trim().replace(/['"]/g, "")
       if (key === "background") root.background = val
       else if (key === "dark_background") root.darkBackground = val
       else if (key === "darker_background") root.darkerBackground = val
@@ -81,16 +144,108 @@ QtObject {
       else if (key === "dark_foreground") root.darkForeground = val
       else if (key === "light_foreground") root.lightForeground = val
       else if (key === "bright_foreground") root.brightForeground = val
-      else if (key === "accent" || key === "orange") {
-        root.accent = val
-        root.itemSelectedBackground = Qt.rgba(root.accent.r, root.accent.g, root.accent.b, 0.20)
-      }
+      else if (key === "accent" || key === "orange") root.accent = val
       else if (key === "muted") root.muted = val
       else if (key === "selection") root.selection = val
+      else if (key === "red") root.urgent = val
     }
+    // Fallback card until shell.toml applies
+    root.cardBackground = root.withAlpha(root.background, 0.98)
+    root.applySurfaceFromShell()
   }
 
-  Component.onCompleted: {
-    reloadTheme()
+  function parseShellToml(raw) {
+    var values = ({})
+    var section = ""
+    var lines = String(raw || "").split("\n")
+    for (var i = 0; i < lines.length; i++) {
+      var line = lines[i].replace(/#.*$/, "").trim()
+      if (!line) continue
+      var sec = line.match(/^\[([^\]]+)\]$/)
+      if (sec) {
+        section = sec[1]
+        continue
+      }
+      var kv = line.match(/^([A-Za-z0-9_-]+)\s*=\s*(.+)$/)
+      if (!kv || !section) continue
+      var key = section + "." + kv[1]
+      var val = kv[2].trim()
+      if ((val.charAt(0) === '"' && val.charAt(val.length - 1) === '"')
+          || (val.charAt(0) === "'" && val.charAt(val.length - 1) === "'"))
+        val = val.substring(1, val.length - 1)
+      values[key] = val
+    }
+    root._shellValues = values
+    root.applySurfaceFromShell()
   }
+
+  function shellGet(key, fallback) {
+    var v = root._shellValues[key]
+    return (typeof v === "string" && v.length) ? v : fallback
+  }
+
+  function shellNum(key, fallback) {
+    var n = Number(shellGet(key, ""))
+    return isFinite(n) ? n : fallback
+  }
+
+  // Prefer [launcher] (Omnicast is a launcher), fall back to [menu]
+  function surfaceGet(field, fallback) {
+    var a = shellGet("launcher." + field, "")
+    if (a.length) return a
+    return shellGet("menu." + field, fallback)
+  }
+
+  function surfaceNum(field, fallback) {
+    var a = shellGet("launcher." + field, "")
+    if (a.length && isFinite(Number(a))) return Number(a)
+    return shellNum("menu." + field, fallback)
+  }
+
+  function applySurfaceFromShell() {
+    var bg = parseHex(surfaceGet("background", ""), root.background)
+    var bgA = surfaceNum("background-alpha", 0.95)
+    root.cardBackground = root.withAlpha(bg, bgA)
+
+    var text = parseHex(surfaceGet("text", ""), root.foreground)
+    root.foreground = text
+    root.lightForeground = text
+    root.brightForeground = text
+
+    var borderC = parseHex(surfaceGet("border", ""), root.foreground)
+    var borderA = surfaceNum("border-alpha", 0.35)
+    root.border = root.withAlpha(borderC, borderA)
+    root.subtleBorder = root.withAlpha(borderC, Math.min(0.15, borderA * 0.4))
+
+    var scrimC = parseHex(surfaceGet("scrim", ""), root.background)
+    var scrimA = surfaceNum("scrim-alpha", 0.5)
+    root.scrim = root.withAlpha(scrimC, scrimA)
+
+    var selBg = parseHex(surfaceGet("selected-background", ""), root.foreground)
+    var selBgA = surfaceNum("selected-background-alpha", 0.08)
+    root.itemSelectedBackground = root.withAlpha(selBg, selBgA)
+    root.itemHoverBackground = root.withAlpha(selBg, Math.max(0.04, selBgA * 0.7))
+
+    root.itemSelectedText = parseHex(surfaceGet("selected-text", ""), root.accent)
+    var selBorder = parseHex(surfaceGet("selected-border", ""), root.foreground)
+    var selBorderA = surfaceNum("selected-border-alpha", 0.25)
+    root.itemSelectedBorder = root.withAlpha(selBorder, selBorderA)
+
+    // Keep accent from colors.toml; selected-text often IS the accent
+    if (String(root.itemSelectedText).length)
+      root.accent = root.itemSelectedText
+  }
+
+  function reloadTheme() {
+    if (!colorWatcher.running)
+      colorWatcher.running = true
+    if (!shellTomlWatcher.running)
+      shellTomlWatcher.running = true
+    if (!fontResolver.running)
+      fontResolver.running = true
+    if (!hyprRounding.running)
+      hyprRounding.running = true
+  }
+
+  Component.onCompleted: reloadTheme()
 }

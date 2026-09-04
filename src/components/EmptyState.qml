@@ -45,7 +45,7 @@ Item {
         text: root.title
         font.family: Theme.fontFamily
         font.pixelSize: 14
-        font.weight: Font.SemiBold
+        font.weight: Font.DemiBold
         color: Theme.lightForeground
       }
 

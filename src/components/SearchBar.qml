@@ -17,6 +17,7 @@ Rectangle {
   signal submitPressed()
   signal moveDownRequested()
   signal moveUpRequested()
+  signal categoryCycleRequested()
 
   height: 54
   color: "transparent"
@@ -81,7 +82,7 @@ Rectangle {
       id: placeholder
       anchors.verticalCenter: parent.verticalCenter
       anchors.left: parent.left
-      text: "Search for apps, commands, files..."
+      text: "Search apps, Omarchy tools, scripts…"
       font.family: Theme.fontFamily
       font.pixelSize: 15
       color: Theme.muted
@@ -108,8 +109,12 @@ Rectangle {
         if (event.key === Qt.Key_Down || (event.key === Qt.Key_N && event.modifiers & Qt.ControlModifier)) {
           root.moveDownRequested()
           event.accepted = true
-        } else if (event.key === Qt.Key_Up || (event.key === Qt.Key_P && event.modifiers & Qt.ControlModifier)) {
+        } else if (event.key === Qt.Key_Up || (event.key === Qt.Key_P && event.modifiers === Qt.ControlModifier)) {
+          // Ctrl+P = move up (emacs). Ctrl+Shift+P = clipboard category cycle.
           root.moveUpRequested()
+          event.accepted = true
+        } else if (event.key === Qt.Key_P && (event.modifiers & Qt.ControlModifier) && (event.modifiers & Qt.ShiftModifier)) {
+          root.categoryCycleRequested()
           event.accepted = true
         } else if (event.key === Qt.Key_Return || event.key === Qt.Key_Enter) {
           root.submitPressed()
@@ -125,34 +130,46 @@ Rectangle {
     }
   }
 
-  // 4. Clear Button
-  Rectangle {
-    id: clearBtn
-    visible: input.text.length > 0
+  // 4. Clear Button / Busy indicator
+  Item {
     anchors.right: parent.right
     anchors.rightMargin: 16
     anchors.verticalCenter: parent.verticalCenter
     width: 20
     height: 20
-    radius: 10
-    color: clearMouse.containsMouse ? Theme.itemHoverBackground : "transparent"
 
+    // Busy spinner substitute
     Text {
       anchors.centerIn: parent
-      text: "✕"
-      font.pixelSize: 11
-      color: Theme.muted
+      visible: root.busy && input.text.length === 0
+      text: "…"
+      font.pixelSize: 14
+      color: Theme.accent
     }
 
-    MouseArea {
-      id: clearMouse
+    Rectangle {
+      id: clearBtn
+      visible: input.text.length > 0
       anchors.fill: parent
-      hoverEnabled: true
-      cursorShape: Qt.PointingHandCursor
-      onClicked: {
-        input.text = ""
-        root.clearRequested()
-        input.forceActiveFocus()
+      radius: 10
+      color: clearMouse.containsMouse ? Theme.itemHoverBackground : "transparent"
+
+      Text {
+        anchors.centerIn: parent
+        text: "✕"
+        font.pixelSize: 11
+        color: Theme.muted
+      }
+
+      MouseArea {
+        id: clearMouse
+        anchors.fill: parent
+        hoverEnabled: true
+        onClicked: {
+          input.text = ""
+          root.clearRequested()
+          input.forceActiveFocus()
+        }
       }
     }
   }

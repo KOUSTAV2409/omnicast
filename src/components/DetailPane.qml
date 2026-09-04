@@ -9,6 +9,7 @@ Rectangle {
   property var metadata: [] // Array of { label: string, value: string }
   property string imageSource: ""
   property string headerBadge: ""
+  property string swatchColor: ""
 
   color: "transparent"
 
@@ -63,6 +64,17 @@ Rectangle {
             color: Theme.accent
           }
         }
+      }
+
+      // Optional color swatch
+      Rectangle {
+        visible: root.swatchColor.length > 0
+        width: parent.width
+        height: 72
+        radius: 8
+        color: root.swatchColor
+        border.color: Theme.border
+        border.width: 1
       }
 
       // Optional Image Thumbnail Preview

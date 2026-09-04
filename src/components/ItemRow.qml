@@ -13,10 +13,13 @@ Rectangle {
   property bool isSectionHeader: false
 
   signal clicked()
+  signal doubleClicked()
 
   height: isSectionHeader ? 28 : 44
   color: isSectionHeader ? "transparent" : (isSelected ? Theme.itemSelectedBackground : "transparent")
   radius: Theme.itemRadius
+  border.color: isSelected && !isSectionHeader ? Theme.itemSelectedBorder : "transparent"
+  border.width: isSelected && !isSectionHeader ? 1 : 0
 
   // Left accent pill when selected
   Rectangle {
@@ -71,7 +74,7 @@ Rectangle {
         text: root.iconText
         font.family: Theme.fontFamily
         font.pixelSize: 14
-        color: root.isSelected ? Theme.accent : Theme.lightForeground
+        color: root.isSelected ? Theme.itemSelectedText : Theme.lightForeground
       }
     }
 
@@ -86,7 +89,7 @@ Rectangle {
         font.family: Theme.fontFamily
         font.pixelSize: 14
         font.weight: root.isSelected ? Font.DemiBold : Font.Normal
-        color: root.isSelected ? Theme.brightForeground : Theme.lightForeground
+        color: root.isSelected ? Theme.itemSelectedText : Theme.lightForeground
         elide: Text.ElideRight
         width: parent.width
       }
@@ -156,9 +159,12 @@ Rectangle {
   MouseArea {
     anchors.fill: parent
     hoverEnabled: true
-    cursorShape: Qt.PointingHandCursor
+    cursorShape: root.isSectionHeader ? Qt.ArrowCursor : Qt.PointingHandCursor
     onClicked: {
       if (!root.isSectionHeader) root.clicked()
+    }
+    onDoubleClicked: {
+      if (!root.isSectionHeader) root.doubleClicked()
     }
   }
 }

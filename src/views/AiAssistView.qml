@@ -80,7 +80,6 @@ Item {
         anchors.leftMargin: 12
         anchors.rightMargin: 8
         spacing: 8
-        verticalAlignment: Qt.AlignVCenter
 
         Text {
           anchors.verticalCenter: parent.verticalCenter
@@ -166,9 +165,7 @@ Item {
   function sendQuery(prompt) {
     if (!prompt || prompt.trim() === "") return
     isGenerating = true
-    responseMarkdown = "### Analyzing Query...\n\n*" + prompt + "*\n\n> Processing through intelligence gateway..."
-
-    // Simulate streaming response
+    responseMarkdown = "### Analyzing Query...\n\n*" + prompt + "*\n\n> *(Mock — Phase D / M4 will wire Ollama/BYOK streaming)*"
     generateTimer.restart()
   }
 
@@ -178,7 +175,8 @@ Item {
     repeat: false
     onTriggered: {
       root.isGenerating = false
-      root.responseMarkdown = "### AI Synthesis\n\nHere is the generated analysis for your request:\n\n```bash\n# Recommended command\nomarchy refresh applications && hyprctl reload\n```\n\n- **Safety**: Verified zero side-effects.\n- **Performance**: Executed natively via Wayland socket."
+      root.responseMarkdown = "### AI Placeholder (M4)\n\nReal streaming lands in **Phase D**. Configure Ollama or an OpenAI-compatible endpoint next.\n\nYour prompt was:\n\n> " + promptInput.text
+      Hud.info("AI mock response")
     }
   }
 
@@ -186,7 +184,8 @@ Item {
   function moveSelection(delta) {}
   function executeCurrent() {
     if (responseMarkdown.length > 0) {
-      Qt.createQmlObject('import Quickshell.Io; Process { command: ["sh", "-c", "wl-copy \'' + responseMarkdown.replace(/'/g, "'\\''") + '\'"]; running: true }', root)
+      Exec.copyText(responseMarkdown)
+      Hud.success("Copied AI response")
       root.requestDismiss()
     }
   }

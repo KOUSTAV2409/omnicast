@@ -1,12 +1,48 @@
 #!/usr/bin/env bash
-CONFIG_PATH="$(cd "$(dirname "${BASH_SOURCE[0]}")/../src" && pwd)"
+# Toggle / launch Omnicast (Raycast-style launcher for Omarchy).
+# IPC form mirrors omarchy-shell: `qs ipc call -- <target> <method>`
+# The `--` is required so methods like `show` are not eaten as qs subcommands.
 
-# Try to toggle existing running instance via IPC
-if quickshell ipc -p "$CONFIG_PATH" call omnicast toggle 2>/dev/null; then
-    exit 0
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+export OMNICAST_ROOT="$ROOT"
+CONFIG_PATH="$ROOT/src"
+
+# Match omarchy-shell: prefer newest instance; recover WAYLAND_DISPLAY if missing
+if [[ -z ${WAYLAND_DISPLAY:-} ]]; then
+  socket=$(ls -t "${XDG_RUNTIME_DIR:-/run/user/$UID}"/wayland-[0-9]* 2>/dev/null | grep -v '\.lock$' | head -n1)
+  [[ -n $socket ]] && export WAYLAND_DISPLAY=${socket##*/}
 fi
 
-# If not running, spawn daemonized quickshell instance
-quickshell -n -d -p "$CONFIG_PATH"
-sleep 0.25
-quickshell ipc -p "$CONFIG_PATH" call omnicast show 2>/dev/null || true
+ipc() {
+  qs ipc -n -p "$CONFIG_PATH" call -- omnicast "$@" 2>/dev/null
+}
+
+# Toggle existing instance
+if out=$(ipc toggle); then
+  case "$out" in
+    "Target not found."|"Function not found."|"Not ready to accept queries yet"*)
+      ;;
+    *)
+      exit 0
+      ;;
+  esac
+fi
+
+# Spawn daemonized quickshell, then show
+qs -n -d -p "$CONFIG_PATH"
+for _ in 1 2 3 4 5 6 7 8; do
+  sleep 0.15
+  if out=$(ipc show); then
+    case "$out" in
+      "Target not found."|"Function not found."|"Not ready to accept queries yet"*)
+        continue
+        ;;
+      *)
+        exit 0
+        ;;
+    esac
+  fi
+done
+
+echo "omnicast: failed to start or show" >&2
+exit 1

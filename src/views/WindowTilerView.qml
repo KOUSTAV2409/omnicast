@@ -13,106 +13,101 @@ Item {
   signal requestActionPalette(var actions)
   signal requestDismiss()
 
+  readonly property var selectedItem: listDetail.selectedItem
+
   function loadWindowActions() {
-    var items = [
-      {
-        id: "win-left",
-        title: "Tile Left (50%)",
-        subtitle: "Snap active window to the left half of the display",
-        icon: "◧",
-        badge: "Split",
-        markdown: "### Snap Left Half\n\nResizes and moves the currently focused Hyprland window to cover the left **50%** of the active monitor.\n\n*Dispatcher:* `hyprctl dispatch movewindow l`",
-        metadata: [
-          { label: "Target Screen", value: "Current Monitor" },
-          { label: "Width Ratio", value: "50%" }
-        ],
-        action: function() {
-          root.hyprDispatch("movewindow l")
-        },
+    function mk(id, title, subtitle, icon, badge, md, meta, argv, primary) {
+      return {
+        id: id,
+        title: title,
+        subtitle: subtitle,
+        icon: icon,
+        badge: badge,
+        primaryActionTitle: primary || title,
+        markdown: md,
+        metadata: meta,
+        action: function() { root.hyprDispatch(argv) },
         actions: [
-          { title: "Tile Left (50%)", icon: "◧", shortcut: "↵", callback: function() { root.hyprDispatch("movewindow l") } },
-          { title: "Tile Left (33%)", icon: "▎", callback: function() {} }
-        ]
-      },
-      {
-        id: "win-right",
-        title: "Tile Right (50%)",
-        subtitle: "Snap active window to the right half of the display",
-        icon: "◨",
-        badge: "Split",
-        markdown: "### Snap Right Half\n\nResizes and moves the currently focused Hyprland window to cover the right **50%** of the active monitor.\n\n*Dispatcher:* `hyprctl dispatch movewindow r`",
-        metadata: [
-          { label: "Target Screen", value: "Current Monitor" },
-          { label: "Width Ratio", value: "50%" }
-        ],
-        action: function() {
-          root.hyprDispatch("movewindow r")
-        },
-        actions: [
-          { title: "Tile Right (50%)", icon: "◨", shortcut: "↵", callback: function() { root.hyprDispatch("movewindow r") } }
-        ]
-      },
-      {
-        id: "win-full",
-        title: "Toggle Fullscreen",
-        subtitle: "Expand active window to fill the entire workspace",
-        icon: "⛶",
-        badge: "Layout",
-        markdown: "### Fullscreen Toggle\n\nToggles fullscreen mode for the active window without borders or gaps.\n\n*Dispatcher:* `hyprctl dispatch fullscreen 1`",
-        metadata: [
-          { label: "State", value: "Monocle / Fullscreen" }
-        ],
-        action: function() {
-          root.hyprDispatch("fullscreen 1")
-        },
-        actions: [
-          { title: "Toggle Fullscreen", icon: "⛶", shortcut: "↵", callback: function() { root.hyprDispatch("fullscreen 1") } }
-        ]
-      },
-      {
-        id: "win-float",
-        title: "Toggle Floating Window",
-        subtitle: "Switch between dynamic tiling and floating modal",
-        icon: "🪟",
-        badge: "State",
-        markdown: "### Toggle Floating\n\nDetaches the window from the tiling tree into a draggable floating overlay.\n\n*Dispatcher:* `hyprctl dispatch togglefloating`",
-        metadata: [
-          { label: "Mode", value: "Floating / Tiling" }
-        ],
-        action: function() {
-          root.hyprDispatch("togglefloating")
-        },
-        actions: [
-          { title: "Toggle Floating", icon: "🪟", shortcut: "↵", callback: function() { root.hyprDispatch("togglefloating") } },
-          { title: "Center Window", icon: "🎯", callback: function() { root.hyprDispatch("centerwindow") } }
-        ]
-      },
-      {
-        id: "win-ws-next",
-        title: "Move to Next Workspace",
-        subtitle: "Send window to workspace +1",
-        icon: "",
-        badge: "Workspace",
-        markdown: "### Move to Next Workspace\n\nTransfers the active window to the next sequential virtual workspace.\n\n*Dispatcher:* `hyprctl dispatch movetoworkspace +1`",
-        metadata: [
-          { label: "Direction", value: "+1 Workspace" }
-        ],
-        action: function() {
-          root.hyprDispatch("movetoworkspace +1")
-        },
-        actions: [
-          { title: "Move to +1", icon: "", shortcut: "↵", callback: function() { root.hyprDispatch("movetoworkspace +1") } }
+          { title: primary || title, icon: icon, shortcut: "↵", callback: function() { root.hyprDispatch(argv) } }
         ]
       }
+    }
+
+    var items = [
+      mk("win-left", "Tile Left (50%)", "Snap focused window to left half", "◧", "Split",
+         "### Left Half\n\nFloating snap to left 50% via Hyprland batch resize/move.",
+         [{ label: "Ratio", value: "50%" }],
+         ["--batch", "dispatch setfloating 1; dispatch resizeactive exact 50% 100%; dispatch moveactive exact 0 0"], "Tile Left"),
+      mk("win-right", "Tile Right (50%)", "Snap focused window to right half", "◨", "Split",
+         "### Right Half\n\nFloating snap to right 50%.",
+         [{ label: "Ratio", value: "50%" }],
+         ["--batch", "dispatch setfloating 1; dispatch resizeactive exact 50% 100%; dispatch moveactive exact 50% 0"], "Tile Right"),
+      mk("win-top", "Tile Top (50%)", "Snap focused window to top half", "⬒", "Split",
+         "### Top Half", [{ label: "Ratio", value: "50%" }],
+         ["--batch", "dispatch setfloating 1; dispatch resizeactive exact 100% 50%; dispatch moveactive exact 0 0"], "Tile Top"),
+      mk("win-bottom", "Tile Bottom (50%)", "Snap focused window to bottom half", "⬓", "Split",
+         "### Bottom Half", [{ label: "Ratio", value: "50%" }],
+         ["--batch", "dispatch setfloating 1; dispatch resizeactive exact 100% 50%; dispatch moveactive exact 0 50%"], "Tile Bottom"),
+      mk("win-left-third", "Tile Left (33%)", "Left third of the monitor", "▎", "Split",
+         "### Left Third", [{ label: "Ratio", value: "33%" }],
+         ["--batch", "dispatch setfloating 1; dispatch resizeactive exact 33% 100%; dispatch moveactive exact 0 0"], "Tile Left 33%"),
+      mk("win-center-third", "Tile Center (33%)", "Center third of the monitor", "▮", "Split",
+         "### Center Third", [{ label: "Ratio", value: "33%" }],
+         ["--batch", "dispatch setfloating 1; dispatch resizeactive exact 34% 100%; dispatch moveactive exact 33% 0"], "Tile Center"),
+      mk("win-right-third", "Tile Right (33%)", "Right third of the monitor", "▍", "Split",
+         "### Right Third", [{ label: "Ratio", value: "33%" }],
+         ["--batch", "dispatch setfloating 1; dispatch resizeactive exact 33% 100%; dispatch moveactive exact 67% 0"], "Tile Right 33%"),
+      mk("win-tl", "Top Left Quarter", "Quarter snap", "◰", "Quarter",
+         "### Top Left", [{ label: "Ratio", value: "50%×50%" }],
+         ["--batch", "dispatch setfloating 1; dispatch resizeactive exact 50% 50%; dispatch moveactive exact 0 0"], "Top Left"),
+      mk("win-tr", "Top Right Quarter", "Quarter snap", "東北", "Quarter",
+         "### Top Right", [{ label: "Ratio", value: "50%×50%" }],
+         ["--batch", "dispatch setfloating 1; dispatch resizeactive exact 50% 50%; dispatch moveactive exact 50% 0"], "Top Right"),
+      mk("win-bl", "Bottom Left Quarter", "Quarter snap", "◱", "Quarter",
+         "### Bottom Left", [{ label: "Ratio", value: "50%×50%" }],
+         ["--batch", "dispatch setfloating 1; dispatch resizeactive exact 50% 50%; dispatch moveactive exact 0 50%"], "Bottom Left"),
+      mk("win-br", "Bottom Right Quarter", "Quarter snap", "◲", "Quarter",
+         "### Bottom Right", [{ label: "Ratio", value: "50%×50%" }],
+         ["--batch", "dispatch setfloating 1; dispatch resizeactive exact 50% 50%; dispatch moveactive exact 50% 50%"], "Bottom Right"),
+      mk("win-center", "Center Window", "Center the focused window", "🎯", "Layout",
+         "### Center", [{ label: "Dispatcher", value: "centerwindow" }],
+         ["centerwindow"], "Center"),
+      mk("win-full", "Toggle Fullscreen", "Fullscreen without borders", "⛶", "Layout",
+         "### Fullscreen", [{ label: "Dispatcher", value: "fullscreen 1" }],
+         ["fullscreen", "1"], "Fullscreen"),
+      mk("win-float", "Toggle Floating", "Floating vs tiling", "🪟", "State",
+         "### Toggle Floating", [{ label: "Dispatcher", value: "togglefloating" }],
+         ["togglefloating"], "Toggle Float"),
+      mk("win-max", "Maximize", "Maximize on current monitor", "⬜", "Layout",
+         "### Maximize", [{ label: "Dispatcher", value: "fullscreen 0" }],
+         ["fullscreen", "0"], "Maximize"),
+      mk("win-ws-next", "Move to Next Workspace", "Send window to +1 workspace", "→", "Workspace",
+         "### Next Workspace", [{ label: "Dispatcher", value: "movetoworkspace +1" }],
+         ["movetoworkspace", "+1"], "Move +1"),
+      mk("win-ws-prev", "Move to Previous Workspace", "Send window to -1 workspace", "←", "Workspace",
+         "### Previous Workspace", [{ label: "Dispatcher", value: "movetoworkspace -1" }],
+         ["movetoworkspace", "-1"], "Move -1"),
+      mk("win-mon-next", "Move to Next Monitor", "Throw window to next display", "🖥️", "Monitor",
+         "### Next Monitor", [{ label: "Dispatcher", value: "movewindow mon:+1" }],
+         ["movewindow", "mon:+1"], "Next Monitor")
     ]
 
     listDetail.items = items
     listDetail.filter(filterText)
   }
 
-  function hyprDispatch(arg) {
-    Qt.createQmlObject('import Quickshell.Io; Process { command: ["hyprctl", "dispatch", "' + arg + '"]; running: true }', root)
+  function hyprDispatch(argv) {
+    // Dismiss first so Hyprland restores focus to the real client window.
+    Hud.success("Window updated")
     root.requestDismiss()
+    if (argv[0] === "--batch") {
+      Exec.detached(["hyprctl", "--batch", argv[1]])
+    } else {
+      var cmd = ["hyprctl", "dispatch"]
+      for (var i = 0; i < argv.length; i++)
+        cmd.push(argv[i])
+      Exec.detached(cmd)
+    }
   }
 
   function filter(query) {
@@ -135,11 +130,8 @@ Item {
   ListDetailView {
     id: listDetail
     anchors.fill: parent
-
     onRequestActionPalette: actions => root.requestActionPalette(actions)
   }
 
-  Component.onCompleted: {
-    loadWindowActions()
-  }
+  Component.onCompleted: loadWindowActions()
 }

@@ -101,7 +101,7 @@ def detect_content_type(text):
         
     return "text", "text", "📄"
 
-def read_omarchy_history(query="", filter_type="all", limit=40):
+def read_omarchy_history(query="", filter_type="all", limit=120):
     if not HISTORY_FILE.exists():
         return []
         
@@ -142,6 +142,7 @@ def read_omarchy_history(query="", filter_type="all", limit=40):
             results.append({
                 "id": f"omarchy-clip-{idx}",
                 "key": entry_key,
+                "historyIndex": idx,
                 "title": f"Screenshot / Image",
                 "subtitle": f"{captured_at} • PNG • {fsize // 1024} KB",
                 "icon": "📌" if is_pinned else "🖼️",
@@ -149,6 +150,7 @@ def read_omarchy_history(query="", filter_type="all", limit=40):
                 "contentType": "image",
                 "content": "",
                 "imagePath": img_path,
+                "mime": entry.get("mime") or "image/png",
                 "image": f"file://{img_path}",
                 "markdown": f"### Image Preview\n\n- **File Size:** `{fsize // 1024} KB`\n- **Captured:** `{captured_at}`\n\nPress **↵** to paste image into active application.",
                 "color": "",
@@ -239,6 +241,7 @@ def read_omarchy_history(query="", filter_type="all", limit=40):
             results.append({
                 "id": f"omarchy-clip-{idx}",
                 "key": entry_key,
+                "historyIndex": idx,
                 "title": preview_title,
                 "subtitle": f"{ctype.capitalize()} • {char_count} chars",
                 "icon": "📌" if is_pinned else ("🎨" if ctype == "color" else ("🌐" if ctype == "url" else ("" if ctype == "code" else "📄"))),

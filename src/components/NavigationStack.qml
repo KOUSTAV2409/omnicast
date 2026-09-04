@@ -66,17 +66,13 @@ Item {
   }
 
   function reset() {
-    while (views.length > 1) {
+    while (views.length > 0) {
       var entry = views.pop()
-      entry.item.destroy()
+      if (entry && entry.item)
+        entry.item.destroy()
     }
     viewsChanged()
-    if (views.length === 1) {
-      currentViewItem = views[0].item
-      currentViewItem.visible = true
-      currentViewItem.opacity = 1.0
-      topViewChanged(views[0])
-    }
+    currentViewItem = null
   }
 
   Item {
