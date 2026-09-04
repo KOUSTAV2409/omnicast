@@ -132,6 +132,8 @@ Full Raycast ↔ Omarchy map: [`docs/raycast-vs-omarchy.md`](docs/raycast-vs-oma
 
 **Next:** real AI streaming (M4), then polish / optional file provider.
 
+Full leftover backlog: [`roadmap.md`](roadmap.md) → **What’s left to build**.
+
 ---
 
 ## License

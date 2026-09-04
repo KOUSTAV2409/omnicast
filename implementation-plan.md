@@ -200,24 +200,28 @@ Adjust if dogfooding reveals a broken hero path — **always prioritize trust (A
 
 ### M4 — “AI-native launcher” (= Phase D exit)
 - [ ] Streaming Ollama/BYOK
-- [ ] Quick AI fallback
-- [ ] Clipboard/selection context actions
-*(UI still mocked — discuss before implementing)*
+- [ ] Quick AI fallback (root / no-match → real model)
+- [ ] Clipboard/selection context actions (explain / summarize)
+*(UI still mocked — next build priority)*
 
 ### M5 — “Manhattan complete” (umbrella edition)
 - [x] Handoff Omarchy-strong tools (clipboard, emoji, theme, images, menu, capture, share, reminders, keybindings)
 - [x] Own calc / quicklinks / scripts / ranking / snippets surface
 - [x] Curate Hyprland + `omarchy-hyprland-*` into searchable Windows palette + root index
 - [x] No-match fallbacks (web search, Ask AI)
-- [ ] Real AI streaming (M4 / Phase D) — next discuss
+- [ ] Real AI streaming (M4) — **blocks Manhattan “complete” on paper**
 - [ ] Optional: light file provider (or keep `omarchy-menu-file` handoff)
+- [ ] Optional polish: snippetd reliability; calc currency/dates
 
-**Manhattan daily loop (umbrella):** Alt+Space → apps/commands/calc → handoff clipboard/emoji/theme → Windows tile/pop/gaps → scripts/quicklinks → Esc.
+**Manhattan daily loop (umbrella):** Alt+Space → apps/commands/calc → handoff clipboard/emoji/theme → Windows pop/float/gaps → scripts/quicklinks → Esc.
 
 ### M6 — “Berlin underway” (= Phase F)
-- [ ] Deeplinks + packaging
+- [ ] Packaging / install path
+- [ ] Deeplinks (`omnicast://…`)
 - [ ] One Hyprland-only workflow clearly better than Raycast
-- [ ] Extension ADR accepted
+- [ ] Extension strategy ADR accepted
+
+Plain-language backlog: [`roadmap.md`](roadmap.md) → **What’s left to build**.
 
 ---
 
@@ -237,21 +241,20 @@ Adjust if dogfooding reveals a broken hero path — **always prioritize trust (A
 |---|---|
 | Wayland snippet/`wtype` unreliable | Settings for delay; HUD on failure; document ydotool fallback |
 | Scope creep vs Vicinae | Manhattan checklist only until M5; weekly “ship something dogfoodable” |
-| Process latency × N | Cache scan results; optional long-lived Python sidecar later (Elephant pattern) |
+| Process latency × N | Cache scan results (done for root catalogs); optional long-lived Python sidecar later |
 | Single-maintainer burnout | Prefer scripts over Store; small phases; delete dead code early |
-| Doc drift repeats | Phase A8 + update analysis/roadmap when ADR changes |
+| Doc drift repeats | Keep `roadmap.md` “What’s left” in sync with this §5 |
 
 ---
 
 ## 8. Immediate next actions (start here)
 
-1. **A1 + A2 + A3** — paths + script args/modes (unblocks extensibility trust)  
-2. **A4** — Process helper (stops bleeding while features land)  
-3. **B1** — HUD (makes every later feature feel finished)  
-4. **B4 + B5** — frecency/favorites (Root Search starts feeling smart)  
-5. Then **C1** snippets expand + **D1** AI — hero Berlin/Manhattan overlap  
+1. **M4 / D1** — wire Ask AI to streaming Ollama (local-first)  
+2. **M4 / D2** — root fallback + question heuristic → real model  
+3. **M4 / D3** — clipboard/selection context actions  
+4. Then optional file handoff / snippetd polish; then Berlin packaging  
 
-Do not start File Search or Store work before M2.
+Do not start Store / Pro-adjacent surfaces before M4 ships.
 
 ---
 
@@ -261,7 +264,7 @@ Do not start File Search or Store work before M2.
 |---|---|
 | `analysis.md` | Re-audit at each milestone exit |
 | `implementation-plan.md` | Check off IDs; revise estimates monthly |
-| `roadmap.md` | Mirror phase status from this plan (replace overstated “Done”) |
+| `roadmap.md` | Status + **What’s left to build** (human-facing backlog) |
 | `research.md` §8 | Update parity table as items ship |
 | `memory.md` | New ADRs (Process helper, ranking store, extension strategy, AI gateway) |
 
