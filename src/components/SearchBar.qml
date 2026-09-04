@@ -1,7 +1,8 @@
 import QtQuick
 import "../services"
 
-Rectangle {
+// Omarchy-menu-style search header: large heading text, no icon chrome.
+Item {
   id: root
 
   property alias text: input.text
@@ -19,166 +20,83 @@ Rectangle {
   signal moveUpRequested()
   signal categoryCycleRequested()
 
-  height: 54
-  color: "transparent"
+  height: Theme.headerHeight
+  width: parent ? parent.width : Theme.cardWidth
 
-  // Bottom Border Line
-  Rectangle {
-    anchors.bottom: parent.bottom
-    anchors.left: parent.left
-    anchors.right: parent.right
-    height: 1
-    color: Theme.border
-  }
-
-  // 1. Search Leading Icon
   Text {
-    id: leadingIcon
-    anchors.left: parent.left
-    anchors.leftMargin: 16
-    anchors.verticalCenter: parent.verticalCenter
-    text: "" // Nerd font search icon
-    font.family: Theme.fontFamily
-    font.pixelSize: 16
-    color: input.text.length > 0 ? Theme.accent : Theme.muted
-  }
-
-  // 2. Breadcrumb Badge (if active in sub-view)
-  Rectangle {
-    id: breadcrumbBadge
+    id: breadcrumb
     visible: root.breadcrumbText.length > 0
-    anchors.left: leadingIcon.right
-    anchors.leftMargin: 10
+    anchors.left: parent.left
     anchors.verticalCenter: parent.verticalCenter
-    height: 24
-    radius: 4
-    color: Qt.rgba(Theme.accent.r, Theme.accent.g, Theme.accent.b, 0.15)
-    border.color: Qt.rgba(Theme.accent.r, Theme.accent.g, Theme.accent.b, 0.35)
-    border.width: 1
-    width: breadcrumbLabel.implicitWidth + 16
-
-    Text {
-      id: breadcrumbLabel
-      anchors.centerIn: parent
-      text: root.breadcrumbText
-      font.family: Theme.fontFamily
-      font.pixelSize: 12
-      font.weight: Font.Medium
-      color: Theme.accent
-    }
+    text: root.breadcrumbText + " · "
+    font.family: Theme.fontFamily
+    font.pixelSize: Theme.fontHeading
+    font.weight: Font.Medium
+    color: Theme.muted
   }
 
-  // 3. Search Input Area
-  Item {
-    id: inputContainer
-    anchors.left: breadcrumbBadge.visible ? breadcrumbBadge.right : leadingIcon.right
-    anchors.leftMargin: 12
-    anchors.right: clearBtn.visible ? clearBtn.left : parent.right
-    anchors.rightMargin: 12
-    anchors.top: parent.top
-    anchors.bottom: parent.bottom
-
-    Text {
-      id: placeholder
-      anchors.verticalCenter: parent.verticalCenter
-      anchors.left: parent.left
-      text: "Search apps, Omarchy tools, scripts…"
-      font.family: Theme.fontFamily
-      font.pixelSize: 15
-      color: Theme.muted
-      visible: input.text.length === 0
-    }
-
-    TextInput {
-      id: input
-      anchors.fill: parent
-      verticalAlignment: TextInput.AlignVCenter
-      font.family: Theme.fontFamily
-      font.pixelSize: 15
-      color: Theme.brightForeground
-      selectionColor: Theme.accent
-      selectedTextColor: Theme.darkerBackground
-      clip: true
-      focus: true
-
-      onTextChanged: {
-        root.textChangedByUser(text)
-      }
-
-      Keys.onPressed: event => {
-        if (event.key === Qt.Key_Down || (event.key === Qt.Key_N && event.modifiers & Qt.ControlModifier)) {
-          root.moveDownRequested()
-          event.accepted = true
-        } else if (event.key === Qt.Key_Up || (event.key === Qt.Key_P && event.modifiers === Qt.ControlModifier)) {
-          // Ctrl+P = move up (emacs). Ctrl+Shift+P = clipboard category cycle.
-          root.moveUpRequested()
-          event.accepted = true
-        } else if (event.key === Qt.Key_P && (event.modifiers & Qt.ControlModifier) && (event.modifiers & Qt.ShiftModifier)) {
-          root.categoryCycleRequested()
-          event.accepted = true
-        } else if (event.key === Qt.Key_Return || event.key === Qt.Key_Enter) {
-          root.submitPressed()
-          event.accepted = true
-        } else if (event.key === Qt.Key_Escape) {
-          root.escapePressed()
-          event.accepted = true
-        } else if (event.key === Qt.Key_Tab || (event.key === Qt.Key_K && event.modifiers & Qt.ControlModifier)) {
-          root.actionPaletteRequested()
-          event.accepted = true
-        }
-      }
-    }
-  }
-
-  // 4. Clear Button / Busy indicator
-  Item {
+  Text {
+    id: placeholder
+    anchors.left: breadcrumb.visible ? breadcrumb.right : parent.left
     anchors.right: parent.right
-    anchors.rightMargin: 16
     anchors.verticalCenter: parent.verticalCenter
-    width: 20
-    height: 20
+    text: "Search…"
+    font.family: Theme.fontFamily
+    font.pixelSize: Theme.fontHeading
+    font.weight: Font.Medium
+    color: Theme.foreground
+    opacity: 0.58
+    visible: input.text.length === 0 && !root.busy
+    elide: Text.ElideRight
+  }
 
-    // Busy spinner substitute
-    Text {
-      anchors.centerIn: parent
-      visible: root.busy && input.text.length === 0
-      text: "…"
-      font.pixelSize: 14
-      color: Theme.accent
-    }
+  Text {
+    anchors.left: breadcrumb.visible ? breadcrumb.right : parent.left
+    anchors.verticalCenter: parent.verticalCenter
+    visible: root.busy && input.text.length === 0
+    text: "Loading…"
+    font.family: Theme.fontFamily
+    font.pixelSize: Theme.fontHeading
+    font.weight: Font.Medium
+    color: Theme.foreground
+    opacity: 0.45
+  }
 
-    Rectangle {
-      id: clearBtn
-      visible: input.text.length > 0
-      anchors.fill: parent
-      radius: 10
-      color: clearMouse.containsMouse ? Theme.itemHoverBackground : "transparent"
+  TextInput {
+    id: input
+    anchors.left: breadcrumb.visible ? breadcrumb.right : parent.left
+    anchors.right: parent.right
+    anchors.verticalCenter: parent.verticalCenter
+    height: parent.height
+    font.family: Theme.fontFamily
+    font.pixelSize: Theme.fontHeading
+    font.weight: Font.Medium
+    color: Theme.foreground
+    selectionColor: Theme.accent
+    selectedTextColor: Theme.darkerBackground
+    clip: true
+    focus: true
+    cursorVisible: activeFocus
 
-      Text {
-        anchors.centerIn: parent
-        text: "✕"
-        font.pixelSize: 11
-        color: Theme.muted
+    onTextChanged: root.textChangedByUser(text)
+
+    Keys.onPressed: event => {
+      if (event.key === Qt.Key_Down || (event.key === Qt.Key_N && event.modifiers & Qt.ControlModifier)) {
+        root.moveDownRequested(); event.accepted = true
+      } else if (event.key === Qt.Key_Up || (event.key === Qt.Key_P && event.modifiers === Qt.ControlModifier)) {
+        root.moveUpRequested(); event.accepted = true
+      } else if (event.key === Qt.Key_P && (event.modifiers & Qt.ControlModifier) && (event.modifiers & Qt.ShiftModifier)) {
+        root.categoryCycleRequested(); event.accepted = true
+      } else if (event.key === Qt.Key_Return || event.key === Qt.Key_Enter) {
+        root.submitPressed(); event.accepted = true
+      } else if (event.key === Qt.Key_Escape) {
+        root.escapePressed(); event.accepted = true
+      } else if (event.key === Qt.Key_Tab || (event.key === Qt.Key_K && event.modifiers & Qt.ControlModifier)) {
+        root.actionPaletteRequested(); event.accepted = true
       }
-
-      MouseArea {
-        id: clearMouse
-        anchors.fill: parent
-        hoverEnabled: true
-        onClicked: {
-          input.text = ""
-          root.clearRequested()
-          input.forceActiveFocus()
-        }
-      }
     }
   }
 
-  function clear() {
-    input.text = ""
-  }
-
-  function setFocus() {
-    input.forceActiveFocus()
-  }
+  function clear() { input.text = "" }
+  function setFocus() { input.forceActiveFocus() }
 }

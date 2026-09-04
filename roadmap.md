@@ -2,7 +2,7 @@
 
 > **Document Type:** High-level status pointer  
 > **Last Updated:** 2026-09-04  
-> **Authoritative plan:** [`implementation-plan.md`](implementation-plan.md) · ADR 014 in [`memory.md`](memory.md)
+> **Authoritative plan:** [`implementation-plan.md`](implementation-plan.md) · ADR 014 in [`memory.md`](memory.md) · crosswalk [`docs/raycast-vs-omarchy.md`](docs/raycast-vs-omarchy.md)
 
 ---
 

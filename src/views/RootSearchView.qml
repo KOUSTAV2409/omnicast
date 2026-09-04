@@ -121,38 +121,56 @@ Item {
     return item
   }
 
-  function powerTools() {
+  function omarchyHandoffs() {
     return [
-      handoffTool("clipboard", "Clipboard History", "Omarchy clipboard · Super+Ctrl+V",
-                  "📋", "Omarchy", "Productivity", "Open Clipboard",
+      handoffTool("clipboard", "Clipboard History", "Super+Ctrl+V",
+                  "", "Omarchy", "Omarchy", "Open Clipboard",
                   function() { Exec.omarchyClipboard() }),
-      handoffTool("emoji", "Emoji Picker", "Omarchy emoji overlay",
-                  "😀", "Omarchy", "Productivity", "Open Emoji",
+      handoffTool("emoji", "Emoji", "Super+Ctrl+E",
+                  "", "Omarchy", "Omarchy", "Open Emoji",
                   function() { Exec.omarchyEmoji() }),
-      handoffTool("theme", "Change Theme", "Omarchy theme switcher (style.theme)",
-                  "🎨", "Omarchy", "Appearance", "Open Themes",
+      handoffTool("theme", "Theme", "Switch Omarchy theme",
+                  "󰸌", "Omarchy", "Omarchy", "Open Themes",
                   function() { Exec.omarchyThemePicker() }),
-      handoffTool("background", "Change Background", "Omarchy wallpaper picker",
-                  "🖼", "Omarchy", "Appearance", "Open Backgrounds",
+      handoffTool("background", "Background", "Wallpaper",
+                  "", "Omarchy", "Omarchy", "Open Backgrounds",
                   function() { Exec.omarchyBackgroundPicker() }),
-      handoffTool("images", "Image Picker", "Browse Pictures with Omarchy image menu",
-                  "🗂", "Omarchy", "Files", "Open Images",
+      handoffTool("images", "Images", "Browse Pictures",
+                  "󰋫", "Omarchy", "Omarchy", "Open Images",
                   function() { Exec.omarchyImages() }),
-      handoffTool("keybindings", "Keybindings", "Omarchy keybinding cheatsheet",
-                  "⌨", "Omarchy", "System", "Open Keybindings",
+      handoffTool("keybindings", "Keybindings", "Super+K",
+                  "", "Omarchy", "Omarchy", "Open Keybindings",
                   function() { Exec.omarchyKeybindings() }),
-      handoffTool("omarchy-menu", "Omarchy Menu", "System menu tree (Super+Space)",
-                  "⌘", "Omarchy", "System", "Open Menu",
+      handoffTool("omarchy-menu", "Menu", "Super+Space",
+                  "󰣇", "Omarchy", "Omarchy", "Open Menu",
                   function() { Exec.omarchyMenu("root") }),
-      pushTool("snippets", "Snippets & Text Expansion", "Omnicast templates (keyword expand)",
-               "⚡", "Omnicast", "Productivity", "Snippets", root.snippetsComp, "Snippets"),
-      pushTool("window", "Window Management", "Hyprland tile / move / float helpers",
-               "🪟", "Omnicast", "System", "Window Management", root.windowTilerComp, "Window Management"),
-      pushTool("ai", "Ask AI Assistant", "Local / BYOK assistant (Phase D)",
-               "🤖", "Omnicast", "Intelligence", "Ask AI", root.aiAssistComp, "Ask AI Assistant"),
-      pushTool("quicklinks-mgr", "Quicklinks", "URL bookmarks and keyword links",
-               "🔗", "Omnicast", "Productivity", "Quicklinks", null, "")
+      handoffTool("capture", "Capture", "Screenshot & record",
+                  "", "Omarchy", "Omarchy", "Open Capture",
+                  function() { Exec.omarchyMenu("capture") }),
+      handoffTool("share", "Share", "Clipboard, file, folder",
+                  "", "Omarchy", "Omarchy", "Open Share",
+                  function() { Exec.omarchyMenu("share") }),
+      handoffTool("reminders", "Reminders", "Super+Ctrl+R",
+                  "󰢻", "Omarchy", "Omarchy", "Open Reminders",
+                  function() { Exec.omarchyMenu("reminder-set") })
     ]
+  }
+
+  function omnicastTools() {
+    return [
+      pushTool("snippets", "Snippets", "Text expansion",
+               "󰅍", "Omnicast", "Omnicast", "Open Snippets", root.snippetsComp, "Snippets"),
+      pushTool("window", "Windows", "Tile · float · move",
+               "󰖯", "Omnicast", "Omnicast", "Window Management", root.windowTilerComp, "Window Management"),
+      pushTool("ai", "Ask AI", "Local / BYOK",
+               "󰚩", "Omnicast", "Omnicast", "Ask AI", root.aiAssistComp, "Ask AI"),
+      pushTool("quicklinks-mgr", "Quicklinks", "URL bookmarks",
+               "󰌷", "Omnicast", "Omnicast", "Quicklinks", null, "")
+    ]
+  }
+
+  function powerTools() {
+    return omarchyHandoffs().concat(omnicastTools())
   }
 
   function makeOmarchyItem(c) {
@@ -466,13 +484,14 @@ Item {
     itemById = map
 
     var items = [], seen = ({})
-    appendSection(items, "FAVORITES", itemsFromIds(Ranking.favorites, map, seen))
-    appendSection(items, "RECENT", itemsFromIds(Ranking.recent, map, seen))
-    appendSection(items, "POWER TOOLS", tools)
-    appendSection(items, "QUICKLINKS", quickLinkItems)
-    appendSection(items, "OMARCHY", omarchyCommands)
-    appendSection(items, "SCRIPTS", scriptCommands)
-    appendSection(items, "APPLICATIONS", desktopApps)
+    appendSection(items, "Favorites", itemsFromIds(Ranking.favorites, map, seen))
+    appendSection(items, "Recent", itemsFromIds(Ranking.recent, map, seen))
+    appendSection(items, "Omarchy", omarchyHandoffs())
+    appendSection(items, "Omnicast", omnicastTools())
+    appendSection(items, "Quicklinks", quickLinkItems)
+    appendSection(items, "Commands", omarchyCommands)
+    appendSection(items, "Scripts", scriptCommands)
+    appendSection(items, "Applications", desktopApps)
     allItems = items
     filter(filterText)
   }
@@ -565,10 +584,10 @@ Item {
   ListView {
     id: list
     anchors.fill: parent
-    anchors.margins: 8
     clip: true
     model: root.filteredItems
     boundsBehavior: Flickable.StopAtBounds
+    spacing: Theme.rowSpacing
 
     delegate: ItemRow {
       width: list.width

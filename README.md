@@ -31,6 +31,7 @@ This project is organized following the **LLM Wiki / Agent Knowledge Base** arch
 - [`implementation-plan.md`](implementation-plan.md) — Authoritative Manhattan → Berlin execution plan.
 - [`roadmap.md`](roadmap.md) — High-level status pointer (mirrors implementation plan milestones).
 - [`docs/spec/raycast-feature-matrix.md`](docs/spec/raycast-feature-matrix.md) — Comprehensive Raycast parity audit.
+- [`docs/raycast-vs-omarchy.md`](docs/raycast-vs-omarchy.md) — Raycast features ↔ Omarchy built-in tools crosswalk (umbrella doctrine).
 - [`docs/spec/ui-ux-design-system.md`](docs/spec/ui-ux-design-system.md) — Exact design tokens, layer-shell rules, and interaction curves.
 
 ---

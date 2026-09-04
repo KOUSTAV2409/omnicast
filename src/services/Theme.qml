@@ -40,13 +40,28 @@ QtObject {
   property string fontFamily: "monospace"
   property string monoFontFamily: "monospace"
 
-  // Match Hyprland / Omarchy shell: rounding often 0
+  // Type scale — mirrors Omarchy Style.font (base 12)
+  property int fontCaption: 10
+  property int fontBodySmall: 11
+  property int fontBody: 12
+  property int fontHeading: 16
+  property int fontIcon: 18
+
+  // Geometry — Omarchy menu/clipboard language
   property int windowRadius: 0
   property int itemRadius: 0
-  property int badgeRadius: 2
-  property int cardWidth: 720
-  property int cardHeight: 520
+  property int badgeRadius: 0
+  property int cardWidth: 480
+  property int cardHeight: 560
+  property int panelPadding: 18
+  property int contentSpacing: 12
+  property int rowHeight: 44
+  property int sectionHeight: 22
+  property int headerHeight: 36
+  property int footerHeight: 28
+  property int iconSlot: 36
   property int gapsOut: 5
+  property int rowSpacing: 4
 
   property var _shellValues: ({})
 
@@ -95,7 +110,7 @@ QtObject {
           var n = j.int !== undefined ? j.int : parseInt(j.str || "0", 10)
           if (isFinite(n)) {
             root.windowRadius = Math.max(0, n)
-            root.itemRadius = Math.max(0, Math.min(6, Math.round(n / 2)))
+            root.itemRadius = Math.max(0, n)
           }
         } catch (e) {}
       }
@@ -189,51 +204,58 @@ QtObject {
     return isFinite(n) ? n : fallback
   }
 
-  // Prefer [launcher] (Omnicast is a launcher), fall back to [menu]
+  // Prefer [menu] for opaque card surfaces (launcher.alpha is often 0.95 and bleeds).
+  // Fall back to [launcher] only when menu lacks the field.
   function surfaceGet(field, fallback) {
+    var m = shellGet("menu." + field, "")
+    if (m.length) return m
     var a = shellGet("launcher." + field, "")
     if (a.length) return a
-    return shellGet("menu." + field, fallback)
+    return fallback
   }
 
   function surfaceNum(field, fallback) {
+    var m = shellGet("menu." + field, "")
+    if (m.length && isFinite(Number(m))) return Number(m)
     var a = shellGet("launcher." + field, "")
     if (a.length && isFinite(Number(a))) return Number(a)
-    return shellNum("menu." + field, fallback)
+    return fallback
   }
 
   function applySurfaceFromShell() {
     var bg = parseHex(surfaceGet("background", ""), root.background)
-    var bgA = surfaceNum("background-alpha", 0.95)
+    // Never translucent enough for desktop text to bleed through
+    var bgA = Math.max(0.98, surfaceNum("background-alpha", 1.0))
     root.cardBackground = root.withAlpha(bg, bgA)
 
+    // Keep text hierarchy from colors.toml — only override body text from surface
     var text = parseHex(surfaceGet("text", ""), root.foreground)
     root.foreground = text
-    root.lightForeground = text
-    root.brightForeground = text
 
     var borderC = parseHex(surfaceGet("border", ""), root.foreground)
-    var borderA = surfaceNum("border-alpha", 0.35)
+    var borderA = Math.min(0.55, Math.max(0.22, surfaceNum("border-alpha", 0.35)))
     root.border = root.withAlpha(borderC, borderA)
-    root.subtleBorder = root.withAlpha(borderC, Math.min(0.15, borderA * 0.4))
+    root.subtleBorder = root.withAlpha(borderC, 0.10)
 
-    var scrimC = parseHex(surfaceGet("scrim", ""), root.background)
-    var scrimA = surfaceNum("scrim-alpha", 0.5)
+    var scrimC = parseHex(surfaceGet("scrim", ""), root.darkerBackground)
+    var scrimA = Math.max(0.55, surfaceNum("scrim-alpha", 0.55))
     root.scrim = root.withAlpha(scrimC, scrimA)
 
     var selBg = parseHex(surfaceGet("selected-background", ""), root.foreground)
     var selBgA = surfaceNum("selected-background-alpha", 0.08)
-    root.itemSelectedBackground = root.withAlpha(selBg, selBgA)
-    root.itemHoverBackground = root.withAlpha(selBg, Math.max(0.04, selBgA * 0.7))
+    root.itemSelectedBackground = root.withAlpha(selBg, Math.max(0.10, selBgA))
+    root.itemHoverBackground = root.withAlpha(selBg, 0.05)
 
-    root.itemSelectedText = parseHex(surfaceGet("selected-text", ""), root.accent)
+    var selText = parseHex(surfaceGet("selected-text", ""), root.accent)
+    root.itemSelectedText = selText
+    // Don't overwrite colors.toml accent with selected-text every reload —
+    // keep accent for pills; selected row uses itemSelectedText
+    if (!root.accent || String(root.accent) === "#fa8526")
+      root.accent = selText
+
     var selBorder = parseHex(surfaceGet("selected-border", ""), root.foreground)
-    var selBorderA = surfaceNum("selected-border-alpha", 0.25)
+    var selBorderA = surfaceNum("selected-border-alpha", 0.0)
     root.itemSelectedBorder = root.withAlpha(selBorder, selBorderA)
-
-    // Keep accent from colors.toml; selected-text often IS the accent
-    if (String(root.itemSelectedText).length)
-      root.accent = root.itemSelectedText
   }
 
   function reloadTheme() {

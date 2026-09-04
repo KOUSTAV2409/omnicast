@@ -56,22 +56,32 @@ PanelWindow {
     width: Theme.cardWidth
     height: Theme.cardHeight
     radius: Theme.windowRadius
-    color: Theme.cardBackground
+    color: Theme.darkerBackground
     border.color: Theme.border
-    border.width: 1
+    border.width: Math.max(1, Theme.windowRadius > 0 ? 1 : 2)
     clip: true
+
+    Rectangle {
+      anchors.fill: parent
+      anchors.margins: windowCard.border.width > 0 ? 0 : 0
+      radius: parent.radius
+      color: Theme.cardBackground
+    }
 
     MouseArea {
       anchors.fill: parent
     }
 
     Column {
+      id: cardColumn
       anchors.fill: parent
+      anchors.margins: Theme.panelPadding
+      spacing: Theme.contentSpacing
 
       SearchBar {
         id: searchBar
         width: parent.width
-        breadcrumbText: navStack.depth > 1 ? navStack.views.map(function(v) { return v.title }).join(" > ") : ""
+        breadcrumbText: navStack.depth > 1 ? navStack.views.map(function(v) { return v.title }).join(" › ") : ""
 
         onTextChangedByUser: text => {
           var view = navStack.currentViewItem
@@ -140,7 +150,7 @@ PanelWindow {
       Item {
         id: viewContainer
         width: parent.width
-        height: parent.height - searchBar.height - footerBar.height
+        height: parent.height - searchBar.height - footerBar.height - Theme.contentSpacing * 2
 
         NavigationStack {
           id: navStack
@@ -150,7 +160,6 @@ PanelWindow {
             searchBar.clear()
             var view = navStack.currentViewItem
             if (view && view.interceptsSearch) {
-              // Leave focus to form fields shortly
               Qt.callLater(function() {})
             } else {
               Qt.callLater(searchBar.setFocus)
@@ -167,17 +176,11 @@ PanelWindow {
           var item = navStack.currentViewItem ? navStack.currentViewItem.selectedItem : null
           if (item && item.primaryActionTitle)
             return item.primaryActionTitle
-          if (item) {
-            if (item.category === "Applications") return "Open App"
-            if (item.badge === "Theme") return "Apply Theme"
-            if (item.badge === "Script") return "Run Script"
-            if (item.badge === "Link") return "Open Link"
-          }
           return "Select"
         }
         subtitleText: {
           var item = navStack.currentViewItem ? navStack.currentViewItem.selectedItem : null
-          if (item && item.category) return item.category
+          if (item && item.badge) return item.badge
           if (navStack.views.length > 0) return navStack.views[navStack.views.length - 1].title
           return "Omnicast"
         }
