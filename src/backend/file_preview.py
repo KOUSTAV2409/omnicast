@@ -9,6 +9,7 @@ from __future__ import annotations
 import json
 import mimetypes
 import os
+import re
 import shutil
 import subprocess
 import sys
@@ -33,9 +34,58 @@ OFFICE_EXT = {
     ".ppt", ".pptx", ".odp",
 }
 PDF_EXT = {".pdf"}
+MARKDOWN_EXT = {".md", ".markdown", ".mdown"}
+CODE_EXT = {
+    ".py", ".pyi", ".js", ".jsx", ".ts", ".tsx", ".mjs", ".cjs", ".go", ".rs",
+    ".c", ".h", ".cpp", ".hpp", ".cc", ".java", ".kt", ".swift", ".rb", ".php",
+    ".sh", ".bash", ".zsh", ".fish", ".qml", ".lua", ".sql", ".css", ".scss",
+    ".json", ".jsonc", ".yaml", ".yml", ".toml", ".nix", ".vim", ".diff", ".patch",
+}
 MAX_TEXT_BYTES = 200_000
 MAX_TEXT_CHARS = 40_000
-MAX_DIR_ENTRIES = 40
+MAX_DIR_ENTRIES = 80
+MAX_HIGHLIGHT_CHARS = 12_000
+
+KEYWORDS = {
+    ".py": {
+        "def", "class", "return", "import", "from", "as", "if", "elif", "else",
+        "for", "while", "try", "except", "finally", "with", "yield", "async",
+        "await", "True", "False", "None", "and", "or", "not", "in", "is", "pass",
+        "raise", "break", "continue", "lambda", "global", "nonlocal",
+    },
+    ".js": {
+        "function", "const", "let", "var", "return", "import", "export", "from",
+        "class", "extends", "if", "else", "for", "while", "try", "catch",
+        "finally", "async", "await", "new", "this", "true", "false", "null",
+        "typeof", "instanceof", "switch", "case", "break", "continue", "default",
+    },
+    ".ts": set(),  # filled below
+    ".qml": {
+        "property", "readonly", "signal", "function", "import", "id", "true",
+        "false", "null", "undefined", "var", "if", "else", "for", "while",
+        "return", "Component", "onCompleted",
+    },
+    ".rs": {
+        "fn", "let", "mut", "pub", "struct", "enum", "impl", "trait", "use",
+        "mod", "return", "if", "else", "match", "for", "while", "loop", "self",
+        "Self", "true", "false", "async", "await", "crate", "super", "where",
+    },
+    ".go": {
+        "func", "package", "import", "return", "if", "else", "for", "range",
+        "switch", "case", "defer", "go", "chan", "select", "type", "struct",
+        "interface", "map", "var", "const", "true", "false", "nil",
+    },
+}
+KEYWORDS[".ts"] = KEYWORDS[".js"] | {"type", "interface", "implements", "readonly", "enum"}
+KEYWORDS[".tsx"] = KEYWORDS[".ts"]
+KEYWORDS[".jsx"] = KEYWORDS[".js"]
+KEYWORDS[".sh"] = {
+    "if", "then", "else", "fi", "for", "while", "do", "done", "case", "esac",
+    "function", "return", "export", "local", "echo", "exit",
+}
+KEYWORDS[".bash"] = KEYWORDS[".sh"]
+KEYWORDS[".zsh"] = KEYWORDS[".sh"]
+
 
 
 def human_size(n: int) -> str:
@@ -151,6 +201,82 @@ def extract_pdf_text(path: Path) -> str:
         return ""
 
 
+def pdf_page_image(path: Path) -> str:
+    """Render first PDF page to cache; return file URI or empty."""
+    pdftoppm = shutil.which("pdftoppm")
+    if not pdftoppm:
+        return ""
+    cache_dir = Path(os.environ.get("XDG_CACHE_HOME", Path.home() / ".cache")) / "omnicast"
+    cache_dir.mkdir(parents=True, exist_ok=True)
+    out_base = cache_dir / "pdf-preview"
+    # Clean previous render
+    for suffix in (".png", "-1.png"):
+        p = Path(str(out_base) + suffix) if suffix.startswith("-") else out_base.with_suffix(suffix)
+        try:
+            if p.exists():
+                p.unlink()
+        except Exception:
+            pass
+    try:
+        subprocess.check_call(
+            [pdftoppm, "-png", "-f", "1", "-l", "1", "-singlefile", "-r", "120", str(path), str(out_base)],
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+            timeout=6,
+        )
+    except Exception:
+        return ""
+    png = out_base.with_suffix(".png")
+    if png.exists():
+        return png.resolve().as_uri()
+    return ""
+
+
+def html_escape(s: str) -> str:
+    return (
+        s.replace("&", "&amp;")
+        .replace("<", "&lt;")
+        .replace(">", "&gt;")
+        .replace('"', "&quot;")
+    )
+
+
+def highlight_code_html(text: str, ext: str) -> str:
+    """Lightweight keyword highlighter (no pygments)."""
+    if len(text) > MAX_HIGHLIGHT_CHARS:
+        text = text[:MAX_HIGHLIGHT_CHARS] + "\n… truncated …"
+    words = KEYWORDS.get(ext) or KEYWORDS.get(".js" if ext in {".mjs", ".cjs"} else "")
+    escaped = html_escape(text)
+    if words:
+        # Longest keywords first
+        ordered = sorted(words, key=len, reverse=True)
+        pattern = r"\b(" + "|".join(re.escape(w) for w in ordered) + r")\b"
+
+        def repl(m: re.Match) -> str:
+            return f'<span style="color:#fa8526">{m.group(0)}</span>'
+
+        escaped = re.sub(pattern, repl, escaped)
+    # Comments (simple)
+    if ext in {".py", ".sh", ".bash", ".zsh", ".rb", ".yml", ".yaml", ".toml"}:
+        escaped = re.sub(
+            r"(?m)^( *)(#.*?)$",
+            r'\1<span style="color:#6d7c8d">\2</span>',
+            escaped,
+        )
+    elif ext in {".js", ".ts", ".tsx", ".jsx", ".go", ".rs", ".c", ".h", ".cpp", ".java", ".qml", ".css"}:
+        escaped = re.sub(
+            r"(//.*?)$",
+            r'<span style="color:#6d7c8d">\1</span>',
+            escaped,
+            flags=re.M,
+        )
+    return (
+        '<div style="font-family:monospace; white-space:pre-wrap; '
+        'color:#f5f0ec; font-size:13px; line-height:1.45;">'
+        f"{escaped}</div>"
+    )
+
+
 def list_dir(path: Path) -> list[dict]:
     entries = []
     try:
@@ -210,6 +336,8 @@ def preview(path_str: str) -> dict:
         "mime": "inode/directory" if path.is_dir() else mime_of(path),
         "ext": path.suffix.lower(),
         "text": "",
+        "html": "",
+        "text_format": "plain",
         "image": "",
         "entries": [],
         "kind": "binary",
@@ -237,7 +365,12 @@ def preview(path_str: str) -> dict:
 
     if ext in PDF_EXT or mime == "application/pdf":
         base["kind"] = "pdf"
-        base["text"] = extract_pdf_text(path) or "(No text layer extracted. Open externally to view.)"
+        img = pdf_page_image(path)
+        if img:
+            base["image"] = img
+        base["text"] = extract_pdf_text(path) or (
+            "" if img else "(No text layer extracted. Open externally to view.)"
+        )
         return base
 
     if ext in {".docx"} or "wordprocessingml" in mime:
@@ -251,7 +384,15 @@ def preview(path_str: str) -> dict:
         base["text"] = "Office document. Press Enter to open in OnlyOffice / system app."
         return base
 
-    if ext in TEXT_EXT or mime.startswith("text/") or mime in (
+    if ext in MARKDOWN_EXT:
+        text = read_text_file(path)
+        if text:
+            base["kind"] = "markdown"
+            base["text"] = text
+            base["text_format"] = "markdown"
+            return base
+
+    if ext in CODE_EXT or ext in TEXT_EXT or mime.startswith("text/") or mime in (
         "application/json",
         "application/javascript",
         "application/xml",
@@ -260,8 +401,14 @@ def preview(path_str: str) -> dict:
     ):
         text = read_text_file(path)
         if text:
-            base["kind"] = "text"
-            base["text"] = text
+            if ext in CODE_EXT:
+                base["kind"] = "code"
+                base["text"] = text
+                base["html"] = highlight_code_html(text, ext)
+                base["text_format"] = "html"
+            else:
+                base["kind"] = "text"
+                base["text"] = text
             return base
 
     # Sniff unknown small files as text
@@ -279,22 +426,28 @@ def preview(path_str: str) -> dict:
 
 def main() -> int:
     if len(sys.argv) < 2:
-        print(json.dumps({"ok": False, "error": "Usage: file_preview.py <path>"}))
+        print(json.dumps({"ok": False, "error": "Usage: file_preview.py <path> [--cache NAME]"}))
         return 2
 
-    payload = preview(sys.argv[1])
+    path_arg = sys.argv[1]
+    cache_name = "file-preview.json"
+    if len(sys.argv) >= 4 and sys.argv[2] == "--cache":
+        cache_name = sys.argv[3]
+    elif len(sys.argv) >= 3 and sys.argv[2].startswith("--cache="):
+        cache_name = sys.argv[2].split("=", 1)[1]
+
+    payload = preview(path_arg)
     cache_dir = Path(os.environ.get("XDG_CACHE_HOME", Path.home() / ".cache")) / "omnicast"
     cache_dir.mkdir(parents=True, exist_ok=True)
-    cache_file = cache_dir / "file-preview.json"
+    cache_file = cache_dir / cache_name
     cache_file.write_text(json.dumps(payload, ensure_ascii=False), encoding="utf-8")
 
-    # Tiny stdout meta only — Quickshell StdioCollector drops larger payloads.
     print(
         json.dumps(
             {
                 "ok": bool(payload.get("ok")),
                 "kind": payload.get("kind", ""),
-                "path": payload.get("path", sys.argv[1]),
+                "path": payload.get("path", path_arg),
                 "cache": str(cache_file),
                 "error": payload.get("error", ""),
             },

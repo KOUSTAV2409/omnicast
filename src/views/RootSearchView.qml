@@ -19,10 +19,18 @@ Item {
   property var fileHits: []
   property string fileQuery: ""
   property var itemById: ({})
+  property var fileScopes: ["home", "projects", "documents", "downloads", "desktop"]
+  property int fileScopeIndex: 0
+  readonly property string fileScope: fileScopes[fileScopeIndex] || "home"
+  readonly property bool fileSelected: !!(selectedItem && selectedItem.path && selectedItem.category === "Files")
+  // Grow card when browsing files with a live side preview
+  property bool wideLayout: fileSelected || (fileHits && fileHits.length > 0 && filterText.trim().length >= 2)
 
   property bool isLoading: scriptScanner.running || omarchyScanner.running
                               || appScanner.running || quicklinkScanner.running
   property bool filesSearching: fileScanner.running || fileSearchDebounce.running || fileSearchStartTimer.running
+  property string sidePreviewPath: ""
+  property string sidePreviewTitle: ""
 
   signal requestActionPalette(var actions)
   signal requestPushView(string title, var component)
@@ -81,8 +89,9 @@ Item {
   Process {
     id: fileScanner
     property string pendingQuery: ""
-    // Bind query into argv (SnippetsView insertProc pattern)
-    command: ["python3", Paths.py("file_search.py"), pendingQuery, "--limit", "16"]
+    property string pendingScope: "home"
+    // Bind query + scope into argv
+    command: ["python3", Paths.py("file_search.py"), pendingQuery, "--limit", "18", "--scope", pendingScope]
     running: false
     stdout: StdioCollector {
       waitForEnd: true
@@ -109,10 +118,26 @@ Item {
     interval: 1
     repeat: false
     onTriggered: {
-      if (fileScanner.pendingQuery.length >= 2)
+      if (fileScanner.pendingQuery.length >= 2) {
+        fileScanner.command = [
+          "python3", Paths.py("file_search.py"),
+          fileScanner.pendingQuery, "--limit", "18",
+          "--scope", fileScanner.pendingScope
+        ]
         fileScanner.running = true
+      }
     }
   }
+
+  Timer {
+    id: sidePreviewDebounce
+    interval: 70
+    repeat: false
+    onTriggered: root.syncSidePreview()
+  }
+
+  onSelectedIndexChanged: sidePreviewDebounce.restart()
+  onFilteredItemsChanged: sidePreviewDebounce.restart()
 
   FileView {
     id: scriptsCacheFile
@@ -325,14 +350,18 @@ Item {
     var item = {
       id: f.id, title: f.title || f.name || path, subtitle: f.subtitle || path,
       icon: f.icon || "󰈔", category: "Files", badge: f.badge || (f.is_dir ? "Dir" : "File"),
-      path: path, isDir: !!f.is_dir, keyword: path,
+      path: path, isDir: !!f.is_dir, keyword: path, contentMatch: !!f.content_match,
       primaryActionTitle: "Preview", actions: []
     }
     item.action = function() {
       Ranking.bump(item.id)
+      var sibs = root.fileSiblingPaths()
+      var idx = sibs.indexOf(item.path)
       root.requestPushViewWithProps(item.title, root.filePreviewComp, {
         filePath: item.path,
-        fileTitle: item.title
+        fileTitle: item.title,
+        siblingPaths: sibs,
+        siblingIndex: idx
       })
     }
     item.actions = withMetaActions(item, [
@@ -354,9 +383,45 @@ Item {
           Exec.openPath(item.path)
         else
           Exec.revealPath(item.path)
-      }}
+      }},
+      { title: "Cycle File Scope", icon: "󰉖", shortcut: "Ctrl+⇧P", callback: function() { root.cycleCategory(1) } }
     ])
     return item
+  }
+
+  function fileSiblingPaths() {
+    var out = []
+    for (var i = 0; i < fileHits.length; i++) {
+      if (fileHits[i] && fileHits[i].path)
+        out.push(fileHits[i].path)
+    }
+    return out
+  }
+
+  function syncSidePreview() {
+    var item = root.selectedItem
+    if (item && item.path && item.category === "Files") {
+      sidePreviewPath = item.path
+      sidePreviewTitle = item.title || ""
+    } else if (fileHits && fileHits.length && filterText.trim().length >= 2) {
+      // Keep last / first file hit visible while cursor is on catalog rows
+      if (!sidePreviewPath.length && fileHits[0]) {
+        sidePreviewPath = fileHits[0].path
+        sidePreviewTitle = fileHits[0].title || ""
+      }
+    } else {
+      sidePreviewPath = ""
+      sidePreviewTitle = ""
+    }
+  }
+
+  function cycleCategory(direction) {
+    var dir = direction || 1
+    fileScopeIndex = (fileScopeIndex + dir + fileScopes.length) % fileScopes.length
+    Hud.info("Files scope · " + fileScope)
+    fileQuery = ""
+    if ((filterText || "").trim().length >= 2)
+      scheduleFileSearch(filterText)
   }
 
   function runFileSearch(query) {
@@ -369,12 +434,12 @@ Item {
       fileSearchStartTimer.stop()
       return
     }
-    if (fileScanner.running && fileScanner.pendingQuery === q)
+    if (fileScanner.running && fileScanner.pendingQuery === q && fileScanner.pendingScope === fileScope)
       return
     fileScanner.running = false
     fileScanner.pendingQuery = q
-    console.log("[Omnicast] file search start:", q)
-    // Defer restart so Quickshell Process fully stops before relaunch
+    fileScanner.pendingScope = fileScope
+    console.log("[Omnicast] file search start:", q, "scope:", fileScope)
     fileSearchStartTimer.restart()
   }
 
@@ -414,6 +479,7 @@ Item {
       var data = null
       if (cached.length) {
         var payload = JSON.parse(cached)
+        // Accept cache when query matches (scope may be embedded in payload)
         if (payload && payload.query === q && payload.hits)
           data = payload.hits
       }
@@ -985,12 +1051,12 @@ Item {
 
     // Files section: show hits for this exact query
     if (fileQuery === q && fileHits.length) {
-      results.push(header("Files"))
+      results.push(header("Files · " + fileScope + (fileHits.some(function(h){ return h.contentMatch }) ? " · content" : "")))
       for (var fi = 0; fi < fileHits.length; fi++) results.push(fileHits[fi])
     } else if (q.length >= 2 && filesSearching) {
-      results.push(header("Files"))
+      results.push(header("Files · " + fileScope))
       results.push({
-        id: "loading-files", title: "Searching files…", subtitle: "fd · " + q,
+        id: "loading-files", title: "Searching files…", subtitle: fileScope + " · " + q,
         icon: "⏳", badge: "", category: "Files", isHeader: false,
         primaryActionTitle: "", actions: [], action: function() {}
       })
@@ -1058,24 +1124,92 @@ Item {
     root.requestActionPalette(acts)
   }
 
-  ListView {
-    id: list
+  Row {
     anchors.fill: parent
-    clip: true
-    model: root.filteredItems
-    boundsBehavior: Flickable.StopAtBounds
-    spacing: Theme.rowSpacing
 
-    delegate: ItemRow {
-      width: list.width
-      title: modelData.title
-      subtitle: modelData.subtitle || ""
-      iconText: modelData.icon || ""
-      badgeText: modelData.badge || ""
-      shortcutHint: modelData.shortcut || ""
-      isSectionHeader: modelData.isHeader || false
-      isSelected: index === root.selectedIndex
-      onClicked: { root.selectedIndex = index; root.executeCurrent() }
+    ListView {
+      id: list
+      width: root.wideLayout ? Math.round(parent.width * 0.42) : parent.width
+      height: parent.height
+      clip: true
+      model: root.filteredItems
+      boundsBehavior: Flickable.StopAtBounds
+      spacing: Theme.rowSpacing
+
+      delegate: ItemRow {
+        width: list.width
+        title: modelData.title
+        subtitle: modelData.subtitle || ""
+        iconText: modelData.icon || ""
+        badgeText: modelData.badge || ""
+        shortcutHint: modelData.shortcut || ""
+        isSectionHeader: modelData.isHeader || false
+        isSelected: index === root.selectedIndex
+        onClicked: {
+          root.selectedIndex = index
+          // File hits: select only (side preview follows). Others: run immediately.
+          if (!(modelData.path && modelData.category === "Files"))
+            root.executeCurrent()
+        }
+        onDoubleClicked: {
+          root.selectedIndex = index
+          root.executeCurrent()
+        }
+      }
+    }
+
+    Rectangle {
+      visible: root.wideLayout
+      width: 1
+      height: parent.height
+      color: Theme.border
+    }
+
+    FilePreviewPane {
+      id: sidePreview
+      visible: root.wideLayout
+      width: root.wideLayout ? parent.width - list.width - 1 : 0
+      height: parent.height
+      anchors.topMargin: 0
+      filePath: root.sidePreviewPath
+      fileTitle: root.sidePreviewTitle
+      cacheName: "file-preview-side.json"
+      compactChrome: true
+      interactiveDirs: true
+      siblingPaths: root.fileSiblingPaths()
+      siblingIndex: {
+        var sibs = root.fileSiblingPaths()
+        return sibs.indexOf(root.sidePreviewPath)
+      }
+
+      onEntryActivated: (path, title) => {
+        // Drill into directory entry via full preview
+        Ranking.bump("file-side-drill")
+        root.requestPushViewWithProps(title, root.filePreviewComp, {
+          filePath: path,
+          fileTitle: title,
+          siblingPaths: root.fileSiblingPaths(),
+          siblingIndex: -1
+        })
+      }
+
+      onSiblingRequested: delta => {
+        var sibs = root.fileSiblingPaths()
+        if (sibs.length < 2) return
+        var idx = sibs.indexOf(root.sidePreviewPath)
+        if (idx < 0) idx = 0
+        var next = (idx + delta + sibs.length) % sibs.length
+        // Move list selection to matching file hit when possible
+        for (var i = 0; i < filteredItems.length; i++) {
+          if (filteredItems[i].path === sibs[next]) {
+            selectedIndex = i
+            list.positionViewAtIndex(i, ListView.Contain)
+            return
+          }
+        }
+        sidePreviewPath = sibs[next]
+        sidePreviewTitle = sibs[next].split("/").pop()
+      }
     }
   }
 

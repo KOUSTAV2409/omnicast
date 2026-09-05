@@ -85,8 +85,9 @@ Omnicast dismisses and opens the native surface:
 ### Own (Omnicast fills the gap)
 - **Apps & commands**: `.desktop` apps + Omarchy CLI catalog  
   - Try: `foot`, `screenshot`, `nightlight` (→ Omarchy: Toggle Nightlight)
-- **File search**: type a name → Files section (`fd`, falls back to `plocate`) under `$HOME`  
-  - Try: a folder/file name on your machine · Enter **previews** (text / image / PDF / docx) · Open externally for apps  
+- **File search**: type a name → Files section (`fd` + content via `rg`) under a scope (`home` / `projects` / …)  
+  - Try: a folder/file name · arrow keys for **live side preview** · Enter for full preview  
+  - `content:phrase` finds inside files · `in:projects foo` scopes · **Ctrl+Shift+P** cycles scope  
   - Ctrl+K: Open Externally · Copy Path · Reveal
 - **Calculator**: math, `#hex` colors, units, rough FX (verify on Google), dates  
   - Try: `12*7+3` · `#ff8800` · `10 km to mi` · `10 usd to inr` (shows ≈ guess + Google live rate) · `days until 2026-12-25`
