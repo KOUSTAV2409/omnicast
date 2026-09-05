@@ -4,20 +4,36 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Omnicast — Alt+Space for Omarchy</title>
-  <meta name="description" content="Omnicast is the Omarchy umbrella launcher. Alt+Space searches your machine, hands off to native tools, and owns the gaps. Clone and run." />
+  <meta name="description" content="Omnicast is a free, open-source Omarchy umbrella launcher. Alt+Space searches your machine, hands off to native tools, and owns the gaps." />
   <meta property="og:title" content="Omnicast — Alt+Space for Omarchy" />
-  <meta property="og:description" content="First we take Manhattan, then we take Berlin. Public clone-and-run for Omarchy." />
+  <meta property="og:description" content="A community umbrella for Omarchy. First we take Manhattan, then we take Berlin." />
   <meta property="og:type" content="website" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Libre+Franklin:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet" />
   <style>
     :root {
-      --ink: #0e1116;
-      --paper: #f3f4f6;
-      --muted: #5c6570;
-      --line: #d1d5db;
-      --accent: #1d4ed8;
+      --rgb-bg-night: 26, 27, 38;
+      --rgb-bg-storm: 36, 40, 59;
+      --rgb-green: 158, 206, 106;
+      --rgb-blue: 122, 162, 247;
+      --rgb-cyan: 125, 207, 255;
+      --rgb-turquoise: 180, 249, 248;
+      --rgb-white: 192, 202, 245;
+      --rgb-border: 65, 72, 104;
+
+      --bg: rgb(var(--rgb-bg-night));
+      --bg-storm: rgb(var(--rgb-bg-storm));
+      --green: rgb(var(--rgb-green));
+      --blue: rgb(var(--rgb-blue));
+      --cyan: rgb(var(--rgb-cyan));
+      --turquoise: rgb(var(--rgb-turquoise));
+      --white: rgb(var(--rgb-white));
+      --border: rgb(var(--rgb-border) / 0.8);
+      --space: clamp(1rem, 2.5vw, 1.5rem);
+      --space-lg: clamp(1.5rem, 4vw, 3rem);
+      --space-xl: clamp(2.5rem, 6vw, 5rem);
+      --ease: 0.15s cubic-bezier(0.33, 1, 0.68, 1);
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -25,237 +41,258 @@
     html { scroll-behavior: smooth; }
 
     body {
-      font-family: "Libre Franklin", sans-serif;
-      color: var(--ink);
-      background: var(--paper);
-      line-height: 1.55;
-      font-size: 1.02rem;
+      background: var(--bg);
+      color: var(--blue);
+      font-family: "JetBrains Mono", ui-monospace, monospace;
+      font-size: clamp(0.8rem, 1.35vw, 1rem);
+      line-height: 1.45;
+      min-height: 100vh;
       -webkit-font-smoothing: antialiased;
     }
 
-    a { color: inherit; }
+    a {
+      color: var(--cyan);
+      transition: color var(--ease);
+    }
+
+    a:hover { color: var(--turquoise); }
 
     a:focus-visible {
-      outline: 2px solid var(--accent);
+      outline: 2px solid var(--turquoise);
       outline-offset: 3px;
     }
 
-    /* Video owns the first viewport — no mid-screen copy */
-    .stage {
-      position: relative;
-      height: 100vh;
-      height: 100dvh;
-      overflow: hidden;
-      background: #0e1116;
+    .wrap {
+      width: min(90em, 100%);
+      margin-inline: auto;
+      padding-inline: var(--space-lg);
     }
 
-    .stage video {
+    /* Masthead — brand first, Omarchy-family green mark */
+    .mark {
+      margin-top: var(--space-xl);
+      text-align: center;
+    }
+
+    .mark a {
+      color: var(--green);
+      text-decoration: none;
+      font-weight: 700;
+      font-size: clamp(1.75rem, 5vw, 3rem);
+      letter-spacing: -0.04em;
+      display: inline-block;
+      transition: color var(--ease);
+    }
+
+    .mark a:hover { color: var(--turquoise); }
+
+    .mark .tag {
+      display: block;
+      margin-top: 0.55rem;
+      color: rgb(var(--rgb-white) / 0.55);
+      font-size: 0.85em;
+      font-weight: 400;
+      letter-spacing: 0.04em;
+    }
+
+    /* Header copy — sits above the video, never on it */
+    .header {
+      margin-top: var(--space);
+      text-align: center;
+    }
+
+    .header h1 {
+      font-size: 1.25em;
+      font-weight: 700;
+      color: var(--blue);
+      text-wrap: balance;
+    }
+
+    .header p {
+      margin: var(--space) auto 0;
+      max-width: 42em;
+      font-style: italic;
+      font-weight: 400;
+      color: var(--blue);
+      text-wrap: pretty;
+    }
+
+    .header p a { color: inherit; }
+
+    /* CTAs — Omarchy-style filled buttons, few of them */
+    .actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+      justify-content: center;
+      margin-top: var(--space-lg);
+    }
+
+    .button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      height: 2.75em;
+      padding-inline: 1em;
+      background: var(--blue);
+      color: var(--bg);
+      font-family: inherit;
+      font-weight: 700;
+      font-size: 0.95em;
+      text-decoration: none;
+      text-transform: uppercase;
+      letter-spacing: 0.02em;
+      border: none;
+      border-radius: 0.4em;
+      box-shadow: 0 0.35em 1.2em -0.4em rgba(0, 0, 0, 0.55);
+      transition: background var(--ease), color var(--ease);
+    }
+
+    .button:hover {
+      background: var(--turquoise);
+      color: var(--bg);
+    }
+
+    /* Demo — framed product surface, like omarchy.org video */
+    .demo {
+      margin-top: calc(var(--space-lg) * 1.2);
+      margin-bottom: var(--space-xl);
+    }
+
+    .demo-frame {
+      position: relative;
+      aspect-ratio: 16 / 9;
+      width: 100%;
+      max-width: 64rem;
+      margin-inline: auto;
+      overflow: hidden;
+      border-radius: 0.4em;
+      background: var(--bg-storm);
+      box-shadow:
+        0 0 0 1px rgba(0, 0, 0, 0.35),
+        0 0.8em 2.4em -1em rgba(0, 0, 0, 0.45);
+    }
+
+    .demo-frame video {
+      display: block;
       width: 100%;
       height: 100%;
       object-fit: cover;
-      display: block;
-      animation: settle 3.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
     }
 
-    .topbar {
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      z-index: 2;
-      display: flex;
-      align-items: baseline;
-      justify-content: space-between;
-      width: min(44rem, calc(100% - 2.5rem));
-      margin: 0 auto;
-      padding: 1.35rem 0 0;
-      pointer-events: none;
-    }
-
-    .topbar a,
-    .topbar .brand {
-      pointer-events: auto;
-    }
-
-    .brand {
-      font-weight: 700;
-      font-size: clamp(1.35rem, 3.5vw, 1.7rem);
-      letter-spacing: -0.035em;
-      color: #f8fafc;
-      text-shadow: 0 1px 18px rgba(0, 0, 0, 0.35);
-      opacity: 0;
-      animation: rise 0.8s 0.15s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-    }
-
-    .top-link {
-      font-size: 0.9rem;
-      font-weight: 500;
-      color: rgba(248, 250, 252, 0.88);
-      text-decoration: none;
-      text-shadow: 0 1px 12px rgba(0, 0, 0, 0.35);
-      border-bottom: 1px solid rgba(248, 250, 252, 0.35);
-      opacity: 0;
-      animation: rise 0.8s 0.28s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-    }
-
-    .top-link:hover {
-      color: #fff;
-      border-bottom-color: #fff;
-    }
-
-    /* Copy lives on paper — video stays readable */
-    .intro {
-      padding: clamp(3rem, 7vh, 4.25rem) 0 clamp(2.5rem, 5vh, 3.25rem);
-      background: #fff;
-      border-bottom: 1px solid var(--line);
-    }
-
-    .intro-inner {
-      width: min(40rem, calc(100% - 2.5rem));
-      margin: 0 auto;
-    }
-
-    .headline {
-      font-weight: 700;
-      font-size: clamp(1.65rem, 4vw, 2.15rem);
-      letter-spacing: -0.03em;
-      line-height: 1.15;
-      max-width: 14ch;
-    }
-
-    .lede {
-      margin-top: 0.85rem;
-      color: var(--muted);
-      max-width: 36ch;
-      font-size: 1.02rem;
-    }
-
-    .cta-row {
-      margin-top: 1.5rem;
-    }
-
-    .cta {
-      display: inline-flex;
-      align-items: center;
-      padding: 0.7rem 1.15rem;
-      background: var(--ink);
-      color: #f8fafc;
-      text-decoration: none;
-      font-weight: 600;
-      font-size: 0.92rem;
-      letter-spacing: -0.01em;
-      transition: background 0.2s ease;
-    }
-
-    .cta:hover { background: var(--accent); }
-
+    /* Install */
     .install {
-      padding: clamp(2.75rem, 6vh, 3.75rem) 0 clamp(4rem, 9vh, 5.25rem);
-      background:
-        linear-gradient(180deg, var(--paper) 0%, #e8eaee 100%);
-    }
-
-    .install-inner {
-      width: min(40rem, calc(100% - 2.5rem));
-      margin: 0 auto;
+      border-top: 1px solid var(--border);
+      padding: var(--space-lg) 0 var(--space-xl);
     }
 
     .install h2 {
+      font-size: 1.1em;
       font-weight: 700;
-      font-size: clamp(1.15rem, 2.5vw, 1.3rem);
-      letter-spacing: -0.02em;
+      color: var(--white);
     }
 
-    .install-inner > p {
-      margin-top: 0.4rem;
-      color: var(--muted);
-      font-size: 0.95rem;
-      max-width: 40ch;
+    .install > .wrap > p {
+      margin-top: 0.5rem;
+      color: rgb(var(--rgb-white) / 0.6);
+      max-width: 44em;
     }
 
     pre {
       margin-top: 1.25rem;
-      padding: 1.15rem 1.2rem;
-      background: var(--ink);
-      color: #e5e7eb;
-      font-family: "IBM Plex Mono", ui-monospace, monospace;
-      font-size: 0.8rem;
-      line-height: 1.7;
+      padding: 1.1rem 1.2rem;
+      background: var(--bg-storm);
+      color: var(--green);
+      border: 1px solid var(--border);
+      border-radius: 0.4em;
       overflow-x: auto;
-      border: 1px solid #1f2937;
+      font-family: inherit;
+      font-size: 0.9em;
+      line-height: 1.65;
     }
 
     .foot {
       margin-top: 1.5rem;
-      font-size: 0.85rem;
-      color: var(--muted);
-      max-width: 42ch;
+      color: rgb(var(--rgb-white) / 0.55);
+      font-size: 0.85em;
+      max-width: 48em;
     }
 
-    .foot a {
-      color: var(--ink);
-      text-underline-offset: 3px;
+    .foot a { color: var(--cyan); }
+
+    footer {
+      border-top: 1px solid var(--border);
+      padding: var(--space-lg) 0 var(--space-xl);
+      text-align: center;
     }
 
-    .foot a:hover { color: var(--accent); }
-
-    @keyframes rise {
-      from { opacity: 0; transform: translateY(10px); }
-      to { opacity: 1; transform: translateY(0); }
+    footer p {
+      color: var(--blue);
+      font-size: 0.85em;
+      text-wrap: balance;
+      max-width: 40em;
+      margin-inline: auto;
     }
 
-    @keyframes settle {
-      from { transform: scale(1.05); }
-      to { transform: scale(1); }
-    }
+    footer a { color: var(--cyan); }
 
     @media (prefers-reduced-motion: reduce) {
-      *, *::before, *::after {
-        animation: none !important;
-        transition: none !important;
-      }
-      .brand, .top-link { opacity: 1; transform: none; }
-      .stage video { transform: none; }
+      html { scroll-behavior: auto; }
+      * { transition: none !important; }
     }
   </style>
 </head>
 <body>
-  <header class="stage" aria-label="Omnicast demo">
-    <video autoplay muted loop playsinline>
-      <source src="assets/teaser.mp4" type="video/mp4" />
-    </video>
-    <div class="topbar">
-      <p class="brand">Omnicast</p>
-      <a class="top-link" href="https://github.com/KOUSTAV2409/omnicast">GitHub</a>
-    </div>
+  <div class="mark wrap">
+    <a href="/omnicast/">omnicast</a>
+    <span class="tag">an Omarchy umbrella</span>
+  </div>
+
+  <header class="header wrap">
+    <h1>Alt+Space for Omarchy.</h1>
+    <p>
+      Free and open source. Assembles Omarchy’s tools under one launcher —
+      handoff what’s already great, fill the gaps, keep the UX tight.
+      Built for the community, not a product pitch.
+    </p>
   </header>
 
-  <section class="intro">
-    <div class="intro-inner">
-      <h1 class="headline">Alt+Space for Omarchy.</h1>
-      <p class="lede">Hands off to native tools. Owns the gaps Raycast users miss on Linux.</p>
-      <div class="cta-row">
-        <a class="cta" href="#install">Clone and run</a>
-      </div>
+  <nav class="actions wrap" aria-label="Primary">
+    <a class="button" href="#install">Clone &amp; run</a>
+    <a class="button" href="https://github.com/KOUSTAV2409/omnicast">The code</a>
+    <a class="button" href="https://omarchy.org">Omarchy</a>
+  </nav>
+
+  <main class="demo wrap">
+    <div class="demo-frame">
+      <video autoplay muted loop playsinline>
+        <source src="assets/teaser.mp4" type="video/mp4" />
+      </video>
     </div>
-  </section>
+  </main>
 
   <section class="install" id="install">
-    <div class="install-inner">
+    <div class="wrap">
       <h2>Install on Omarchy</h2>
-      <p>Needs Omarchy (Hyprland) and Quickshell. Not macOS.</p>
+      <p>Needs Omarchy (Hyprland) and Quickshell. Bind Alt+Space; leave Super+Space for the Omarchy menu.</p>
       <pre><code>git clone https://github.com/KOUSTAV2409/omnicast.git
 cd omnicast
-./bin/omnicast
-
-# Bind Alt+Space → absolute path of bin/omnicast
-# Keep Super+Space for the Omarchy menu</code></pre>
+./bin/omnicast</code></pre>
       <p class="foot">
-        Early dogfood · MIT ·
+        MIT · Early dogfood ·
         <a href="https://github.com/KOUSTAV2409/omnicast#readme">README</a>
         · First we take Manhattan, then we take Berlin.
       </p>
     </div>
   </section>
+
+  <footer>
+    <div class="wrap">
+      <p>
+        Part of the <a href="https://omarchy.org">Omarchy</a> ecosystem —
+        community software for a community OS.
+      </p>
+    </div>
+  </footer>
 </body>
 </html>
