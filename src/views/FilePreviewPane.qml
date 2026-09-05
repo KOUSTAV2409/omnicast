@@ -31,8 +31,8 @@ Item {
 
   readonly property bool isProse: kind === "docx" || kind === "pdf" || kind === "office"
                                   || kind === "markdown" || kind === "text"
-  readonly property int previewFontSize: isProse ? (compactChrome ? 14 : 16) : (compactChrome ? 12 : 14)
-  readonly property real previewLineHeight: isProse ? 1.55 : 1.4
+      readonly property int previewFontSize: isProse ? (compactChrome ? 15 : 16) : (compactChrome ? 12 : 14)
+  readonly property real previewLineHeight: isProse ? 1.65 : 1.4
   readonly property string previewFontFamily: kind === "code"
                                               ? Theme.monoFontFamily
                                               : (isProse ? Theme.proseFontFamily : Theme.monoFontFamily)
@@ -438,38 +438,59 @@ Item {
       }
     }
 
-    // Text / markdown / code
+    // Text / markdown / code — document reading surface
     Flickable {
       id: textScroll
       anchors.fill: parent
       visible: !root.isLoading && root.previewText.length > 0 && root.imageSource.length === 0
                && root.kind !== "dir"
       contentWidth: width
-      contentHeight: previewBody.implicitHeight + 4
+      contentHeight: page.y + page.height + 8
       clip: true
       boundsBehavior: Flickable.StopAtBounds
 
-      Text {
-        id: previewBody
+      Rectangle {
+        id: page
+        x: 0
+        y: 0
         width: textScroll.width
-        text: {
-          if (root.textFormat === "html" && root.previewHtml.length)
-            return root.previewHtml
-          return root.previewText
+        height: Math.max(textScroll.height, previewBody.implicitHeight + pagePad * 2)
+        radius: Theme.itemRadius
+        color: Theme.itemHoverBackground
+        border.color: Theme.subtleBorder
+        border.width: 1
+
+        readonly property int pagePad: root.isProse ? 18 : 14
+        readonly property int proseMax: 560
+
+        Text {
+          id: previewBody
+          anchors.top: parent.top
+          anchors.left: parent.left
+          anchors.topMargin: page.pagePad
+          anchors.leftMargin: page.pagePad
+          width: root.isProse
+                 ? Math.min(page.proseMax, parent.width - page.pagePad * 2)
+                 : (parent.width - page.pagePad * 2)
+          text: {
+            if (root.textFormat === "html" && root.previewHtml.length)
+              return root.previewHtml
+            return root.previewText
+          }
+          textFormat: {
+            if (root.textFormat === "html" && root.previewHtml.length)
+              return Text.RichText
+            if (root.textFormat === "markdown")
+              return Text.MarkdownText
+            return Text.PlainText
+          }
+          font.family: root.previewFontFamily
+          font.pixelSize: root.previewFontSize
+          lineHeight: root.previewLineHeight
+          lineHeightMode: Text.ProportionalHeight
+          color: Theme.brightForeground
+          wrapMode: Text.Wrap
         }
-        textFormat: {
-          if (root.textFormat === "html" && root.previewHtml.length)
-            return Text.RichText
-          if (root.textFormat === "markdown")
-            return Text.MarkdownText
-          return Text.PlainText
-        }
-        font.family: root.previewFontFamily
-        font.pixelSize: root.previewFontSize
-        lineHeight: root.previewLineHeight
-        lineHeightMode: Text.ProportionalHeight
-        color: Theme.brightForeground
-        wrapMode: Text.Wrap
       }
     }
 

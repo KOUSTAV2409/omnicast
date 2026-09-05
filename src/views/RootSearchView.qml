@@ -347,30 +347,31 @@ Item {
 
   function makeFileItem(f) {
     var path = f.path || ""
+    var isDoc = /\.(docx?|odt|rtf|xlsx?|pptx?|pdf)$/i.test(path)
     var item = {
       id: f.id, title: f.title || f.name || path, subtitle: f.subtitle || path,
       icon: f.icon || "󰈔", category: "Files", badge: f.badge || (f.is_dir ? "Dir" : "File"),
       path: path, isDir: !!f.is_dir, keyword: path, contentMatch: !!f.content_match,
-      primaryActionTitle: "Preview", actions: []
+      primaryActionTitle: isDoc ? "Open" : "Open", actions: []
     }
     item.action = function() {
       Ranking.bump(item.id)
-      var sibs = root.fileSiblingPaths()
-      var idx = sibs.indexOf(item.path)
-      root.requestPushViewWithProps(item.title, root.filePreviewComp, {
-        filePath: item.path,
-        fileTitle: item.title,
-        siblingPaths: sibs,
-        siblingIndex: idx
-      })
+      root.requestDismiss()
+      root.openFileSmart(item.path)
+      Hud.success("Opening " + item.title)
     }
     item.actions = withMetaActions(item, [
-      { title: "Preview", icon: "󰈈", shortcut: "↵", callback: item.action },
-      { title: "Open Externally", icon: "󰏌", callback: function() {
+      { title: item.primaryActionTitle, icon: "󰏌", shortcut: "↵", callback: item.action },
+      { title: "Full Preview", icon: "󰈈", callback: function() {
         Ranking.bump(item.id)
-        root.requestDismiss()
-        Exec.openPath(item.path)
-        Hud.success("Opened " + item.title)
+        var sibs = root.fileSiblingPaths()
+        var idx = sibs.indexOf(item.path)
+        root.requestPushViewWithProps(item.title, root.filePreviewComp, {
+          filePath: item.path,
+          fileTitle: item.title,
+          siblingPaths: sibs,
+          siblingIndex: idx
+        })
       }},
       { title: "Copy Path", icon: "", callback: function() {
         Exec.copyText(item.path)
@@ -387,6 +388,16 @@ Item {
       { title: "Cycle File Scope", icon: "󰉖", shortcut: "Ctrl+⇧P", callback: function() { root.cycleCategory(1) } }
     ])
     return item
+  }
+
+  function openFileSmart(path) {
+    var p = String(path || "")
+    var low = p.toLowerCase()
+    if (/\.(docx?|odt|rtf|xlsx?|ods|pptx?|odp)$/.test(low)) {
+      Exec.detached(["onlyoffice-desktopeditors", "--view=" + p])
+      return
+    }
+    Exec.openPath(p)
   }
 
   function fileSiblingPaths() {

@@ -158,7 +158,7 @@ def extract_docx_text(path: Path) -> str:
                 cells = [c.text.strip() for c in row.cells if c.text and c.text.strip()]
                 if cells:
                     parts.append(" | ".join(cells))
-        text = "\n".join(parts).strip()
+        text = "\n\n".join(parts).strip()
         if text:
             if len(text) > MAX_TEXT_CHARS:
                 text = text[:MAX_TEXT_CHARS] + "\n\n… truncated …"

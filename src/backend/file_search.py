@@ -167,14 +167,29 @@ def is_noise_path(path: Path) -> bool:
     """Drop bytecode / build artifacts that clutter Files results."""
     name = path.name
     low = name.lower()
-    full = str(path).lower()
-    if "__pycache__" in full:
+    full = str(path).lower().replace("\\", "/")
+    if any(
+        part in full
+        for part in (
+            "/__pycache__/",
+            "/site-packages/",
+            "/dist-packages/",
+            "/.venv/",
+            "/venv/",
+            "/myenv/",
+            "/node_modules/",
+            "/.git/",
+            "/.tox/",
+            "/.mypy_cache/",
+            "/.pytest_cache/",
+            "/.cache/",
+            ".egg-info/",
+        )
+    ):
         return True
     if any(low.endswith(suf) for suf in NOISE_SUFFIXES):
         return True
     if any(part in low for part in NOISE_NAME_PARTS):
-        return True
-    if ".egg-info" in full or "/dist/" in full:
         return True
     return False
 
