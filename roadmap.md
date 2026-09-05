@@ -15,7 +15,7 @@
 | **Omnicast-owned** | Done | Apps, calc, quicklinks, scripts, snippets, Windows (Lua/Omarchy), fallbacks |
 | **AI** | Mock | Ask AI UI only — streaming Ollama/BYOK is next (M4) |
 | **Visual language** | Done | shell.toml menu/launcher tokens + Hyprland rounding |
-| **Public release** | Not yet | Private dogfood |
+| **Public release** | Open | Public repo + clone-and-run; packaging later |
 
 ---
 
@@ -45,10 +45,11 @@
 6. [x] **Calc depth** — currency (approx static FX) + dates (`today`, `days until …`)
 
 ### Berlin (M6 — after M4)
-7. **Packaging / install path** — public or easy private install
-8. **Deeplinks** — `omnicast://…` style invoke
-9. **One Hyprland-only killer workflow** — clearly better than Raycast
-10. **Extension strategy ADR** — scripts-first vs store later
+7. [x] **Public clone path** — repo public; site + README install (no invite gate)
+8. **Packaging / install path** — AUR / omarchy plugin (still open)
+9. **Deeplinks** — `omnicast://…` style invoke
+10. **One Hyprland-only killer workflow** — clearly better than Raycast
+11. **Extension strategy ADR** — scripts-first vs store later
 
 ### Explicitly not building (for now)
 - Raycast extension store / full API clone  

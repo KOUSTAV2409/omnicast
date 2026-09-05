@@ -6,15 +6,15 @@
 
 Not a Raycast UI clone. An **Omarchy umbrella**: same muscle memory as a modern launcher, styled like Omarchy’s menu/clipboard surfaces, wired into Hyprland and the Omarchy CLI.
 
-> Private while we dogfood. Not open for public install yet.
+**Site:** [omnicast on GitHub Pages](https://koustav2409.github.io/omnicast/) · **Repo:** public — clone and run.
 
 ### Tell your agent
 
-Paste this to Cursor / Claude / ChatGPT on an Omarchy machine (after you accept the GitHub invite):
+Paste this to Cursor / Claude / ChatGPT on an Omarchy machine:
 
 ```text
 Set up Omnicast on this Omarchy box:
-1. Clone https://github.com/KOUSTAV2409/omnicast.git (private — I have access).
+1. Clone https://github.com/KOUSTAV2409/omnicast.git
 2. Run ./bin/omnicast once to verify the launcher.
 3. Bind Alt+Space in ~/.config/hypr/bindings.lua to the absolute path of bin/omnicast.
    Keep Super+Space for the Omarchy menu.
@@ -23,30 +23,20 @@ Set up Omnicast on this Omarchy box:
 
 ---
 
-## Quick start (private testers · Omarchy only)
+## Quick start (Omarchy only)
 
 **Needs:** Omarchy (Hyprland) + Quickshell (`qs` on PATH). This will not run on macOS or a generic distro.
 
-### 1. Get repo access
-You’ll get a **GitHub collaborator invite** (to your GitHub account / email). Accept it, then:
-
 ```bash
-# HTTPS (GitHub will prompt / use credential helper)
 git clone https://github.com/KOUSTAV2409/omnicast.git
 cd omnicast
-
-# or SSH, if you use keys
-# git clone git@github.com:KOUSTAV2409/omnicast.git
-```
-
-### 2. Run once
-```bash
 ./bin/omnicast
 ```
 
 You should see the launcher. Esc dismisses; run the same command again to toggle.
 
-### 3. Bind Alt+Space
+### Bind Alt+Space
+
 In `~/.config/hypr/bindings.lua` (or your Omarchy bindings file):
 
 ```lua
@@ -56,6 +46,7 @@ o.bind("ALT + SPACE", "Omnicast", "/home/YOURUSER/omnicast/bin/omnicast")
 Use the **absolute path** to your clone. Keep **Super+Space** for the Omarchy menu.
 
 ### Optional
+
 ```bash
 # Global snippet expander (python-evdev + membership in `input` group)
 ./bin/omnicast-snippetd
@@ -63,7 +54,7 @@ Use the **absolute path** to your clone. Keep **Super+Space** for the Omarchy me
 
 Script commands: drop executables in `~/.config/omnicast/commands/` — see [`docs/script-commands.md`](docs/script-commands.md).
 
-**Stuck?** Open an issue on the private repo or reply to the invite email / DM.
+**Stuck?** [Open an issue](https://github.com/KOUSTAV2409/omnicast/issues). Feedback from Raycast → Omarchy users is especially welcome.
 
 ---
 
@@ -108,8 +99,7 @@ Omnicast dismisses and opens the native surface:
 
 ### Not ready yet
 - **AI** — UI exists; responses are still mocked (Ollama / BYOK next)  
-- **File search** — prefer Omarchy file menu handoff for now  
-- **Public packaging** — clone-and-run for Omarchy developers only  
+- **Packaged install** — clone-and-run for now (AUR / plugin path later)
 
 Full Raycast ↔ Omarchy map: [`docs/raycast-vs-omarchy.md`](docs/raycast-vs-omarchy.md)
 
@@ -132,6 +122,7 @@ Full Raycast ↔ Omarchy map: [`docs/raycast-vs-omarchy.md`](docs/raycast-vs-oma
 |---|---|
 | [`bin/omnicast`](bin/omnicast) | Launch / IPC toggle |
 | [`src/`](src/) | Shell, views, services, backends |
+| [`site/`](site/) | Public landing page |
 | [`docs/script-commands.md`](docs/script-commands.md) | Script command API |
 | [`docs/raycast-vs-omarchy.md`](docs/raycast-vs-omarchy.md) | Feature crosswalk |
 | [`implementation-plan.md`](implementation-plan.md) | Manhattan → Berlin plan |
@@ -145,7 +136,7 @@ Full Raycast ↔ Omarchy map: [`docs/raycast-vs-omarchy.md`](docs/raycast-vs-oma
 
 **Manhattan (umbrella):** ~90% — handoffs, search/ranking, calc, scripts, quicklinks, snippets, Windows palette, fallbacks.  
 
-**Next:** real AI streaming (M4). Optional polish (files / snippetd / calc depth) shipped.
+**Next:** real AI streaming (M4). Public clone-and-run is open; packaging still later.
 
 Full leftover backlog: [`roadmap.md`](roadmap.md) → **What’s left to build**.
 
@@ -153,4 +144,4 @@ Full leftover backlog: [`roadmap.md`](roadmap.md) → **What’s left to build**
 
 ## License
 
-Private / unlicensed while the project stays closed. Terms TBD before any public release.
+[MIT](LICENSE)
