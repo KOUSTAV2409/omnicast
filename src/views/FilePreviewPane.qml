@@ -31,11 +31,17 @@ Item {
 
   readonly property bool isProse: kind === "docx" || kind === "pdf" || kind === "office"
                                   || kind === "markdown" || kind === "text"
-      readonly property int previewFontSize: isProse ? (compactChrome ? 15 : 16) : (compactChrome ? 12 : 14)
+  readonly property int previewFontSize: isProse ? (compactChrome ? 15 : 16) : (compactChrome ? 12 : 14)
   readonly property real previewLineHeight: isProse ? 1.65 : 1.4
   readonly property string previewFontFamily: kind === "code"
                                               ? Theme.monoFontFamily
                                               : (isProse ? Theme.proseFontFamily : Theme.monoFontFamily)
+
+  // Soft fade when content swaps (selection-follow)
+  property real contentOpacity: 1.0
+  Behavior on contentOpacity {
+    NumberAnimation { duration: 140; easing.type: Easing.OutCubic }
+  }
 
   signal entryActivated(string path, string title)
   signal requestOpenExternal()
@@ -85,6 +91,7 @@ Item {
       clearPreview()
       return
     }
+    contentOpacity = 0.25
     isLoading = true
     errorText = ""
     debounce.restart()
@@ -123,6 +130,7 @@ Item {
   function applyPayload(data) {
     if (!data || !data.ok) {
       errorText = (data && data.error) ? data.error : "Preview failed"
+      contentOpacity = 1
       return
     }
     kind = data.kind || "binary"
@@ -138,6 +146,7 @@ Item {
     opener = data.opener || {}
     if (!fileTitle || !fileTitle.length)
       fileTitle = data.name || filePath
+    contentOpacity = 1
   }
 
   function handlePreviewMeta(raw) {
@@ -302,15 +311,27 @@ Item {
     anchors.top: chrome.bottom
     anchors.bottom: parent.bottom
     anchors.topMargin: compactChrome ? 8 : 10
+    opacity: root.contentOpacity
 
-    Text {
-      anchors.fill: parent
-      visible: root.isLoading
-      text: "Loading…"
-      font.family: Theme.fontFamily
-      font.pixelSize: Theme.fontBody
-      color: Theme.darkForeground
-    }
+      Text {
+        id: loadingDots
+        visible: root.isLoading
+        anchors.horizontalCenter: parent.horizontalCenter
+        anchors.top: parent.top
+        anchors.topMargin: 28
+        text: "···"
+        font.family: Theme.fontFamily
+        font.pixelSize: Theme.fontHeading
+        color: Theme.accent
+        opacity: 0.35
+
+        SequentialAnimation on opacity {
+          running: root.isLoading
+          loops: Animation.Infinite
+          NumberAnimation { to: 0.9; duration: 420; easing.type: Easing.InOutSine }
+          NumberAnimation { to: 0.3; duration: 420; easing.type: Easing.InOutSine }
+        }
+      }
 
     Text {
       anchors.fill: parent

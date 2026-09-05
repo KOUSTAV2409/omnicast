@@ -62,8 +62,8 @@ PanelWindow {
       return (v && v.wideLayout) ? Math.max(Theme.cardHeight, 680) : Theme.cardHeight
     }
 
-    Behavior on width { NumberAnimation { duration: 160; easing.type: Easing.OutCubic } }
-    Behavior on height { NumberAnimation { duration: 160; easing.type: Easing.OutCubic } }
+    Behavior on width { NumberAnimation { duration: 200; easing.type: Easing.OutCubic } }
+    Behavior on height { NumberAnimation { duration: 200; easing.type: Easing.OutCubic } }
     radius: Theme.windowRadius
     color: Theme.darkerBackground
     border.color: Theme.border

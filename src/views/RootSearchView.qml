@@ -1137,15 +1137,22 @@ Item {
 
   Row {
     anchors.fill: parent
+    spacing: 0
 
     ListView {
       id: list
-      width: root.wideLayout ? Math.round(parent.width * 0.32) : parent.width
+      width: root.wideLayout ? Math.round(parent.width * 0.30) : parent.width
       height: parent.height
       clip: true
       model: root.filteredItems
       boundsBehavior: Flickable.StopAtBounds
       spacing: Theme.rowSpacing
+      highlightMoveDuration: 120
+      highlightMoveVelocity: -1
+
+      Behavior on width {
+        NumberAnimation { duration: 180; easing.type: Easing.OutCubic }
+      }
 
       delegate: ItemRow {
         width: list.width
@@ -1169,19 +1176,32 @@ Item {
       }
     }
 
-    Rectangle {
+    // Soft seam between list and preview
+    Item {
       visible: root.wideLayout
-      width: 1
+      width: root.wideLayout ? 12 : 0
       height: parent.height
-      color: Theme.border
+      opacity: root.wideLayout ? 1 : 0
+      Behavior on width { NumberAnimation { duration: 180; easing.type: Easing.OutCubic } }
+      Behavior on opacity { NumberAnimation { duration: 140 } }
+
+      Rectangle {
+        anchors.horizontalCenter: parent.horizontalCenter
+        anchors.top: parent.top
+        anchors.bottom: parent.bottom
+        anchors.topMargin: 6
+        anchors.bottomMargin: 6
+        width: 1
+        color: Theme.subtleBorder
+      }
     }
 
     FilePreviewPane {
       id: sidePreview
-      visible: root.wideLayout
-      width: root.wideLayout ? parent.width - list.width - 1 : 0
+      visible: width > 8
+      width: root.wideLayout ? parent.width - list.width - 12 : 0
       height: parent.height
-      anchors.topMargin: 0
+      opacity: root.wideLayout ? 1 : 0
       filePath: root.sidePreviewPath
       fileTitle: root.sidePreviewTitle
       cacheName: "file-preview-side.json"
@@ -1193,8 +1213,10 @@ Item {
         return sibs.indexOf(root.sidePreviewPath)
       }
 
+      Behavior on width { NumberAnimation { duration: 180; easing.type: Easing.OutCubic } }
+      Behavior on opacity { NumberAnimation { duration: 160; easing.type: Easing.OutCubic } }
+
       onEntryActivated: (path, title) => {
-        // Drill into directory entry via full preview
         Ranking.bump("file-side-drill")
         root.requestPushViewWithProps(title, root.filePreviewComp, {
           filePath: path,
@@ -1210,7 +1232,6 @@ Item {
         var idx = sibs.indexOf(root.sidePreviewPath)
         if (idx < 0) idx = 0
         var next = (idx + delta + sibs.length) % sibs.length
-        // Move list selection to matching file hit when possible
         for (var i = 0; i < filteredItems.length; i++) {
           if (filteredItems[i].path === sibs[next]) {
             selectedIndex = i
