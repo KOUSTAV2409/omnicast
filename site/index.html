@@ -205,35 +205,134 @@
       object-fit: cover;
     }
 
-    /* Install */
+    /* Install — terminal panel */
     .install {
       border-top: 1px solid var(--border);
       padding: var(--space-lg) 0 var(--space-xl);
     }
 
-    .install h2 {
-      font-size: 1.1em;
-      font-weight: 700;
-      color: var(--white);
-    }
-
-    .install > .wrap > p {
-      margin-top: 0.5rem;
-      color: rgb(var(--rgb-white) / 0.6);
+    .install-head {
       max-width: 44em;
     }
 
-    pre {
-      margin-top: 1.25rem;
-      padding: 1.1rem 1.2rem;
-      background: var(--bg-storm);
-      color: var(--green);
+    .install h2 {
+      font-size: 1.15em;
+      font-weight: 700;
+      color: var(--white);
+      letter-spacing: -0.02em;
+    }
+
+    .install-head p {
+      margin-top: 0.5rem;
+      color: rgb(var(--rgb-white) / 0.6);
+    }
+
+    .term {
+      margin-top: 1.5rem;
+      max-width: 48rem;
       border: 1px solid var(--border);
-      border-radius: 0.4em;
+      border-radius: 0.5em;
+      background: #16161e;
+      box-shadow:
+        0 0 0 1px rgba(0, 0, 0, 0.25),
+        0 1em 2.5em -1.2em rgba(0, 0, 0, 0.55);
+      overflow: hidden;
+    }
+
+    .term-bar {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      padding: 0.65rem 0.9rem;
+      background: var(--bg-storm);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .term-dots {
+      display: flex;
+      gap: 0.35rem;
+      flex-shrink: 0;
+    }
+
+    .term-dots span {
+      width: 0.55rem;
+      height: 0.55rem;
+      border-radius: 50%;
+      background: rgb(var(--rgb-border));
+    }
+
+    .term-dots span:nth-child(1) { background: #f7768e; }
+    .term-dots span:nth-child(2) { background: #e0af68; }
+    .term-dots span:nth-child(3) { background: #9ece6a; }
+
+    .term-title {
+      flex: 1;
+      min-width: 0;
+      color: rgb(var(--rgb-white) / 0.55);
+      font-size: 0.8em;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .term-copy {
+      appearance: none;
+      border: 1px solid var(--border);
+      background: transparent;
+      color: var(--cyan);
+      font-family: inherit;
+      font-size: 0.75em;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      padding: 0.35em 0.7em;
+      border-radius: 0.3em;
+      cursor: pointer;
+      transition: background var(--ease), color var(--ease), border-color var(--ease);
+    }
+
+    .term-copy:hover {
+      background: rgb(var(--rgb-blue) / 0.15);
+      border-color: var(--blue);
+      color: var(--turquoise);
+    }
+
+    .term-copy.is-copied {
+      color: var(--green);
+      border-color: rgb(var(--rgb-green) / 0.5);
+    }
+
+    .term pre {
+      margin: 0;
+      padding: 1.15rem 1.25rem 1.35rem;
+      background: transparent;
+      border: none;
+      border-radius: 0;
       overflow-x: auto;
       font-family: inherit;
-      font-size: 0.9em;
-      line-height: 1.65;
+      font-size: 0.88em;
+      line-height: 1.75;
+      color: var(--white);
+    }
+
+    .term .c { color: rgb(var(--rgb-white) / 0.4); }
+    .term .p { color: var(--blue); user-select: none; }
+    .term .cmd { color: var(--green); }
+    .term .path { color: var(--cyan); }
+
+    .bind-hint {
+      margin-top: 1rem;
+      padding: 0.85rem 1rem;
+      max-width: 48rem;
+      border-left: 2px solid var(--blue);
+      background: rgb(var(--rgb-bg-storm) / 0.55);
+      color: rgb(var(--rgb-white) / 0.7);
+      font-size: 0.88em;
+    }
+
+    .bind-hint code {
+      color: var(--cyan);
+      font-family: inherit;
     }
 
     .foot {
@@ -309,11 +408,31 @@
 
   <section class="install" id="install">
     <div class="wrap">
-      <h2>Install on Omarchy</h2>
-      <p>Needs Omarchy (Hyprland) and Quickshell. Bind Alt+Space; leave Super+Space for the Omarchy menu.</p>
-      <pre><code>git clone https://github.com/KOUSTAV2409/omnicast.git
+      <div class="install-head">
+        <h2>Install on Omarchy</h2>
+        <p>Needs Omarchy (Hyprland) and Quickshell on PATH. Not macOS.</p>
+      </div>
+
+      <div class="term" data-copy="git clone https://github.com/KOUSTAV2409/omnicast.git
 cd omnicast
-./bin/omnicast</code></pre>
+./bin/omnicast">
+        <div class="term-bar">
+          <div class="term-dots" aria-hidden="true"><span></span><span></span><span></span></div>
+          <span class="term-title">foot · ~/omnicast</span>
+          <button type="button" class="term-copy" aria-label="Copy install commands">Copy</button>
+        </div>
+        <pre><code><span class="c"># clone the public repo</span>
+<span class="p">$</span> <span class="cmd">git clone</span> <span class="path">https://github.com/KOUSTAV2409/omnicast.git</span>
+<span class="p">$</span> <span class="cmd">cd</span> <span class="path">omnicast</span>
+<span class="p">$</span> <span class="cmd">./bin/omnicast</span></code></pre>
+      </div>
+
+      <p class="bind-hint">
+        Then bind <code>Alt+Space</code> to the absolute path of <code>bin/omnicast</code>
+        in <code>~/.config/hypr/bindings.lua</code>.
+        Keep <code>Super+Space</code> for the Omarchy menu.
+      </p>
+
       <p class="foot">
         MIT · Early dogfood ·
         <a href="https://github.com/KOUSTAV2409/omnicast#readme">README</a>
@@ -331,5 +450,23 @@ cd omnicast
       </p>
     </div>
   </footer>
+  <script>
+    (function () {
+      var term = document.querySelector(".term");
+      var btn = document.querySelector(".term-copy");
+      if (!term || !btn || !navigator.clipboard) return;
+      btn.addEventListener("click", function () {
+        var text = term.getAttribute("data-copy") || "";
+        navigator.clipboard.writeText(text).then(function () {
+          btn.textContent = "Copied";
+          btn.classList.add("is-copied");
+          setTimeout(function () {
+            btn.textContent = "Copy";
+            btn.classList.remove("is-copied");
+          }, 1600);
+        });
+      });
+    })();
+  </script>
 </body>
 </html>
