@@ -1,4 +1,4 @@
-/* Shared Omnicast site tokens (Omarchy-family Tokyo Night) */
+/* Shared Omnicast tokens — Omarchy-family (Tokyo Night + JetBrains Mono) */
 :root {
   --rgb-bg-night: 26, 27, 38;
   --rgb-bg-storm: 36, 40, 59;
@@ -21,11 +21,22 @@
   --color-terminal-black: rgb(var(--rgb-border));
 
   --font-family: "JetBrains Mono", ui-monospace, monospace;
-  --font-size: clamp(0.8rem, 1.35vw, 1rem);
-  --line-height: 1.45;
+  --font-size: clamp(0.625rem, 1.25vw, 1rem);
+  --font-size-medium: 125%;
+  --line-height: 1.4;
   --transition: 0.15s cubic-bezier(0.33, 1, 0.68, 1);
+
   --border-color: rgb(var(--rgb-border) / 0.8);
   --border-width: max(1px, 0.0625em);
+
+  --space-small: 0.5em;
+  --space-medium: 1em;
+  --space-neutral: 1.5em;
+  --space-large: 2em;
+  --space-x-large: 3em;
+  --space-xx-large: 4em;
+  --space-xxx-large: 5em;
+  --space-xxxx-large: 6em;
 }
 
 *,
@@ -34,8 +45,4 @@
 
 html { scroll-behavior: smooth; }
 
-body {
-  margin: 0;
-  min-height: 100vh;
-  min-height: 100dvh;
-}
+body { margin: 0; }
