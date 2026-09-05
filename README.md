@@ -100,7 +100,7 @@ Omnicast dismisses and opens the native surface:
   - Try: type nonsense → **Search Web** / **Ask AI** rows appear
 
 ### Not ready yet
-- **AI** — UI exists; responses are still mocked (Ollama / BYOK next)  
+- **AI** — UI stub only; **deferred** (not required for Manhattan). Custom Omarchy-LLM is a separate mission outside this repo.  
 - **Packaged install** — clone-and-run for now (AUR / plugin path later)
 
 Full Raycast ↔ Omarchy map: [`docs/raycast-vs-omarchy.md`](docs/raycast-vs-omarchy.md)
@@ -136,9 +136,9 @@ Full Raycast ↔ Omarchy map: [`docs/raycast-vs-omarchy.md`](docs/raycast-vs-oma
 
 ## Status
 
-**Manhattan (umbrella):** ~90% — handoffs, search/ranking, calc, scripts, quicklinks, snippets, Windows palette, fallbacks.  
+**Manhattan (non-AI umbrella):** close remaining handoff/own/curate gaps, then declare taken — **without** shipping real AI.  
 
-**Next:** real AI streaming (M4). Public clone-and-run is open; packaging still later.
+**Next:** non-AI dogfood + gap close. AI gateway and Omarchy-LLM are out of band. Public site: [omnicast.best](https://omnicast.best).
 
 Full leftover backlog: [`roadmap.md`](roadmap.md) → **What’s left to build**.
 

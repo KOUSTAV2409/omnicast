@@ -43,9 +43,10 @@ Whenever any agent or developer touches this project, the following rules MUST b
 
 ## 4. Current Working State
 
-* **System Status**: Umbrella pivot (2026-09-04) — Omnicast is the Omarchy command surface, not a Raycast UI clone. Native handoffs for clipboard/emoji/theme/background/images/keybindings/menu. Omnicast-owned: search, ranking, scripts, calc, snippets, WM helpers, AI (mock).
+* **System Status**: Umbrella pivot — Omnicast is the Omarchy command surface. Manhattan = non-AI tools first. AI deferred; Omarchy-LLM is a separate mission (ADR 015).
 * **Live hotkey**: `ALT + SPACE` → `bin/omnicast`
 * **Snippet daemon** (optional): `bin/omnicast-snippetd` (needs `python-evdev` + `input` group)
+* **Site**: https://omnicast.best
 
 ### ADR 012: Exec + Paths singletons
 * **Status**: Accepted
@@ -60,6 +61,15 @@ Whenever any agent or developer touches this project, the following rules MUST b
 * **Context**: Reimplementing Omarchy-owned surfaces (clipboard especially) produced worse UX than the native plugins. Raycast-shaped chrome also felt foreign next to Omarchy menu/clipboard/emoji.
 * **Decision**:
   1. **Handoff** tools Omarchy already ships (`omarchy-menu-*`, `omarchy menu summon <route>`, shell overlays) — dismiss Omnicast first, then launch.
-  2. **Own** only the umbrella brain: root search, frecency/favorites, scripts/forms, calc, and true gaps (snippets/AI/WM palette).
+  2. **Own** only the umbrella brain: root search, frecency/favorites, scripts/forms, calc, and true gaps (snippets/WM palette; AI later).
   3. **Visual language** matches Omarchy `[launcher]`/`[menu]` tokens from `~/.local/state/omarchy/current/theme/shell.toml` + Hyprland rounding — not Raycast aesthetics.
 * **Consequences**: Faster daily-driver path; less duplicate code; Omnicast identity = “beautiful front door to Omarchy.”
+
+### ADR 015: Manhattan without AI; Omarchy-LLM out of band
+* **Status**: Accepted (2026-09-05)
+* **Context**: Closing Manhattan on real AI (and a from-scratch Omarchy LLM) would delay the non-AI daily loop. A custom ultra-light Omarchy model is a separate research mission.
+* **Decision**:
+  1. **Manhattan** = finish non-AI handoff / own / curate tools only. Mock Ask AI may remain.
+  2. **Real AI gateway** (Ollama/BYOK) is deferred until after Manhattan; optional Berlin+.
+  3. **Omarchy-LLM** is not an Omnicast milestone and must not block or reshape M4–M6 planning.
+* **Consequences**: Clear build order; AI research can proceed in another track without coupling.

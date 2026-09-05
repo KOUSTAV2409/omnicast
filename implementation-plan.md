@@ -24,7 +24,7 @@
 **What blocks “feels like Raycast”:**
 - Broken script args, no HUD, no ranking/favorites/aliases, fake AI, no global snippets, Process/`createQmlObject` chaos, hardcoded machine paths
 
-**Definition of Manhattan done:** A Raycast power user on Omarchy can do launch → clipboard → snippet expand → window tile → script → calc → ask AI without missing muscle memory (Enter / Ctrl+K / Esc), with HUD confirmation and smart ranking.
+**Definition of Manhattan done:** A Raycast power user on Omarchy can do launch → clipboard → snippet expand → window tile → script → calc → web fallback without missing muscle memory (Enter / Ctrl+K / Esc), with HUD confirmation and smart ranking. **Ask AI is not required** for Manhattan (may stay mocked).
 
 **Definition of Berlin done:** At least three workflows feel *better* than Raycast because of Hyprland/Omarchy (deep tiling, free unlimited clipboard/themes, local AI default, `omarchy` as OS API).
 
@@ -198,29 +198,31 @@ Adjust if dogfooding reveals a broken hero path — **always prioritize trust (A
 - [x] Calc units/colors
 - [x] Clipboard keyboard filters (`Ctrl+P` cycle) + plain-text paste
 
-### M4 — “AI-native launcher” (= Phase D exit)
+### M4 — “AI-native launcher” (= Phase D exit) — **DEFERRED**
 - [ ] Streaming Ollama/BYOK
 - [ ] Quick AI fallback (root / no-match → real model)
 - [ ] Clipboard/selection context actions (explain / summarize)
-*(UI still mocked — next build priority)*
+*(Not required for Manhattan. Not Omarchy-LLM. Revisit after M5.)*
 
-### M5 — “Manhattan complete” (umbrella edition)
+### M5 — “Manhattan complete” (non-AI umbrella)
 - [x] Handoff Omarchy-strong tools (clipboard, emoji, theme, images, menu, capture, share, reminders, keybindings)
 - [x] Own calc / quicklinks / scripts / ranking / snippets surface
 - [x] Curate Hyprland + `omarchy-hyprland-*` into searchable Windows palette + root index
-- [x] No-match fallbacks (web search, Ask AI)
-- [ ] Real AI streaming (M4) — **blocks Manhattan “complete” on paper**
+- [x] No-match fallbacks (web search; Ask AI stub OK)
 - [x] File search handoff (`Find Files` → omarchy-file-select)
 - [x] Snippetd reliability (delay/backend settings, wtype/ydotool, failure notify/HUD)
 - [x] Calc depth (currency approx + dates)
+- [ ] Non-AI dogfood pass — close remaining handoff/own/curate gaps from the crosswalk
+- [ ] Declare Manhattan taken (without real AI)
 
-**Manhattan daily loop (umbrella):** Alt+Space → apps/commands/calc → handoff clipboard/emoji/theme → Windows pop/float/gaps → scripts/quicklinks → Esc.
+**Manhattan daily loop (umbrella):** Alt+Space → apps/commands/calc → handoff clipboard/emoji/theme/files → Windows pop/float/gaps → scripts/quicklinks/snippets → web fallback → Esc.
 
 ### M6 — “Berlin underway” (= Phase F)
 - [ ] Packaging / install path
 - [ ] Deeplinks (`omnicast://…`)
 - [ ] One Hyprland-only workflow clearly better than Raycast
 - [ ] Extension strategy ADR accepted
+- [ ] Optional: generic AI gateway (Ollama/BYOK) — still separate from Omarchy-LLM
 
 Plain-language backlog: [`roadmap.md`](roadmap.md) → **What’s left to build**.
 
@@ -233,6 +235,8 @@ Plain-language backlog: [`roadmap.md`](roadmap.md) → **What’s left to build*
 - Dictation / Focus / Calendar / Notes (Raycast Pro adjacent — optional Berlin+)
 - Matching every Store extension (Linear/Slack/…) — use scripts + omarchy + browser for now
 - Rewriting UI in Tauri/Electron (stay Quickshell)
+- **Shipping real AI to close Manhattan**
+- **Omarchy-LLM** (ultra-light custom model) — separate mission; not an Omnicast milestone
 
 ---
 
@@ -245,17 +249,19 @@ Plain-language backlog: [`roadmap.md`](roadmap.md) → **What’s left to build*
 | Process latency × N | Cache scan results (done for root catalogs); optional long-lived Python sidecar later |
 | Single-maintainer burnout | Prefer scripts over Store; small phases; delete dead code early |
 | Doc drift repeats | Keep `roadmap.md` “What’s left” in sync with this §5 |
+| Custom LLM distracts Manhattan | ADR 015 — Omarchy-LLM is out of band |
 
 ---
 
 ## 8. Immediate next actions (start here)
 
-1. **M4 / D1** — wire Ask AI to streaming Ollama (local-first)  
-2. **M4 / D2** — root fallback + question heuristic → real model  
-3. **M4 / D3** — clipboard/selection context actions  
-4. Then optional file handoff / snippetd polish; then Berlin packaging  
+1. **Non-AI dogfood** — run the Manhattan daily loop; file gaps against the crosswalk  
+2. **Close non-AI gaps** — handoff / own / curate only (no model work)  
+3. **Declare M5** when the loop is trustworthy without Ask AI  
+4. **Berlin** packaging / plugins; optional generic AI gateway later  
+5. **Never** schedule Omarchy-LLM inside Omnicast M4–M6
 
-Do not start Store / Pro-adjacent surfaces before M4 ships.
+Do not start Store / Pro-adjacent surfaces before M5. Do not block M5 on AI.
 
 ---
 
