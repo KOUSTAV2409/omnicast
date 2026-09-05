@@ -33,7 +33,7 @@
   line-height: 1.09375;
   transition: color var(--transition);
   white-space: pre;
-  overflow-x: auto;
+  overflow: hidden; /* never show a scrollbar next to the mark */
   max-width: 100%;
 }
 

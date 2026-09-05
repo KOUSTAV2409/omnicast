@@ -71,49 +71,47 @@
       padding-inline: var(--space-lg);
     }
 
-    /* Masthead — brand first, Omarchy-family green mark */
-    .mark {
+    /* Masthead — green ASCII mark (same as /news) */
+    .pre {
+      display: grid;
       margin-top: var(--space-xl);
+      padding-inline: 0;
       text-align: center;
     }
 
-    .mark h1 {
+    .pre h1 {
       margin: 0;
       font-size: inherit;
       font-weight: inherit;
+      justify-self: center;
     }
 
-    .mark .brand {
-      display: inline-block;
-      text-decoration: none;
+    .pre a {
       color: var(--green);
-      transition: color var(--ease);
+      font-weight: normal;
+      text-decoration: none;
+      display: inline-block;
+      max-width: 100%;
     }
 
-    .mark .brand:hover { color: var(--turquoise); }
+    .pre a:hover pre { color: var(--turquoise); }
 
-    .mark .brand-word {
-      display: block;
-      font-weight: 700;
-      font-size: clamp(2.75rem, 10vw, 5.25rem);
-      letter-spacing: -0.055em;
-      line-height: 0.92;
+    .pre pre {
+      margin: 0;
+      color: inherit;
+      font-family: inherit;
+      font-size: clamp(0.28rem, 1.05vw, 0.72rem);
+      letter-spacing: -0.0425em;
+      line-height: 1.09375;
+      white-space: pre;
+      overflow: hidden;
+      max-width: 100%;
+      transition: color var(--ease);
       opacity: 0;
       animation: rise 0.85s 0.08s cubic-bezier(0.33, 1, 0.68, 1) forwards;
     }
 
-    .mark .brand-rule {
-      display: block;
-      width: 2.75rem;
-      height: 2px;
-      margin: 0.95rem auto 0;
-      background: currentColor;
-      opacity: 0;
-      transform-origin: center;
-      animation: draw 0.7s 0.35s cubic-bezier(0.33, 1, 0.68, 1) forwards;
-    }
-
-    .mark .tag {
+    .pre .tag {
       display: block;
       margin-top: 0.85rem;
       color: rgb(var(--rgb-white) / 0.55);
@@ -125,14 +123,27 @@
       animation: rise 0.85s 0.28s cubic-bezier(0.33, 1, 0.68, 1) forwards;
     }
 
+    @media (max-width: 40em) {
+      .pre pre {
+        font-size: 0;
+        line-height: 0;
+        letter-spacing: 0;
+      }
+
+      .pre pre::before {
+        content: "omnicast";
+        display: block;
+        font-size: clamp(1.5rem, 8vw, 2.25rem);
+        font-weight: 700;
+        letter-spacing: -0.045em;
+        line-height: 1;
+        color: inherit;
+      }
+    }
+
     @keyframes rise {
       from { opacity: 0; transform: translateY(12px); }
       to { opacity: 1; transform: translateY(0); }
-    }
-
-    @keyframes draw {
-      from { opacity: 0; transform: scaleX(0); }
-      to { opacity: 1; transform: scaleX(1); }
     }
 
     /* Header copy — sits above the video, never on it */
@@ -412,19 +423,24 @@
     @media (prefers-reduced-motion: reduce) {
       html { scroll-behavior: auto; }
       * { transition: none !important; animation: none !important; }
-      .mark .brand-word,
-      .mark .brand-rule,
-      .mark .tag,
+      .pre pre,
+      .pre .tag,
       .header .headline { opacity: 1; transform: none; }
     }
   </style>
 </head>
 <body>
-  <div class="mark wrap">
+  <div class="pre wrap">
     <h1>
-      <a class="brand" href="./">
-        <span class="brand-word">omnicast</span>
-        <span class="brand-rule" aria-hidden="true"></span>
+      <a href="./" aria-label="Omnicast">
+<pre>
+ ██████╗ ███╗   ███╗███╗   ██╗██╗ ██████╗ █████╗ ███████╗████████╗
+██╔═══██╗████╗ ████║████╗  ██║██║██╔════╝██╔══██╗██╔════╝╚══██╔══╝
+██║   ██║██╔████╔██║██╔██╗ ██║██║██║     ███████║███████╗   ██║
+██║   ██║██║╚██╔╝██║██║╚██╗██║██║██║     ██╔══██║╚════██║   ██║
+╚██████╔╝██║ ╚═╝ ██║██║ ╚████║██║╚██████╗██║  ██║███████║   ██║
+ ╚═════╝ ╚═╝     ╚═╝╚═╝  ╚═══╝╚═╝ ╚═════╝╚═╝  ╚═╝╚══════╝   ╚═╝
+</pre>
       </a>
     </h1>
     <span class="tag">community project for Omarchy</span>
