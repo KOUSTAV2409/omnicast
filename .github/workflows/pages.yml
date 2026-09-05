@@ -15,7 +15,8 @@ permissions:
 
 concurrency:
   group: pages
-  cancel-in-progress: true
+  # Don't cancel in-flight deploys — that left PR #7 with a cancelled check.
+  cancel-in-progress: false
 
 jobs:
   deploy:
