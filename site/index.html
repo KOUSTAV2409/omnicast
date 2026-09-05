@@ -77,38 +77,71 @@
       text-align: center;
     }
 
-    .mark a {
-      color: var(--green);
-      text-decoration: none;
-      font-weight: 700;
-      font-size: clamp(1.75rem, 5vw, 3rem);
-      letter-spacing: -0.04em;
+    .mark .brand {
       display: inline-block;
+      text-decoration: none;
+      color: var(--green);
       transition: color var(--ease);
     }
 
-    .mark a:hover { color: var(--turquoise); }
+    .mark .brand:hover { color: var(--turquoise); }
+
+    .mark .brand-word {
+      display: block;
+      font-weight: 700;
+      font-size: clamp(2.75rem, 10vw, 5.25rem);
+      letter-spacing: -0.055em;
+      line-height: 0.92;
+      opacity: 0;
+      animation: rise 0.85s 0.08s cubic-bezier(0.33, 1, 0.68, 1) forwards;
+    }
+
+    .mark .brand-rule {
+      display: block;
+      width: 2.75rem;
+      height: 2px;
+      margin: 0.95rem auto 0;
+      background: currentColor;
+      opacity: 0;
+      transform-origin: center;
+      animation: draw 0.7s 0.35s cubic-bezier(0.33, 1, 0.68, 1) forwards;
+    }
 
     .mark .tag {
       display: block;
-      margin-top: 0.55rem;
+      margin-top: 0.85rem;
       color: rgb(var(--rgb-white) / 0.55);
       font-size: 0.85em;
       font-weight: 400;
-      letter-spacing: 0.04em;
+      letter-spacing: 0.06em;
+      text-transform: lowercase;
+      opacity: 0;
+      animation: rise 0.85s 0.28s cubic-bezier(0.33, 1, 0.68, 1) forwards;
+    }
+
+    @keyframes rise {
+      from { opacity: 0; transform: translateY(12px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes draw {
+      from { opacity: 0; transform: scaleX(0); }
+      to { opacity: 1; transform: scaleX(1); }
     }
 
     /* Header copy — sits above the video, never on it */
     .header {
-      margin-top: var(--space);
+      margin-top: calc(var(--space) * 1.15);
       text-align: center;
     }
 
-    .header h1 {
-      font-size: 1.25em;
+    .header .headline {
+      font-size: clamp(1.15em, 2.4vw, 1.35em);
       font-weight: 700;
       color: var(--blue);
       text-wrap: balance;
+      opacity: 0;
+      animation: rise 0.85s 0.4s cubic-bezier(0.33, 1, 0.68, 1) forwards;
     }
 
     .header p {
@@ -372,18 +405,27 @@
 
     @media (prefers-reduced-motion: reduce) {
       html { scroll-behavior: auto; }
-      * { transition: none !important; }
+      * { transition: none !important; animation: none !important; }
+      .mark .brand-word,
+      .mark .brand-rule,
+      .mark .tag,
+      .header .headline { opacity: 1; transform: none; }
     }
   </style>
 </head>
 <body>
   <div class="mark wrap">
-    <a href="./">omnicast</a>
+    <h1>
+      <a class="brand" href="./">
+        <span class="brand-word">omnicast</span>
+        <span class="brand-rule" aria-hidden="true"></span>
+      </a>
+    </h1>
     <span class="tag">community project for Omarchy</span>
   </div>
 
   <header class="header wrap">
-    <h1>Alt+Space for Omarchy.</h1>
+    <p class="headline">Alt+Space for Omarchy.</p>
     <p>
       Free and open source. Assembles Omarchy’s tools under one launcher —
       handoff what’s already great, fill the gaps, keep the UX tight.
