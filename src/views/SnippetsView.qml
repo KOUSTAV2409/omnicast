@@ -47,7 +47,7 @@ Item {
       if (data.ok) {
         Hud.success("Snippet inserted" + (data.backend ? (" · " + data.backend) : ""))
       } else if (data.copied) {
-        Hud.info(data.error || "Copied — paste with Shift+Insert")
+        Hud.info(data.error || "Copied: paste with Shift+Insert")
       } else {
         Hud.error(data.error || "Snippet insert failed")
       }
@@ -136,7 +136,7 @@ Item {
           values.category || "General"
         ])
         Hud.success("Snippet created")
-        // Pop happens via nav; reload when returning — dismiss for simplicity
+        // Pop happens via nav; reload when returning: dismiss for simplicity
         root.requestDismiss()
       }
     })

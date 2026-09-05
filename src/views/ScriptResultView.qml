@@ -74,7 +74,7 @@ Item {
     metadata: [
       { label: "Script Path", value: root.scriptPath.replace(/.*\/([^\/]+)$/, "$1") },
       { label: "Status", value: root.isRunning ? "Executing" : "Finished" },
-      { label: "Args", value: (root.scriptArgs || []).join(" ") || "—" }
+      { label: "Args", value: (root.scriptArgs || []).join(" ") || ":" }
     ]
   }
 

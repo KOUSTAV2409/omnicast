@@ -215,7 +215,7 @@ Rectangle {
   }
 
   function filter(query) {
-    // Forms intercept search — ignore filtering
+    // Forms intercept search: ignore filtering
   }
 
   function moveSelection(delta) {

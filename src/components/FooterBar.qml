@@ -1,7 +1,7 @@
 import QtQuick
 import "../services"
 
-// Quiet text-only footer — no Raycast keycap chrome.
+// Quiet text-only footer: no Raycast keycap chrome.
 Item {
   id: root
 

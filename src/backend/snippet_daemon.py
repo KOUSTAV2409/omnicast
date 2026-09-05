@@ -63,7 +63,7 @@ def main():
 
     keywords = load_keywords()
     if not keywords:
-        print("[snippetd] no keywords configured — add some in Omnicast → Snippets", file=sys.stderr)
+        print("[snippetd] no keywords configured: add some in Omnicast → Snippets", file=sys.stderr)
 
     devices = []
     for path in evdev.list_devices():
@@ -76,7 +76,7 @@ def main():
             continue
 
     if not devices:
-        print("[snippetd] no input devices readable — check `input` group", file=sys.stderr)
+        print("[snippetd] no input devices readable: check `input` group", file=sys.stderr)
         sys.exit(3)
 
     print(

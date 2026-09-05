@@ -190,7 +190,7 @@ def type_expanded(text: str, settings: dict | None = None) -> dict:
         except Exception as e:
             last_err = str(e)
 
-    # Copied but could not type — still partial success for manual paste
+    # Copied but could not type: still partial success for manual paste
     return {
         "ok": False,
         "backend": "clipboard-only",
@@ -244,7 +244,7 @@ def insert_snippet(snippet_id, notify_on_fail=False):
     if not result.get("ok"):
         msg = result.get("error") or "typing failed"
         if result.get("copied"):
-            msg = f"Copied only — {msg}. Paste with Shift+Insert."
+            msg = f"Copied only: {msg}. Paste with Shift+Insert."
         if notify_on_fail:
             notify("Snippet expand failed", msg, urgent=True)
         result["error"] = msg

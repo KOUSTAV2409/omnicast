@@ -63,7 +63,7 @@ QtObject {
   }
 
   function hypr(dispatchArgs) {
-    // Legacy helper — prefer hyprLua on Omarchy. Still used for simple argv joins.
+    // Legacy helper: prefer hyprLua on Omarchy. Still used for simple argv joins.
     var argv = ["hyprctl", "dispatch"]
     for (var i = 0; i < dispatchArgs.length; i++)
       argv.push(String(dispatchArgs[i]))

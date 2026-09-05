@@ -3,7 +3,7 @@ import "../services"
 import "../components"
 
 // Curated Omarchy / Hyprland window actions.
-// Omarchy Hyprland is Lua-first — never use classic `dispatch setfloating` batches.
+// Omarchy Hyprland is Lua-first: never use classic `dispatch setfloating` batches.
 Item {
   id: root
 
