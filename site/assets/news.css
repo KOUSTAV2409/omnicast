@@ -27,7 +27,8 @@
   margin: 0;
   color: var(--color-green);
   font-family: var(--font-family);
-  font-size: clamp(0.28rem, 1.05vw, 0.72rem);
+  /* ~66 glyph mark: scale with viewport so ASCII stays on all widths */
+  font-size: clamp(0.22rem, calc((100vw - 2.5rem) / 72), 0.72rem);
   justify-self: center;
   letter-spacing: -0.0425em;
   line-height: 1.09375;
@@ -53,34 +54,12 @@
 }
 
 .pre--news pre {
-  font-size: clamp(0.32rem, 1.35vw, 0.55rem);
+  font-size: clamp(0.2rem, calc((100vw - 2.5rem) / 78), 0.55rem);
 }
 
-/* Narrow screens: ASCII mark → compact wordmark (same green mono family) */
 @media (max-width: 40em) {
   .pre {
     margin-top: max(var(--space-x-large), env(safe-area-inset-top));
-  }
-
-  .pre pre {
-    font-size: 0;
-    line-height: 0;
-    letter-spacing: 0;
-    overflow: hidden;
-  }
-
-  .pre pre::before {
-    content: "omnicast";
-    display: block;
-    font-size: clamp(1.75rem, 11vw, 2.35rem);
-    font-weight: 700;
-    letter-spacing: -0.045em;
-    line-height: 1;
-    color: inherit;
-  }
-
-  .pre--news pre::before {
-    font-size: clamp(1.35rem, 8vw, 1.85rem);
   }
 }
 
