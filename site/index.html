@@ -122,6 +122,21 @@
 
     .header p a { color: inherit; }
 
+    .header .note {
+      margin-top: var(--space);
+      max-width: 40em;
+      font-style: normal;
+      font-size: 0.9em;
+      color: rgb(var(--rgb-white) / 0.65);
+    }
+
+    .header .note a { color: var(--cyan); }
+
+    .header .note strong {
+      color: var(--white);
+      font-weight: 700;
+    }
+
     /* CTAs — Omarchy-style filled buttons, few of them */
     .actions {
       display: flex;
@@ -255,7 +270,7 @@
 <body>
   <div class="mark wrap">
     <a href="./">omnicast</a>
-    <span class="tag">an Omarchy umbrella</span>
+    <span class="tag">community project for Omarchy</span>
   </div>
 
   <header class="header wrap">
@@ -264,6 +279,12 @@
       Free and open source. Assembles Omarchy’s tools under one launcher —
       handoff what’s already great, fill the gaps, keep the UX tight.
       Built for the community, not a product pitch.
+    </p>
+    <p class="note">
+      Omnicast is <strong>not affiliated with</strong>
+      <a href="https://omarchy.org">omarchy.org</a> today.
+      It is an independent community project that intends to earn a place
+      in that ecosystem.
     </p>
   </header>
 
@@ -304,8 +325,9 @@ cd omnicast
   <footer>
     <div class="wrap">
       <p>
-        Part of the <a href="https://omarchy.org">Omarchy</a> ecosystem —
-        community software for a community OS.
+        Independent community software for
+        <a href="https://omarchy.org">Omarchy</a>.
+        Not affiliated with omarchy.org — intends to be.
       </p>
     </div>
   </footer>
