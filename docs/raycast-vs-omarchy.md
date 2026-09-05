@@ -10,7 +10,7 @@
 
 Raycast’s product is **one key → one brain → many tools**.
 
-Omarchy already ships a large share of those tools — clipboard, emoji, system menu, themes, capture, share, reminders, image picker, Hyprland helpers, agents — but as **siblings**: separate overlays, CLIs, and keybinds.
+Omarchy already ships a large share of those tools: clipboard, emoji, system menu, themes, capture, share, reminders, image picker, Hyprland helpers, agents: but as **siblings**: separate overlays, CLIs, and keybinds.
 
 **Omnicast’s job** is not to reimplement them. It is to be the **unified searchable front door** that either:
 
@@ -83,14 +83,14 @@ Omnicast stays on **`Alt+Space`** so it does not steal Super+Space.
 | File Search (inline / indexed) | `omarchy-menu-file`, `omarchy-file-select`, Nautilus launchers | **Handoff** / later thin FTS |
 | Quicklinks | No first-party URL bookmark system | **Own** |
 | Calculator / units / colors | No first-party calc | **Own** (root eval) |
-| Fallback commands (e.g. Quick AI) | — | **Own** later |
+| Fallback commands (e.g. Quick AI) | - | **Own** later |
 | Favorites / aliases / frecency | Menu has aliases in JSONC; no launcher frecency | **Own** ranking |
 
 ### 2.2 UI grammar (chrome)
 
 | Raycast | Omarchy | Omnicast role |
 | :--- | :--- | :--- |
-| Search bar + list / detail / grid / form | Each overlay has its own chrome (`Color.menu`, `Style`) | **Match Omarchy tokens** — do not clone Raycast look |
+| Search bar + list / detail / grid / form | Each overlay has its own chrome (`Color.menu`, `Style`) | **Match Omarchy tokens**: do not clone Raycast look |
 | Action Panel (`⌘K`) | Per-surface key handlers | **Own** light Action Panel for Omnicast-owned views |
 | HUD / toast | OSD / notifications plugins | **Own** small HUD for Omnicast actions; else rely on Omarchy |
 | Navigation stack | Menu nav stack inside `omarchy.menu` | **Own** only inside Omnicast-owned views |
@@ -103,7 +103,7 @@ Omnicast stays on **`Alt+Space`** so it does not steal Super+Space.
 | **Emoji & Symbols** | `omarchy.emojis`, `omarchy-menu-emoji` | `Super+Ctrl+E` | **Handoff** |
 | **Window Management** | `omarchy-hyprland-window-*`, layout toggles, gaps, width, pop | Scattered binds/CLIs | **Curate** searchable palette (or handoff each) |
 | **Switch Windows** | `omarchy-hyprland-focus-app`, `omarchy-launch-or-focus*` | CLI / menu | **Curate** in search |
-| **Snippets** | — | — | **Own** |
+| **Snippets** | - | - | **Own** |
 | **File Search** | `omarchy-menu-file`, file select | Menu / scripts | **Handoff** |
 | **Image / screenshot browse** | `omarchy.image-picker`, `omarchy-menu-images`, capture cmds | Menu / bind | **Handoff** |
 | **Screenshots / recording** | `omarchy-capture-*`, menu Capture | `Super+Ctrl+C`, Print flows | **Handoff** via catalog |
@@ -111,10 +111,10 @@ Omnicast stays on **`Alt+Space`** so it does not steal Super+Space.
 | **Audio / Bluetooth / Network** | `omarchy-audio-*`, bluetooth bins, panels | Bar + hardware menu | **Handoff** / catalog |
 | **Themes** | `omarchy-theme-*`, menu `style.theme` | Theme menu bind | **Handoff** |
 | **Wallpaper** | `omarchy-theme-bg-*`, menu background | `Super+Ctrl+Space` | **Handoff** |
-| **Notes** | — | — | **Gap** |
-| **Calendar** | — | — | **Gap** |
-| **Translator** | — | — | **Gap** |
-| **Focus / pomodoro** | Reminders adjacent only | — | **Gap** / weak handoff to reminders |
+| **Notes** | - | - | **Gap** |
+| **Calendar** | - | - | **Gap** |
+| **Translator** | - | - | **Gap** |
+| **Focus / pomodoro** | Reminders adjacent only | - | **Gap** / weak handoff to reminders |
 | **Reminders** | `omarchy.reminders`, `omarchy-reminder` | `Super+Ctrl+R` | **Handoff** |
 | **Share sheet** | `omarchy-menu-share` | `Super+Ctrl+S` | **Handoff** |
 | **Keybinding reference** | `omarchy-menu-keybindings` (+ tmux/herdr) | `Super+K` | **Handoff** |
@@ -124,7 +124,7 @@ Omnicast stays on **`Alt+Space`** so it does not steal Super+Space.
 
 | Raycast | Omarchy | Omnicast role |
 | :--- | :--- | :--- |
-| Quick AI / AI Chat / Commands | Not a Raycast-style Quick AI | **Own** (local/BYOK) — Phase D |
+| Quick AI / AI Chat / Commands | Not a Raycast-style Quick AI | **Own** (local/BYOK): Phase D |
 | Screen Awareness | Capture + agent crash/diagnose flows | Partial **Curate** |
 | Agents / MCP-ish | `omarchy-agent*`, agents plugin, usage CLIs | **Handoff** + catalog |
 | Dictation | fcitx / IME (not Raycast dictation) | **Gap** |
@@ -134,9 +134,9 @@ Omnicast stays on **`Alt+Space`** so it does not steal Super+Space.
 | Raycast | Omarchy | Omnicast role |
 | :--- | :--- | :--- |
 | Script Commands | Ad-hoc scripts; menu JSONC actions | **Own** frontmatter runner |
-| Extension Store | Themes/plugins via Omarchy + [omarchyplugins.com](https://omarchyplugins.com) | **Curate later (Berlin)** — index/handoff community Omarchy plugins in root search; not a Raycast Store clone |
+| Extension Store | Themes/plugins via Omarchy + [omarchyplugins.com](https://omarchyplugins.com) | **Curate later (Berlin)**: index/handoff community Omarchy plugins in root search; not a Raycast Store clone |
 | Deeplinks | Shell IPC (`omarchy-shell …`) | Later: Omnicast IPC + handoff |
-| Cloud Sync | — | **Gap** (local-first by design) |
+| Cloud Sync | - | **Gap** (local-first by design) |
 
 ---
 
@@ -144,7 +144,7 @@ Omnicast stays on **`Alt+Space`** so it does not steal Super+Space.
 
 | Bucket | Approx. Raycast power areas | Implication |
 | :--- | ---: | :--- |
-| **Handoff-ready** (strong Omarchy tool) | Clipboard, emoji, menu/system, theme, wallpaper, capture, share, reminders, images, keybindings, notifications, agents | Wire via `Exec.omarchy*` — never re-UI |
+| **Handoff-ready** (strong Omarchy tool) | Clipboard, emoji, menu/system, theme, wallpaper, capture, share, reminders, images, keybindings, notifications, agents | Wire via `Exec.omarchy*`: never re-UI |
 | **Curate** (many small Omarchy CLIs) | Window/focus/layout, audio/BT, install/remove/update menu tree | Index `omarchy` catalog + hypr helpers in root search |
 | **Own** (true gaps for umbrella UX) | Unified root + ranking, calc, snippets, quicklinks, script commands, Quick AI | Build inside Omnicast |
 | **Gap / later** | Notes, calendar, translator, dictation, cloud sync, Store | Only if daily-driver demand appears |
@@ -158,13 +158,13 @@ Before adding any new Omnicast view for a Raycast-like feature:
 1. Search `/usr/share/omarchy/bin` and `shell/plugins` for an existing surface.
 2. If it exists and feels good → **handoff** (`requestDismiss` + `Exec.omarchy…`).
 3. If Omarchy has only fragmented CLIs → **curate** into root search / a thin list that still calls those CLIs.
-4. If nothing exists → **own** it, styled with Omarchy `[launcher]` / `[menu]` tokens — not Raycast aesthetics.
+4. If nothing exists → **own** it, styled with Omarchy `[launcher]` / `[menu]` tokens: not Raycast aesthetics.
 
 ---
 
 ## 5. Related docs
 
-- [`research.md`](../research.md) — full Raycast inventory  
-- [`docs/spec/raycast-feature-matrix.md`](spec/raycast-feature-matrix.md) — older parity matrix (partially superseded by umbrella doctrine)  
-- [`memory.md`](../memory.md) — ADR 014  
-- [`implementation-plan.md`](../implementation-plan.md) — execution plan  
+- [`research.md`](../research.md): full Raycast inventory  
+- [`docs/spec/raycast-feature-matrix.md`](spec/raycast-feature-matrix.md): older parity matrix (partially superseded by umbrella doctrine)  
+- [`memory.md`](../memory.md): ADR 014  
+- [`implementation-plan.md`](../implementation-plan.md): execution plan  

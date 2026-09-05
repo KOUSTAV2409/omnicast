@@ -46,7 +46,7 @@ QtObject {
   }
 
   // Higher is better. 0 = no match.
-  // Contiguous / token matching only — no sparse subsequence.
+  // Contiguous / token matching only: no sparse subsequence.
   function score(query, text) {
     if (!query || query.length === 0)
       return 1
@@ -86,7 +86,7 @@ QtObject {
     var q = query.trim()
     var best = score(q, item.title || "")
 
-    // Subtitles are descriptive prose — exact/token only, never weak prefixes
+    // Subtitles are descriptive prose: exact/token only, never weak prefixes
     if (q.length > 2) {
       var sub = score(q, item.subtitle || "")
       // Only keep strong subtitle hits (whole token / exact-ish)

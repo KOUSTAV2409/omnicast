@@ -131,5 +131,5 @@ if __name__ == "__main__":
     cache_dir.mkdir(parents=True, exist_ok=True)
     cache_file = cache_dir / "desktop-apps.json"
     cache_file.write_text(json.dumps(apps, ensure_ascii=False), encoding="utf-8")
-    # Tiny status only — large stdout is dropped by Quickshell StdioCollector
+    # Tiny status only: large stdout is dropped by Quickshell StdioCollector
     print(json.dumps({"ok": True, "count": len(apps), "path": str(cache_file)}))

@@ -3,7 +3,7 @@ import QtQuick
 import Quickshell
 import Quickshell.Io
 
-// Omnicast visual tokens — prefer Omarchy [launcher] / [menu] from shell.toml
+// Omnicast visual tokens: prefer Omarchy [launcher] / [menu] from shell.toml
 // so the umbrella matches clipboard / menu / emoji surfaces.
 QtObject {
   id: root
@@ -40,14 +40,14 @@ QtObject {
   property string fontFamily: "monospace"
   property string monoFontFamily: "monospace"
 
-  // Type scale — mirrors Omarchy Style.font (base 12)
+  // Type scale: mirrors Omarchy Style.font (base 12)
   property int fontCaption: 10
   property int fontBodySmall: 11
   property int fontBody: 12
   property int fontHeading: 16
   property int fontIcon: 18
 
-  // Geometry — Omarchy menu/clipboard language
+  // Geometry: Omarchy menu/clipboard language
   property int windowRadius: 0
   property int itemRadius: 0
   property int badgeRadius: 0
@@ -228,7 +228,7 @@ QtObject {
     var bgA = Math.max(0.98, surfaceNum("background-alpha", 1.0))
     root.cardBackground = root.withAlpha(bg, bgA)
 
-    // Keep text hierarchy from colors.toml — only override body text from surface
+    // Keep text hierarchy from colors.toml: only override body text from surface
     var text = parseHex(surfaceGet("text", ""), root.foreground)
     root.foreground = text
 
@@ -248,7 +248,7 @@ QtObject {
 
     var selText = parseHex(surfaceGet("selected-text", ""), root.accent)
     root.itemSelectedText = selText
-    // Don't overwrite colors.toml accent with selected-text every reload —
+    // Don't overwrite colors.toml accent with selected-text every reload :
     // keep accent for pills; selected row uses itemSelectedText
     if (!root.accent || String(root.accent) === "#fa8526")
       root.accent = selText

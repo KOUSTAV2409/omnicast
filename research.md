@@ -9,13 +9,13 @@
 
 ## Executive summary
 
-**Raycast** is a keyboard-first, extensible productivity launcher that absorbed five separate Mac utilities (launcher, clipboard, snippets, window manager, emoji) into one palette — then layered a Store (React/TS extensions), Script Commands, and an AI-native OS surface (Quick AI, Chat, Agents, Dictation, MCP). In 2026 it shipped **Raycast 2.0** (cross-platform rewrite: macOS + Windows + iOS), Liquid Glass UI, inline File Search, Screen Awareness, Memory/Profile/Agents/Skills, and BYO/local models (Pro).
+**Raycast** is a keyboard-first, extensible productivity launcher that absorbed five separate Mac utilities (launcher, clipboard, snippets, window manager, emoji) into one palette: then layered a Store (React/TS extensions), Script Commands, and an AI-native OS surface (Quick AI, Chat, Agents, Dictation, MCP). In 2026 it shipped **Raycast 2.0** (cross-platform rewrite: macOS + Windows + iOS), Liquid Glass UI, inline File Search, Screen Awareness, Memory/Profile/Agents/Skills, and BYO/local models (Pro).
 
 **Why it feels “polished, genuine, intuitive”:** one interaction grammar (`↵` / `⌘K` / `Esc`), enforced UI primitives (List / Grid / Detail / Form / Action Panel), footer discoverability, frecency ranking, paint-UI-first latency, HUD/toast feedback, and extensions that cannot invent random UIs.
 
-**Linux copy landscape:** Most attempts stay Rofi-class (fast, scriptable, unproductized). The standout is **Vicinae** (~9.3k★) — native C++/Qt with partial Raycast extension compatibility. **Walker + Elephant** is the best modular “good enough for 1–2 workflows” stack on Hyprland/Omarchy. Tauri clones (Flare, Beam, Asyar) prove demand but stumble on dogfooding, Wayland, or ecosystem depth.
+**Linux copy landscape:** Most attempts stay Rofi-class (fast, scriptable, unproductized). The standout is **Vicinae** (~9.3k★): native C++/Qt with partial Raycast extension compatibility. **Walker + Elephant** is the best modular “good enough for 1-2 workflows” stack on Hyprland/Omarchy. Tauri clones (Flare, Beam, Asyar) prove demand but stumble on dogfooding, Wayland, or ecosystem depth.
 
-**Omnicast wedge:** Wayland/Hyprland-native (layer-shell), Omarchy-first OS fusion, local-first AI, and Raycast-grade Action Panel UX — without needing Raycast’s cloud subscription to unlock themes/WM/clipboard depth.
+**Omnicast wedge:** Wayland/Hyprland-native (layer-shell), Omarchy-first OS fusion, local-first AI, and Raycast-grade Action Panel UX: without needing Raycast’s cloud subscription to unlock themes/WM/clipboard depth.
 
 ---
 
@@ -24,16 +24,16 @@
 | Section | Contents |
 |---|---|
 | **Executive summary** (above) | Verdict in one screen |
-| **Main body** (next) | Full Raycast product inventory — features, AI, Store, Script Commands, shortcuts, pricing, 2024–2026 direction |
-| **[APPENDIX A](#appendix-a--uiux-research-full)** | UI/UX deep dive — layout zones, visual language, micro-interactions, Action Panel, parity principles |
-| **[APPENDIX B](#appendix-b--clones--alternatives-full)** | Every notable clone/alternative — comparison table + deep dives (Vicinae, Walker, Flare, Sol, Asyar, …) |
+| **Main body** (next) | Full Raycast product inventory: features, AI, Store, Script Commands, shortcuts, pricing, 2024-2026 direction |
+| **[APPENDIX A](#appendix-a--uiux-research-full)** | UI/UX deep dive: layout zones, visual language, micro-interactions, Action Panel, parity principles |
+| **[APPENDIX B](#appendix-b--clones--alternatives-full)** | Every notable clone/alternative: comparison table + deep dives (Vicinae, Walker, Flare, Sol, Asyar, …) |
 | **[§8 Manhattan checklist](#8-manhattan-parity-checklist-for-omnicast)** | Raycast → Omnicast gap map |
 | **[§9 Berlin](#9-berlin-how-to-beat-raycast-on-omarchy)** | Where Omarchy can win |
 | **[§10 Sources](#10-sources-master-index)** | Master URL index |
 
 ---
 
-# MAIN BODY — Raycast Product Inventory
+# MAIN BODY: Raycast Product Inventory
 
 *Primary sources: raycast.com, manual.raycast.com, developers.raycast.com, pricing, changelog (researched 2026-09-04).*
 
@@ -47,7 +47,7 @@
 
 ## 1. Official product overview
 
-**Raycast** is an extensible, keyboard-first productivity launcher and OS-level toolbox. Positioning (homepage): *“Your shortcut to everything”* — apps, files, extensions, AI, and dictation one keystroke away.
+**Raycast** is an extensible, keyboard-first productivity launcher and OS-level toolbox. Positioning (homepage): *“Your shortcut to everything”*: apps, files, extensions, AI, and dictation one keystroke away.
 
 | Attribute | Detail |
 |---|---|
@@ -96,7 +96,7 @@
 
 | Feature | Detail |
 |---|---|
-| **Action Panel** | `⌘K` / `Ctrl K` — every contextual action for selection |
+| **Action Panel** | `⌘K` / `Ctrl K`: every contextual action for selection |
 | **Switch Windows** | Search open windows by app/title; minimize/close/fullscreen/hide via Action Panel |
 | **Menu Bar Actions** | Trigger any app’s menu bar items from keyboard (Navigation feature) |
 | **Pop to Root** | `⌘ Esc` (Mac) / `⇧ Esc` (Windows) |
@@ -144,7 +144,7 @@ Command modes include view UI, no-view scripts, and menu-bar.
 #### Window Management
 - Halves, thirds, fourths, sixths, quarters, maximize, center, restore, reasonable size  
 - Move/Resize to exact pixels (`1920x1080`, `100,100`)  
-- Multi-display; Spaces (Mac); virtual desktops (Windows Open/Close/Rename/Move Desktop 1–9)  
+- Multi-display; Spaces (Mac); virtual desktops (Windows Open/Close/Rename/Move Desktop 1-9)  
 - **Custom layouts** (Pro): Create Layout / Create Layout From Current Windows; launch apps with CLI args  
 - Gaps, half-cycling, Stage Manager respect, preset hotkeys from other WM apps  
 **Source:** https://manual.raycast.com/window-management.md · changelog v2.2
@@ -213,7 +213,7 @@ Sync categories: AI Commands & Agents, Chat History, MCP Servers, Quicklinks, No
 **Source:** https://manual.raycast.com/cloud-sync.md
 
 #### Auto Quit
-- Quit apps after inactivity (1–15 min); skips recording/media/frontmost  
+- Quit apps after inactivity (1-15 min); skips recording/media/frontmost  
 **Source:** https://manual.raycast.com/auto-quit.md
 
 #### Run (Windows)
@@ -294,7 +294,7 @@ Flight Tracker (called out as **coming soon** / not yet in v2 on new-in-v2), Sea
 | Mechanism | Behavior |
 |---|---|
 | **Global Raycast hotkey** | Default `⌘ Space` / `Alt Space` (customizable) |
-| **Command hotkeys** | Any command/app/quicklink — Action Panel → Configure → Set Hotkey |
+| **Command hotkeys** | Any command/app/quicklink: Action Panel → Configure → Set Hotkey |
 | **Aliases** | Short keywords that jump a command to the top |
 | **Hyper Key** | Extra modifier layer for conflict-free shortcuts |
 | **Deeplinks** | `raycast://extensions/<author>/<extension>/<command>?arguments=&context=&fallbackText=&launchType=` |
@@ -389,13 +389,13 @@ Sidebar, search chats, send to chat (`⌘ J`), attachments, branch, model/creati
 
 ---
 
-## 4. Recent product directions (2024–2026)
+## 4. Recent product directions (2024-2026)
 
 | Direction | Evidence |
 |---|---|
 | **Cross-platform (macOS + Windows + iOS)** | Raycast 2.0 rewrite (“X-Ray”); Windows client; iOS AI/Notes/Snippets/Quicklinks |
 | **AI-native OS layer** | Quick AI, Chat, Agents, Skills, Memory, Screen Awareness, Dictation, MCP, AI Extensions |
-| **BYOAI / local** | v2.2 (Sep 3 2026): Custom Providers, Ollama Local Models, OpenRouter — **Pro-gated** (stricter than v1) |
+| **BYOAI / local** | v2.2 (Sep 3 2026): Custom Providers, Ollama Local Models, OpenRouter: **Pro-gated** (stricter than v1) |
 | **Custom file indexer** | Rust indexer + NTFS MFT on Windows; content search; leave Spotlight dependency |
 | **Focus / attention** | Raycast Focus product |
 | **Notes + Sync** | First-party notes; Cloud Sync categories expanded |
@@ -428,13 +428,13 @@ Sidebar, search chats, send to chat (`⌘ J`), attachments, branch, model/creati
 
 If Omnicast targets “Raycast for Omarchy Linux,” the highest-leverage parity layers are:
 
-1. **Launcher core** — Root Search, frecency, aliases, hotkeys, Action Panel, favorites, fallbacks  
-2. **UI primitives** — List / Detail / Grid / Form / Action Panel (extension SDK contract)  
-3. **Built-ins** — Clipboard, Snippets, Quicklinks, Calculator, File Search, WM, Emoji, System commands  
-4. **Script Commands** — lowest-friction automation before a full extension API  
-5. **Deeplinks + global hotkeys** — OS integration surface  
-6. **AI later / optional** — Raycast’s differentiation and monetization; Screen Awareness + Dictation + Agents/MCP are the current frontier  
-7. **Store** — network effects; cross-platform React extensions are the modern Raycast bet  
+1. **Launcher core**: Root Search, frecency, aliases, hotkeys, Action Panel, favorites, fallbacks  
+2. **UI primitives**: List / Detail / Grid / Form / Action Panel (extension SDK contract)  
+3. **Built-ins**: Clipboard, Snippets, Quicklinks, Calculator, File Search, WM, Emoji, System commands  
+4. **Script Commands**: lowest-friction automation before a full extension API  
+5. **Deeplinks + global hotkeys**: OS integration surface  
+6. **AI later / optional**: Raycast’s differentiation and monetization; Screen Awareness + Dictation + Agents/MCP are the current frontier  
+7. **Store**: network effects; cross-platform React extensions are the modern Raycast bet  
 
 ---
 
@@ -467,11 +467,11 @@ If Omnicast targets “Raycast for Omarchy Linux,” the highest-leverage parity
 
 ---
 
-*Note: Some marketing pages (e.g. `/pro`) returned errors during fetch; pricing + Manual remain authoritative. Feature availability can differ slightly by platform (macOS vs Windows vs iOS) and Free vs Pro—platform tags in the Manual (“Available on: …”, “Pro Exclusive”) are the source of truth.*
+*Note: Some marketing pages (e.g. `/pro`) returned errors during fetch; pricing + Manual remain authoritative. Feature availability can differ slightly by platform (macOS vs Windows vs iOS) and Free vs Pro:platform tags in the Manual (“Available on: …”, “Pro Exclusive”) are the source of truth.*
 
 ---
 
-# APPENDIX A — UI/UX Research (full)
+# APPENDIX A: UI/UX Research (full)
 
 
 Structured findings from Raycast manuals, developer API (their de-facto design system), marketing/design references, engineering writeups, and reviewer commentary. Focus: **actionable parity principles**, not brand cloning.
@@ -484,7 +484,7 @@ Structured findings from Raycast manuals, developer API (their de-facto design s
 | Aspect | Raycast pattern | Omnicast implication |
 |---|---|---|
 | Shape | Centered floating panel, continuous rounded corners (~12px), vibrancy/blur over desktop | Use platform blur (GTK/Qt/layer-shell) + continuous corner radius; avoid sharp/cardy chrome |
-| Sizing | Interface Size: Default / Large / Larger (scales chrome + type together) | Ship 2–3 density scales, not free resize that breaks list rhythm |
+| Sizing | Interface Size: Default / Large / Larger (scales chrome + type together) | Ship 2-3 density scales, not free resize that breaks list rhythm |
 | Modes | **Expanded** (search + list always) vs **Compact** (search-only when query empty; expands on type or ⌘K) | Compact is a first-class mode; expand must be flicker-free |
 | Focus | Opens with search focused; Esc clears query then dismisses; blur can auto-collapse Compact | Same Esc ladder; never leave focus in a random widget |
 | Position | Near top-center / above dock (team iterated on “where the bar lives”) | Prefer top-center; keep clear of Wayland panel/dock |
@@ -515,9 +515,9 @@ Structured findings from Raycast manuals, developer API (their de-facto design s
 **Zone rules**
 1. **Search** is always the entry; placeholder text describes *what you can search in this context*.
 2. **List** is the default body; sections group by meaning (Favorites, Apps, Commands, Recent Files…).
-3. **Detail** is opt-in (`isShowingDetail`); when on, move accessories into detail—don’t duplicate.
-4. **Footer** always shows: selected item’s primary action + “Actions” with shortcut—discoverability without opening the panel.
-5. **Action Panel** is a second, searchable surface—not a context menu clone.
+3. **Detail** is opt-in (`isShowingDetail`); when on, move accessories into detail:don’t duplicate.
+4. **Footer** always shows: selected item’s primary action + “Actions” with shortcut:discoverability without opening the panel.
+5. **Action Panel** is a second, searchable surface:not a context menu clone.
 
 Sources: [Search Bar manual](https://manual.raycast.com/search-bar), [List API](https://developers.raycast.com/api-reference/user-interface/list), [Action Panel manual](https://manual.raycast.com/action-panel), [Settings / Appearance](https://manual.raycast.com/settings)
 
@@ -527,11 +527,11 @@ Sources: [Search Bar manual](https://manual.raycast.com/search-bar), [List API](
 
 ### App chrome (launcher itself)
 - **Material**: Native vibrancy / frosted glass so the launcher feels *on top of the desktop*, not a solid dialog. Marketing site uses glass-blur nav; app uses system materials (including Liquid Glass on newer macOS).
-- **Density**: Quiet, high-information list rows—icon + title + optional subtitle + right accessories. Selection is a full-row highlight (system accent / soft fill), not a left bar gimmick.
+- **Density**: Quiet, high-information list rows:icon + title + optional subtitle + right accessories. Selection is a full-row highlight (system accent / soft fill), not a left bar gimmick.
 - **Icons**: Consistent SF Symbols / built-in Icon set for actions & chrome; app icons for applications. Never mix “some rows have icons, some don’t” in the same action list.
 - **Badges / tags**: Alias shown as a small tag next to the command name; metadata uses colored tags (`TagList`).
 - **Typography**: Clean sans (marketing: Inter). App follows system UI font. Hierarchy = title (primary) / subtitle (secondary, muted) / accessory (tertiary).
-- **Spacing**: Tight list rhythm; section headers with breathing room; hairline separators between action groups—not heavy cards.
+- **Spacing**: Tight list rhythm; section headers with breathing room; hairline separators between action groups:not heavy cards.
 - **Selection & keyboard chrome**: Shortcuts rendered as keycaps on the **right** of every actionable row (results + action panel).
 
 ### Marketing site (brand, not launcher chrome)
@@ -551,7 +551,7 @@ What reviewers/engineers describe as “polished”:
 |---|---|
 | Hotkey → visible | **&lt;50ms** perceived; UI paints before data |
 | Show/hide | No blank flash, no stale frame; pre-render before alpha-in |
-| Compact ↔ expanded | Content already rendered; window clips grow—no WebKit blank strip |
+| Compact ↔ expanded | Content already rendered; window clips grow:no WebKit blank strip |
 | List selection | Instant keyboard move; no hover-as-primary (desktop convention) |
 | Loading | Thin bar under search (`isLoading`), not modal spinners |
 | Success after close | **HUD** toast floating briefly (copy, paste, done) |
@@ -590,7 +590,7 @@ Sources: [Blake Crosley](https://blakecrosley.com/guides/design/raycast), [Tech 
 
 ### Discoverability patterns
 1. **Footer always shows** primary action name + `↵` and `Actions` + `⌘K`.
-2. **Shortcuts inline** on every action—learning by exposure, not docs.
+2. **Shortcuts inline** on every action:learning by exposure, not docs.
 3. Habit cue: “When unsure, press ⌘K.”
 4. Optional Vim bindings in settings (don’t steal Ctrl+K from Action Panel unless remapped carefully).
 5. Placeholder text documents current search scope.
@@ -602,8 +602,8 @@ Source: [Keyboard Shortcuts manual](https://manual.raycast.com/keyboard-shortcut
 ## 5. Search UX
 
 ### Root search vs deep views
-- **Root Search**: global index—apps, commands, files, calendar, calculator, URLs, colors, settings, AI commands, etc.
-- **Deep view**: after Enter on a command—List / Grid / Detail / Form with its own search bar (often filtering that view only).
+- **Root Search**: global index:apps, commands, files, calendar, calculator, URLs, colors, settings, AI commands, etc.
+- **Deep view**: after Enter on a command:List / Grid / Detail / Form with its own search bar (often filtering that view only).
 - **Pop to Root**: timed return to root after inactivity (user preference).
 - Navigation stack: `Action.Push` / Esc / Backspace empty-query to go back.
 
@@ -619,11 +619,11 @@ Also: Reset Ranking per item; Favorites pin above everything when query empty; s
 ### Sections & empty states
 - Empty query: Favorites, recent files, today’s calendar events, suggested commands.
 - No matches: customizable empty-state commands at bottom of Root Search; in extensions use `List.EmptyView` (icon + title + description + optional CTA).
-- **Anti-flicker rule**: never show “No results” while `isLoading` and query empty—show loading instead.
-- Instant tools in-bar: calculator, URL detect, color convert—results appear as first-class rows.
+- **Anti-flicker rule**: never show “No results” while `isLoading` and query empty:show loading instead.
+- Instant tools in-bar: calculator, URL detect, color convert:results appear as first-class rows.
 
 ### Filters
-- `searchBarAccessory` = dropdown on right of search (`⌘P` to open)—second filter axis (status, project, category).
+- `searchBarAccessory` = dropdown on right of search (`⌘P` to open):second filter axis (status, project, category).
 - Built-in fuzzy on `title` + `keywords`; opt out with `filtering={false}` + throttled `onSearchTextChange` for remote search.
 - Pagination with placeholder skeleton rows at bottom.
 
@@ -634,9 +634,9 @@ Sources: [Search Bar](https://manual.raycast.com/search-bar), [List API](https:/
 ## 6. Action Panel UX patterns
 
 ### Structure
-1. **Primary** at top (= what Enter does)—Open / Run Command / etc.  
+1. **Primary** at top (= what Enter does):Open / Run Command / etc.  
 2. **Named sections**: Favorites, Configure, Deeplink, Manage, extension-specific groups.  
-3. **Search field**: “Search for actions…” — fuzzy; searching flattens sections.  
+3. **Search field**: “Search for actions…”: fuzzy; searching flattens sections.  
 4. **Submenus** (`…` in title): Configure Command → Set Hotkey / Set Alias; Open With…  
 5. **Inline mini-views** inside panel (hotkey recorder, alias text field).  
 6. **Destructive** style (red) for irreversible actions; confirm when needed.  
@@ -672,9 +672,9 @@ Sources: [Action Panel manual](https://manual.raycast.com/action-panel), [Action
 - Optional **drafts** (preserve values when leaving; drop on submit; never draft passwords)  
 - Optional `Form.LinkAccessory` in nav bar  
 
-**Principle**: Prefer arguments for 1–3 scalar inputs so users never leave Root Search; reserve Form for multi-field creation/editing.
+**Principle**: Prefer arguments for 1-3 scalar inputs so users never leave Root Search; reserve Form for multi-field creation/editing.
 
-Sources: [Search Bar — Command Arguments](https://manual.raycast.com/search-bar), [Form API](https://developers.raycast.com/api-reference/user-interface/form), Arguments section in [developers docs](https://developers.raycast.com/)
+Sources: [Search Bar: Command Arguments](https://manual.raycast.com/search-bar), [Form API](https://developers.raycast.com/api-reference/user-interface/form), Arguments section in [developers docs](https://developers.raycast.com/)
 
 ---
 
@@ -682,7 +682,7 @@ Sources: [Search Bar — Command Arguments](https://manual.raycast.com/search-ba
 
 ### Standalone Detail
 - Left/main: CommonMark (images, LaTeX, custom image size/tint query params)  
-- Right: `Detail.Metadata` — Label, TagList, Link, Separator  
+- Right: `Detail.Metadata`: Label, TagList, Link, Separator  
 - Top loading bar when async  
 - Actions still via Action Panel / footer  
 
@@ -712,7 +712,7 @@ Reviewer consensus ([DevToolReviews](https://www.devtoolreviews.com/reviews/rayc
 **“Genuine & intuitive” comes from**:
 1. Platform-native materials and shortcut conventions  
 2. One interaction grammar everywhere (Enter / ⌘K / Esc)  
-3. Extensions can’t invent random UIs—API enforces List/Form/Detail/Actions  
+3. Extensions can’t invent random UIs:API enforces List/Form/Detail/Actions  
 4. Instant UI, async data  
 5. Progressive disclosure (footer → panel → shortcuts)  
 
@@ -720,7 +720,7 @@ Reviewer consensus ([DevToolReviews](https://www.devtoolreviews.com/reviews/rayc
 
 ## 10. Concrete Omnicast parity principles
 
-### P0 — Without these it won’t feel like Raycast
+### P0: Without these it won’t feel like Raycast
 1. **Single floating launcher** with blur/vibrancy, continuous corners, search always focused on open.  
 2. **Layout zones**: Search → List (±Detail) → Footer action hints.  
 3. **Enter = primary; Ctrl+K = Action Panel; Esc ladder** implemented consistently in root and deep views.  
@@ -730,7 +730,7 @@ Reviewer consensus ([DevToolReviews](https://www.devtoolreviews.com/reviews/rayc
 7. **Paint UI first** (`isLoading` bar); never flash empty state while loading.  
 8. **HUD confirmations** after dismiss (Copied, Pasted, Done).  
 
-### P1 — Parity polish
+### P1: Parity polish
 9. Compact mode (search-only → expand on type / action panel).  
 10. Interface size scale (Default / Large / Larger).  
 11. Inline command arguments (≤3) in search bar; Forms for complex input.  
@@ -740,13 +740,13 @@ Reviewer consensus ([DevToolReviews](https://www.devtoolreviews.com/reviews/rayc
 15. Toast for in-window async/errors (with cancel / copy error).  
 16. Title Case actions; consistent icons; no mixed icon rows.  
 
-### P2 — “Genuine” Linux-native feel (Raycast’s own lesson)
+### P2: “Genuine” Linux-native feel (Raycast’s own lesson)
 17. Match **desktop** conventions (no web pointer cursor, restrained hover).  
 18. Popovers that can escape the launcher window bounds.  
 19. Settings as separate window.  
 20. Flicker-free show/hide and compact expand (pre-render).  
 21. Extension/plugin UI constrained to the same components so third-party feels first-party.  
-22. Personality in empty states and copy—without adding latency.  
+22. Personality in empty states and copy:without adding latency.  
 
 ### Explicit Linux adaptations
 - Map ⌘ → Ctrl (Raycast already documents Ctrl on Windows).  
@@ -785,9 +785,9 @@ Reviewer consensus ([DevToolReviews](https://www.devtoolreviews.com/reviews/rayc
 - https://www.theverge.com/23170431/raycast-how-to-macos-search-extensions-alfred-spotlight  
 
 ### Video (UX feel / polish)
-- https://www.youtube.com/watch?v=kHxgxgNHQR4 — *It’s Annoying How Good Raycast is*  
-- https://www.youtube.com/watch?v=Kgn-e5a5uZA — *Ultimate Raycast Deep Dive* (craft, latency, interaction experiments)  
-- https://www.youtube.com/watch?v=Ei1RIZCrZN8 — Window management walkthrough (product density example)  
+- https://www.youtube.com/watch?v=kHxgxgNHQR4: *It’s Annoying How Good Raycast is*  
+- https://www.youtube.com/watch?v=Kgn-e5a5uZA: *Ultimate Raycast Deep Dive* (craft, latency, interaction experiments)  
+- https://www.youtube.com/watch?v=Ei1RIZCrZN8: Window management walkthrough (product density example)  
 
 ---
 
@@ -795,7 +795,7 @@ Reviewer consensus ([DevToolReviews](https://www.devtoolreviews.com/reviews/rayc
 
 ---
 
-# APPENDIX B — Clones & Alternatives (full)
+# APPENDIX B: Clones & Alternatives (full)
 
 
 **Verdict:** The “Raycast for Linux” gap is closing fast. **Vicinae** is the clear technical and traction leader (Raycast extension compatibility + native C++/Qt). Classic Linux tools (Rofi, Walker, Albert, Ulauncher) still win for *narrow, high-frequency workflows*. Cross-platform Tauri clones (Asyar, look, Gauntlet) prove demand but struggle with Wayland, polish, and ecosystem depth. On macOS, Raycast mostly won on *out-of-box product* vs Alfred’s *workflow engineering*; FOSS clones rarely beat that product surface.
@@ -830,7 +830,7 @@ Stars/activity below are approximate as of **2026-09-04**.
 | **Alfred** | macOS | Native | Commercial | ★★★★☆ | Workflow automation | Depth for power users; free tier weak vs Raycast |
 | **Spotlight** | macOS | Native | Built-in | ★★☆☆☆ | Zero-setup search | Floor, not ceiling |
 | **LaunchBar** | macOS | Native | Commercial (since ’96) | ★★★☆☆ | Instant Send, adaptive ranking | Speed/habit over ecosystem |
-| **Quicksilver** | macOS | Obj-C (OSS) | Niche / aging | ★★☆☆☆ | Subject–verb–object model | Interaction model innovated; product didn’t modernize |
+| **Quicksilver** | macOS | Obj-C (OSS) | Niche / aging | ★★☆☆☆ | Subject-verb-object model | Interaction model innovated; product didn’t modernize |
 | **PowerToys Command Palette** | Windows | C# / WinUI | Microsoft | ★★★☆☆ | Native-feeling Start replacement | Integration path ≠ all-in-one hub |
 | **Raycast (Windows beta)** | Windows | Proprietary | Commercial | ★★★★★ | Raising the bar vs Flow/PT | Clipboard/emoji polish matters |
 
@@ -838,7 +838,7 @@ Stars/activity below are approximate as of **2026-09-04**.
 
 ## Deep dives (best attempts)
 
-### 1. Vicinae — the one that “got there”
+### 1. Vicinae: the one that “got there”
 
 | | |
 |---|---|
@@ -848,10 +848,10 @@ Stars/activity below are approximate as of **2026-09-04**.
 | **Traction** | ~**9.3k★**, ~281 forks, Show HN (~181 pts), commits through 2026-09-04 |
 
 **Got right**
-- **Batteries included:** apps, clipboard, files, calculator, emoji, window switching, snippets, fonts, volume, browser tabs — Raycast’s “day-one surface.”
-- **Raycast extension compatibility** (partial) + own store — instant ecosystem leverage.
+- **Batteries included:** apps, clipboard, files, calculator, emoji, window switching, snippets, fonts, volume, browser tabs: Raycast’s “day-one surface.”
+- **Raycast extension compatibility** (partial) + own store: instant ecosystem leverage.
 - **Native performance narrative** (CPU/idle-first caching) that Linux users believe.
-- **Script commands + dmenu** — FOSS-friendly escape hatches Raycast lacks.
+- **Script commands + dmenu**: FOSS-friendly escape hatches Raycast lacks.
 - Unlocks theming / window APIs Raycast gates.
 
 **Got wrong / limits**
@@ -860,14 +860,14 @@ Stars/activity below are approximate as of **2026-09-04**.
 - Qt Widgets choice is powerful but harder for casual contributors than web UI.
 
 **Omnicast lessons**
-1. **Ship 6–8 core modules polished** before chasing a huge store.
-2. **Compatibility with an existing extension API is a growth hack** — but expect 60–80% fidelity, document gaps.
+1. **Ship 6-8 core modules polished** before chasing a huge store.
+2. **Compatibility with an existing extension API is a growth hack**: but expect 60-80% fidelity, document gaps.
 3. Prefer **native shell + declarative extension UI** (Vicinae’s pattern) over full Electron.
 4. Linux users forgive incomplete clones if **clipboard + windows + scripts** feel instant.
 
 ---
 
-### 2. Walker + Elephant — “good enough for 1–2 workflows” champion
+### 2. Walker + Elephant: “good enough for 1-2 workflows” champion
 
 | | |
 |---|---|
@@ -877,10 +877,10 @@ Stars/activity below are approximate as of **2026-09-04**.
 | **Traction** | ~**3.0k★**; popular in ricing/Omarchy-adjacent communities |
 
 **Got right**
-- **Provider prefixes** (`:` clipboard, `/` files, `>` runner, `=` calc) — mode switching without menus.
+- **Provider prefixes** (`:` clipboard, `/` files, `>` runner, `=` calc): mode switching without menus.
 - **Service + socket** for near-zero invoke latency.
-- Clipboard, windows, snippets, passwords, wireplumber as **installable providers** — compose your Raycast from packages.
-- dmenu mode + custom menus — scripting culture preserved.
+- Clipboard, windows, snippets, passwords, wireplumber as **installable providers**: compose your Raycast from packages.
+- dmenu mode + custom menus: scripting culture preserved.
 - Provider **sets** (dev vs productivity keybinds) = workflow-specific launchers.
 
 **Got wrong / limits**
@@ -890,14 +890,14 @@ Stars/activity below are approximate as of **2026-09-04**.
 - No Raycast extension story.
 
 **Omnicast lessons**
-1. **Separate search backend from UI** — enables multiple frontends and headless use.
+1. **Separate search backend from UI**: enables multiple frontends and headless use.
 2. Make **clipboard / window focus / runner** first-class with dedicated hotkeys, not buried modes.
 3. Package providers so “clipboard-only” install is a supported path.
 4. Empty-state UX must diagnose missing backend (Walker’s biggest newcomer failure).
 
 ---
 
-### 3. Albert — mature Linux “Alfred,” not Raycast
+### 3. Albert: mature Linux “Alfred,” not Raycast
 
 | | |
 |---|---|
@@ -915,7 +915,7 @@ Stars/activity below are approximate as of **2026-09-04**.
 - UX feels dated vs Raycast’s single cohesive palette.
 - Clipboard often via **CopyQ integration**, not first-class product.
 - No curated store / AI / polished window manager story.
-- Trigger/plugin config tax — Alfred-like, not Raycast-like.
+- Trigger/plugin config tax: Alfred-like, not Raycast-like.
 
 **Omnicast lessons**
 - Longevity without **unified product UX** still loses mindshare to Raycast.
@@ -923,17 +923,17 @@ Stars/activity below are approximate as of **2026-09-04**.
 
 ---
 
-### 4. Rofi / Wofi / Anyrun / Ulauncher — workflow primitives
+### 4. Rofi / Wofi / Anyrun / Ulauncher: workflow primitives
 
-**Rofi (~16.4k★, C)** — gold standard for scriptable menus, window switch, SSH, custom modes. Wins latency/RAM; loses “install and feel premium.”
+**Rofi (~16.4k★, C)**: gold standard for scriptable menus, window switch, SSH, custom modes. Wins latency/RAM; loses “install and feel premium.”
 
-**Wofi** — pragmatic Wayland `drun`/`dmenu`; CSS theming; thinner feature set.
+**Wofi**: pragmatic Wayland `drun`/`dmenu`; CSS theming; thinner feature set.
 
-**Anyrun (~1.3k★)** — Rust/GTK4 layer-shell runner; plugins as `.so`; Hyprland-centric; compositor features (randr) incomplete elsewhere.
+**Anyrun (~1.3k★)**: Rust/GTK4 layer-shell runner; plugins as `.so`; Hyprland-centric; compositor features (randr) incomplete elsewhere.
 
-**Ulauncher (~4.5k★)** — fuzzy, themes, Python extensions; higher memory/latency than Rofi; friendliest “Alfred-lite” for GNOME/Pop users; not a command center.
+**Ulauncher (~4.5k★)**: fuzzy, themes, Python extensions; higher memory/latency than Rofi; friendliest “Alfred-lite” for GNOME/Pop users; not a command center.
 
-**What they’re good enough for (1–2 workflows)**
+**What they’re good enough for (1-2 workflows)**
 
 | Workflow | Best Linux pick | Notes |
 |---|---|---|
@@ -944,12 +944,12 @@ Stars/activity below are approximate as of **2026-09-04**.
 | Calculator/snippets | Walker / Albert / Vicinae | Snippets need accessibility/input injection on Wayland |
 
 **Omnicast lessons**
-- Linux power users will **compose** launchers; don’t fight Rofi for scripting — **interop with dmenu mode**.
+- Linux power users will **compose** launchers; don’t fight Rofi for scripting: **interop with dmenu mode**.
 - Winning means packaging the *composed* experience Vicinae/Walker aim for.
 
 ---
 
-### 5. Sol — best FOSS “anti-subscription” on macOS
+### 5. Sol: best FOSS “anti-subscription” on macOS
 
 | | |
 |---|---|
@@ -959,8 +959,8 @@ Stars/activity below are approximate as of **2026-09-04**.
 | **Traction** | ~**3.1k★**, Homebrew cask, ongoing releases |
 
 **Got right**
-- Core utilities in-product: clipboard, window mgmt, emoji, calendar, process killer, script runner — no Powerpack.
-- Privacy / no telemetry / MIT — clear anti-Raycast-Pro positioning.
+- Core utilities in-product: clipboard, window mgmt, emoji, calendar, process killer, script runner: no Powerpack.
+- Privacy / no telemetry / MIT: clear anti-Raycast-Pro positioning.
 - Minimal config philosophy.
 
 **Got wrong**
@@ -974,7 +974,7 @@ Stars/activity below are approximate as of **2026-09-04**.
 
 ---
 
-### 6. Asyar — most complete cross-platform Raycast *ambition*
+### 6. Asyar: most complete cross-platform Raycast *ambition*
 
 | | |
 |---|---|
@@ -986,7 +986,7 @@ Stars/activity below are approximate as of **2026-09-04**.
 **Got right**
 - Feature checklist matches Raycast: clipboard, snippets, AI BYOK, window layouts, portals, Pomodoro, store, deep links, silent AI replace.
 - Privacy/local-first branding vs Raycast cloud/account.
-- Extension sandbox + permissions — better security story than Raycast.
+- Extension sandbox + permissions: better security story than Raycast.
 
 **Got wrong**
 - **Wayland gap** is fatal for modern Linux credibility.
@@ -996,33 +996,33 @@ Stars/activity below are approximate as of **2026-09-04**.
 **Omnicast lessons**
 - Cross-platform is a product claim only if **global hotkeys + clipboard + window APIs** work on Wayland.
 - Sandbox/permissions are a differentiator worth copying from Asyar/Gauntlet.
-- Don’t ship “Raycast feature matrix” without 2–3 workflows that feel *better* than Raycast.
+- Don’t ship “Raycast feature matrix” without 2-3 workflows that feel *better* than Raycast.
 
 ---
 
-### 7. Gauntlet & Flare & Loungy — architectural cautionary tales
+### 7. Gauntlet & Flare & Loungy: architectural cautionary tales
 
-**Gauntlet (~821★)** — Rust + iced UI; **Deno-sandboxed React plugins**; git-URL plugin IDs (no central server required). Cross-platform intent. Pain: Wayland global shortcuts, slower recent activity, own API (not Raycast-compatible) → cold-start ecosystem.
+**Gauntlet (~821★)**: Rust + iced UI; **Deno-sandboxed React plugins**; git-URL plugin IDs (no central server required). Cross-platform intent. Pain: Wayland global shortcuts, slower recent activity, own API (not Raycast-compatible) → cold-start ecosystem.
 
-**Flare (~1.5k★, unmaintained)** — Tauri Raycast-compatible Linux PoC. Author’s postmortem: **never dogfooded**, naive architecture, burnout. Explicitly points users to **Vicinae**. Lesson: compatibility demos without daily use don’t become products.
+**Flare (~1.5k★, unmaintained)**: Tauri Raycast-compatible Linux PoC. Author’s postmortem: **never dogfooded**, naive architecture, burnout. Explicitly points users to **Vicinae**. Lesson: compatibility demos without daily use don’t become products.
 
-**Loungy (~1.7k★, archived)** — GPUI (Zed’s framework), beautiful native feel, clipboard/calculator/process killer; **no real extension system**; maintainer life change. Lesson: built-ins without extensibility plateau; recommend Gauntlet/Vicinae.
+**Loungy (~1.7k★, archived)**: GPUI (Zed’s framework), beautiful native feel, clipboard/calculator/process killer; **no real extension system**; maintainer life change. Lesson: built-ins without extensibility plateau; recommend Gauntlet/Vicinae.
 
-**Backslash (~272★)** — explicit “Raycast clone for Linux,” alpha, last meaningful push mid-2025. Lesson: brand/meme without velocity loses to Vicinae.
+**Backslash (~272★)**: explicit “Raycast clone for Linux,” alpha, last meaningful push mid-2025. Lesson: brand/meme without velocity loses to Vicinae.
 
 ---
 
 ### 8. Windows / cross-platform baselines (competitive context)
 
-**Flow Launcher (~15.5k★)** — deepest Windows plugin culture + Everything file search. Beats Start; loses to Raycast Windows on clipboard/emoji polish (per 2026 reviews).
+**Flow Launcher (~15.5k★)**: deepest Windows plugin culture + Everything file search. Beats Start; loses to Raycast Windows on clipboard/emoji polish (per 2026 reviews).
 
-**Wox (~27k★)** — historic cross-platform launcher; “works” more than “delights.”
+**Wox (~27k★)**: historic cross-platform launcher; “works” more than “delights.”
 
-**PowerToys Command Palette** — Microsoft-native path; lighter, fewer features; good hybrid with FancyZones.
+**PowerToys Command Palette**: Microsoft-native path; lighter, fewer features; good hybrid with FancyZones.
 
-**Raycast Windows beta** — raises expectations; Omnicast should assume users will compare clipboard UX to Raycast, not Flow.
+**Raycast Windows beta**: raises expectations; Omnicast should assume users will compare clipboard UX to Raycast, not Flow.
 
-**look (~828★)** — SwiftUI mac + Tauri Win/Linux; local-first, no daemon, no plugin store as *principle*. Interesting counter-position to Raycast-as-platform.
+**look (~828★)**: SwiftUI mac + Tauri Win/Linux; local-first, no daemon, no plugin store as *principle*. Interesting counter-position to Raycast-as-platform.
 
 ---
 
@@ -1033,7 +1033,7 @@ Stars/activity below are approximate as of **2026-09-04**.
 | **Spotlight** | Free floor: apps/files/calc | Don’t compete on search alone |
 | **Alfred** | Wins complex **workflows**, one-time Powerpack; loses free clipboard/WM/extensions | Workflow graph depth for power users |
 | **LaunchBar** | Instant Send, adaptive ranking, low chrome | Habit learning & file actions |
-| **Quicksilver** | Subject–action–object; OSS classic | Interaction model curiosity; dated UI |
+| **Quicksilver** | Subject-action-object; OSS classic | Interaction model curiosity; dated UI |
 | **Raycast** | Won on free built-ins + extension store + modern UI + AI | Extension DX (React) + root search of actions |
 
 Raycast’s real product win: **one palette that absorbs 5 paid utilities** (clipboard, WM, snippets, emoji, API extensions) with a gentle curve. Alfred still owns *engineered* automation.
@@ -1042,7 +1042,7 @@ Raycast’s real product win: **one palette that absorbs 5 paid utilities** (cli
 
 ## Cross-cutting lessons for Omnicast
 
-1. **Hero workflows > feature parity.** Clipboard, snippets, window management, script runner, calculator — polish these first. Linux “good enough” users live here today (Walker/Rofi/cliphist).
+1. **Hero workflows > feature parity.** Clipboard, snippets, window management, script runner, calculator: polish these first. Linux “good enough” users live here today (Walker/Rofi/cliphist).
 2. **Extension strategy fork:**  
    - *Compat* (Vicinae/Flare) → faster adoption, eternal API debt.  
    - *Own sandboxed API* (Gauntlet/Asyar) → cleaner long-term, cold start.  
@@ -1050,10 +1050,10 @@ Raycast’s real product win: **one palette that absorbs 5 paid utilities** (cli
 3. **Native > Electron** for launcher trust; **Tauri is the popular compromise** but Wayland/global input remains hard.
 4. **Backend/UI split** (Elephant pattern) + **dmenu/script mode** = Linux credibility.
 5. **Dogfood daily** (Flare’s stated failure mode) or don’t ship.
-6. **Single-maintainer / no extensions** projects archive (Loungy, Flare, Hamr maintenance) — plan for extension-driven community or paid sustainability.
+6. **Single-maintainer / no extensions** projects archive (Loungy, Flare, Hamr maintenance): plan for extension-driven community or paid sustainability.
 7. **Don’t leave clipboard to third-party apps** if it’s a marketing pillar.
 8. **Wayland is not optional** for a Linux-first story in 2026.
-9. **Store + discovery** is how Raycast stands out; OSS stores are weak — either invest or partner via Raycast-compat.
+9. **Store + discovery** is how Raycast stands out; OSS stores are weak: either invest or partner via Raycast-compat.
 10. Windows competition is Flow depth vs Raycast polish; Omnicast needs a clear wedge (e.g. Linux-first quality, local-first, or workflow X).
 
 ---
@@ -1083,7 +1083,7 @@ Raycast’s real product win: **one palette that absorbs 5 paid utilities** (cli
 - https://asyar.org/  
 - https://terminalroot.com/meet-this-open-source-launcher-inspired-by-raycast/  
 - https://fossforce.com/2025/07/streamline-your-linux-workflow-with-albert/  
-- Alfred/Raycast/LaunchBar comparisons: Startupik, TextExpander, DownloadChaos, ShortcutDock (2025–2026)  
+- Alfred/Raycast/LaunchBar comparisons: Startupik, TextExpander, DownloadChaos, ShortcutDock (2025-2026)  
 - Windows: PCMag, WindowsForum, HowToGeek, XDA (Flow / PowerToys / Raycast Windows)  
 - ArchWiki List of applications/Other (launcher catalog)  
 - Flare postmortem banner → Vicinae; Loungy archive banner → Gauntlet/Vicinae
@@ -1116,7 +1116,7 @@ Mapped from Raycast core → Omnicast status (as of 2026-09-04 codebase).
 | Deeplinks | P1 | ❌ | `omnicast://…` |
 | Compact mode | P2 | ❌ | Raycast v2 polish |
 
-**Manhattan definition of done:** A Raycast power user on Omarchy can do their daily loop (launch, clipboard, snippets expand, WM, scripts, calc, AI ask) without missing muscle memory — Action Panel grammar identical, feedback (HUD) present, ranking feels smart.
+**Manhattan definition of done:** A Raycast power user on Omarchy can do their daily loop (launch, clipboard, snippets expand, WM, scripts, calc, AI ask) without missing muscle memory: Action Panel grammar identical, feedback (HUD) present, ranking feels smart.
 
 ---
 
@@ -1126,7 +1126,7 @@ Raycast cannot (or will not) match these without abandoning its product shape:
 
 | Advantage | Why it beats Raycast |
 |---|---|
-| **Hyprland IPC depth** | True tiling layouts, workspace jumps, special workspaces, monitors — not Accessibility-API approximations |
+| **Hyprland IPC depth** | True tiling layouts, workspace jumps, special workspaces, monitors: not Accessibility-API approximations |
 | **Omarchy as OS API** | 100+ `omarchy` routes live in Root Search; theme/`colors.toml` live sync free |
 | **Local-first AI default** | Ollama/OpenRouter without Pro paywall for basic AI |
 | **No cloud tax for power tools** | Unlimited clipboard, themes, custom WM free |

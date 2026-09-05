@@ -266,7 +266,7 @@ PanelWindow {
       props[k] = src[k]
     props.navStack = navStack
 
-    // onFormSubmitted collides with signal handler naming — extract first
+    // onFormSubmitted collides with signal handler naming: extract first
     var formCb = props.onFormSubmitted || props.submitHandler || null
     delete props.onFormSubmitted
     delete props.submitHandler

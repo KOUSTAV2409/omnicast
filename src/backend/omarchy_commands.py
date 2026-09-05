@@ -108,7 +108,7 @@ def write_cache(cmds):
 
 
 if __name__ == "__main__":
-    # Quickshell StdioCollector drops large stdout (~180KB) — write a cache file
+    # Quickshell StdioCollector drops large stdout (~180KB): write a cache file
     # and print only a tiny status line for the QML Process to read.
     cmds = get_omarchy_commands()
     path = write_cache(cmds)

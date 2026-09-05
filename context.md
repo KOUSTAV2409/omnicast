@@ -1,7 +1,7 @@
 # Project Context: Omnicast
 
 > **Document Type:** Agent & LLM Knowledge Base / Core Context  
-> **Status:** Active — Omarchy umbrella (ADR 014)  
+> **Status:** Active: Omarchy umbrella (ADR 014)  
 > **Last Updated:** 2026-09-04  
 
 ---
@@ -22,11 +22,11 @@ Hotkey: **Alt+Space** → `bin/omnicast` (Super+Space stays Omarchy menu).
 
 ## 2. Non-negotiables
 
-1. Match Omarchy menu/clipboard visual language — not Raycast chrome.  
+1. Match Omarchy menu/clipboard visual language: not Raycast chrome.  
 2. Keyboard-first: Enter / Ctrl+K / Esc ladder on every view.  
 3. Prefer Omarchy CLI + state over reimplementing daemons.  
-4. Hyprland via **Lua dispatch** / `omarchy-hyprland-*` — classic `hyprctl dispatch setfloating` is broken on Omarchy.  
-5. Portable paths via `Paths` / `Quickshell.shellDir` — no hardcoded home dirs.
+4. Hyprland via **Lua dispatch** / `omarchy-hyprland-*`: classic `hyprctl dispatch setfloating` is broken on Omarchy.  
+5. Portable paths via `Paths` / `Quickshell.shellDir`: no hardcoded home dirs.
 
 ---
 

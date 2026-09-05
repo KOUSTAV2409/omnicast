@@ -43,6 +43,6 @@ ShellRoot {
   }
 
   Component.onCompleted: {
-    console.log("[Omnicast] shell ready — Paths.srcRoot=", Paths.srcRoot)
+    console.log("[Omnicast] shell ready: Paths.srcRoot=", Paths.srcRoot)
   }
 }

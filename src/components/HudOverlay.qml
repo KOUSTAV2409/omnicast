@@ -1,7 +1,7 @@
 import QtQuick
 import "../services"
 
-// Floating HUD pill — lives outside the main card (full screen overlay layer)
+// Floating HUD pill: lives outside the main card (full screen overlay layer)
 Item {
   id: root
   anchors.fill: parent

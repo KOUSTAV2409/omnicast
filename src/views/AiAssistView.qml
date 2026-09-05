@@ -165,7 +165,7 @@ Item {
   function sendQuery(prompt) {
     if (!prompt || prompt.trim() === "") return
     isGenerating = true
-    responseMarkdown = "### Analyzing Query...\n\n*" + prompt + "*\n\n> *(Mock — Phase D / M4 will wire Ollama/BYOK streaming)*"
+    responseMarkdown = "### Analyzing Query...\n\n*" + prompt + "*\n\n> *(Mock: Phase D / M4 will wire Ollama/BYOK streaming)*"
     generateTimer.restart()
   }
 

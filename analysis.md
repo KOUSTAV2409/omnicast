@@ -2,13 +2,13 @@
 
 > **Document type:** Codebase audit & gap analysis vs Raycast (Manhattan bar)  
 > **Date:** 2026-09-04  
-> **Inputs:** Full `src/` audit · [`research.md`](research.md) §8–§9 · [`roadmap.md`](roadmap.md) · ADR 011 in [`memory.md`](memory.md)  
+> **Inputs:** Full `src/` audit · [`research.md`](research.md) §8-§9 · [`roadmap.md`](roadmap.md) · ADR 011 in [`memory.md`](memory.md)  
 > **Companion:** [`implementation-plan.md`](implementation-plan.md)
 
 **Scope:** `/home/iamkxyz/Projects/omnicast` (docs + all of `src/`, `bin/`, `commands/`)  
 **Date:** 2026-09-04  
 **Lens:** research.md §8 Manhattan checklist + Appendix A P0/P1  
-**Verdict:** Strong Omarchy-native shell skeleton with real power-tool surfaces; **not Manhattan-ready**. Docs overstate completion (roadmap Phases 4–5 “Done”); several critical wiring bugs and P0 gaps remain.
+**Verdict:** Strong Omarchy-native shell skeleton with real power-tool surfaces; **not Manhattan-ready**. Docs overstate completion (roadmap Phases 4-5 “Done”); several critical wiring bugs and P0 gaps remain.
 
 ---
 
@@ -16,9 +16,9 @@
 
 | Source | Claims | Reality |
 |---|---|---|
-| `roadmap.md` | Phases 1–5 complete; Phase 6 next | UI primitives exist; clipboard is Omarchy JSON (not SQLite FTS5); AI is a timer mock; Grid unused; script modes ignored |
+| `roadmap.md` | Phases 1-5 complete; Phase 6 next | UI primitives exist; clipboard is Omarchy JSON (not SQLite FTS5); AI is a timer mock; Grid unused; script modes ignored |
 | `memory.md` / ADR 011 | Omarchy-native fusion | Matches live path (`omarchy_clipboard.py`, `omarchy_commands.py`) |
-| `docs/spec/raycast-feature-matrix.md` | SQLite clipboard, FTS5, snippet daemon | Spec drift — live code abandoned SQLite for Omarchy state |
+| `docs/spec/raycast-feature-matrix.md` | SQLite clipboard, FTS5, snippet daemon | Spec drift: live code abandoned SQLite for Omarchy state |
 | `research.md` §8 | Partial Action Panel, no HUD, mock AI, manager-only snippets | Accurate |
 
 **Stack size:** ~4.3k LOC across ~30 source files. Thin but dense; quality issues are architectural/wiring, not missing files alone.
@@ -27,7 +27,7 @@
 
 ## 2. Area-by-area audit
 
-### 2.1 Shell entry — `bin/omnicast`, `src/shell.qml`, `src/OmnicastWindow.qml`
+### 2.1 Shell entry: `bin/omnicast`, `src/shell.qml`, `src/OmnicastWindow.qml`
 
 **Exists / works**
 - Layer-shell overlay (`WlrLayer.Overlay`, exclusive keyboard when visible).
@@ -41,7 +41,7 @@
 - Signal connects on each push for ActionPalette/Dismiss only; nested views that need `requestPushView` must emit through RootSearchView closures (fragile).
 - `NavigationStack.reset()` keeps root view; reopen reuses stale RootSearchView (OK for cache, bad if indexes should refresh).
 - Fixed 760×480 card; no compact mode, no size scale (P1/P2).
-- No real backdrop blur wiring visible in QML (relies on Hyprland layer rules externally — undocumented here).
+- No real backdrop blur wiring visible in QML (relies on Hyprland layer rules externally: undocumented here).
 - Footer Esc “Back/Close” is **display-only** (no click handler).
 
 **Missing vs P0/P1**
@@ -83,7 +83,7 @@
 - Does **not** implement view contract (`filter` / `moveSelection` / `executeCurrent` / `openActionPalette`) → SearchBar ↵ may not submit.
 - No Tab between fields; dropdown type declared in comments but unimplemented.
 - Focus stays on SearchBar; form inputs fight global search focus.
-- `onFormSubmitted` wired from RootSearchView props — works only if createObject signal handler binding succeeds.
+- `onFormSubmitted` wired from RootSearchView props: works only if createObject signal handler binding succeeds.
 
 #### `GridView.qml` / `GridCard.qml`
 **Status:** Implemented, registered in `qmldir`, **never used by any view**. Theme picker uses ListDetail instead of grid (missed visual win). Horizontal/vertical move APIs not wired to SearchBar (only ±1 via `moveSelection`).
@@ -104,7 +104,7 @@
 
 ### 2.4 Views
 
-#### `RootSearchView.qml` (~488 LOC — god object)
+#### `RootSearchView.qml` (~488 LOC: god object)
 **Works:**
 - Sections: Power Tools, Omarchy cmds, Scripts, Apps.
 - Parallel Process scanners for scripts / omarchy / apps.
@@ -113,13 +113,13 @@
 - Action lists per item; EmptyState on no match.
 
 **Bugs / incomplete wiring**
-- **Hardcoded** `/home/iamkxyz/Projects/omnicast/src/backend/*.py` in three Process commands — not portable.
-- Ubiquitous `Qt.createQmlObject('…Process…')` for launch/copy/terminal — no lifecycle, leak risk, shell-injection surface on routes/exec strings.
+- **Hardcoded** `/home/iamkxyz/Projects/omnicast/src/backend/*.py` in three Process commands: not portable.
+- Ubiquitous `Qt.createQmlObject('…Process…')` for launch/copy/terminal: no lifecycle, leak risk, shell-injection surface on routes/exec strings.
 - Terminal hardcodes **`ghostty`**.
 - Search is **substring**, not fuzzy; **no frecency, favorites, aliases, Reset Ranking** (P0).
-- Empty root shows full catalog (power tools + potentially 100+ omarchy + all apps) — no “recent / favorites first” empty state; will feel heavy.
+- Empty root shows full catalog (power tools + potentially 100+ omarchy + all apps): no “recent / favorites first” empty state; will feel heavy.
 - No loading UI while three Python processes run → empty flash risk (P0 #7).
-- Math via `Function('"use strict"; return (' + sanitized + ')')()` — charset-limited but still eval-shaped.
+- Math via `Function('"use strict"; return (' + sanitized + ')')()`: charset-limited but still eval-shaped.
 - `omarchy` `route` vs `exec` field unused inconsistently (`route` used for shell).
 
 **Missing vs P0/P1:** frecency/aliases/favorites; file search; quicklinks; emoji; deeplinks; fallback commands; paint-first loading.
@@ -130,14 +130,14 @@
 
 **Bugs**
 - Pin/delete: fire Process then **immediate** `reloadData()` → race (stale UI).
-- Content with newlines/quotes still shell-escaped for `wl-copy` via `sh -c` — fragile for large/binary-adjacent text.
+- Content with newlines/quotes still shell-escaped for `wl-copy` via `sh -c`: fragile for large/binary-adjacent text.
 - Hardcoded python path again.
-- Filter tabs mouse-only (no keyboard category switch — P1 accessory gap).
-- Orphan: `clipboard_manager.py` (SQLite, ~388 LOC) **unused** after ADR pivot — roadmap still claims SQLite.
+- Filter tabs mouse-only (no keyboard category switch: P1 accessory gap).
+- Orphan: `clipboard_manager.py` (SQLite, ~388 LOC) **unused** after ADR pivot: roadmap still claims SQLite.
 
 #### `SnippetsView.qml` + `snippet_manager.py`
 **Works:** List+Detail, insert (wl-copy + `wtype`), copy, template vars `{date,time,uuid,clipboard}`.  
-**P0 gap:** **No global keyword expansion** — manager-only (research §8).  
+**P0 gap:** **No global keyword expansion**: manager-only (research §8).  
 **Smells:** Default snippet embeds personal email `iamkxyz@gmail.com`; insert may type into launcher if dismiss timing wrong; no CRUD UI (JSON file only).
 
 #### `WindowTilerView.qml`
@@ -150,8 +150,8 @@
 
 #### `ScriptResultView.qml` + `script_runner.py`
 **Works:** Scan `@omarchy.*` / `@raycast.*`; exec with timeout; markdown result; re-run / copy.  
-**Critical bug:** `scriptArgs` property is set from FormView path but **never appended to Process command** — argument forms are non-functional.  
-**Gaps:** `mode` parsed (`fullOutput|compact|silent|inline`) but **never honored** — always full result view; silent/inline/compact missing (P0). Timeout 15s hard. Sample scripts only (2).
+**Critical bug:** `scriptArgs` property is set from FormView path but **never appended to Process command**: argument forms are non-functional.  
+**Gaps:** `mode` parsed (`fullOutput|compact|silent|inline`) but **never honored**: always full result view; silent/inline/compact missing (P0). Timeout 15s hard. Sample scripts only (2).
 
 #### `AiAssistView.qml`
 **Mock only.** 600ms `Timer` returns canned markdown (“Antigravity LLM Stream”). Presets are mouse chips; own TextInput fights SearchBar focus; no streaming, no Ollama/BYOK, no selection context. Roadmap Phase 6 correctly “Next”; research marks P0 for Manhattan AI loop.
@@ -175,27 +175,27 @@ No long-lived daemon; every action is one-shot Process from QML. No FTS5 despite
 
 ### 2.6 Commands & launcher
 
-- `src/commands/system-info.sh`, `ip-lookup.sh` — valid frontmatter demos.
-- `bin/omnicast` — IPC toggle then `-n -d` spawn; `sleep 0.25` racey on slow starts; path derived from script location (good) unlike QML hardcoded backends.
+- `src/commands/system-info.sh`, `ip-lookup.sh`: valid frontmatter demos.
+- `bin/omnicast`: IPC toggle then `-n -d` spawn; `sleep 0.25` racey on slow starts; path derived from script location (good) unlike QML hardcoded backends.
 
 ---
 
 ## 3. Architecture assessment
 
 ### Strengths (Omarchy-native approach)
-- **Correct wedge:** Reuse Omarchy clipboard JSON, `omarchy` CLI catalog, theme `colors.toml`, Hyprland dispatch — matches ADR 011 and Berlin advantages in research §9.
+- **Correct wedge:** Reuse Omarchy clipboard JSON, `omarchy` CLI catalog, theme `colors.toml`, Hyprland dispatch: matches ADR 011 and Berlin advantages in research §9.
 - **Right UI engine:** Quickshell layer-shell + exclusive grab fits Wayland better than Tauri/WebView clones.
-- **Interaction grammar scaffold:** Search / List+Detail / Form / Ctrl+K / Esc ladder / footer — the Raycast skeleton is present.
+- **Interaction grammar scaffold:** Search / List+Detail / Form / Ctrl+K / Esc ladder / footer: the Raycast skeleton is present.
 - **Clipboard multimodal UI** is already above typical Rofi-class Linux launchers.
 
 ### Fragility
 - **Process-as-IPC:** Every backend call and side effect is `python3` / `sh -c` / `createQmlObject(Process)`. No shared service, no typed IPC, no cancellation, races on pin/reload, startup latency ×3 scanners.
 - **Hardcoded absolute paths** to one developer machine break installability.
-- **Shell string assembly** for routes, clipboard content, markdown copy — injection and breakage under real content.
+- **Shell string assembly** for routes, clipboard content, markdown copy: injection and breakage under real content.
 - **Doc/spec drift** (SQLite vs Omarchy, Phase “Done”) will mislead agents into building the wrong layer.
 - **Duplicate artifacts** (`NavStack` vs `NavigationStack`, `clipboard_manager` vs `omarchy_clipboard`) signal incomplete pivot cleanup.
-- **God-object RootSearchView** concentrates indexing, ranking, calc, scripting, and process orchestration — hard to harden or test.
-- **Wayland input** (`wtype`) is best-effort with `|| true` — paste/snippet reliability opaque; no HUD confirmation when it fails (compounding P0 feedback gap).
+- **God-object RootSearchView** concentrates indexing, ranking, calc, scripting, and process orchestration: hard to harden or test.
+- **Wayland input** (`wtype`) is best-effort with `|| true`: paste/snippet reliability opaque; no HUD confirmation when it fails (compounding P0 feedback gap).
 
 ---
 
@@ -230,14 +230,14 @@ No long-lived daemon; every action is one-shot Process from QML. No FTS5 despite
 ## 5. Ranked issue list
 
 ### Critical
-1. **`ScriptResultView` ignores `scriptArgs`** — Form → script path is broken (`ScriptResultView.qml` Process command only passes path).
-2. **Hardcoded `/home/iamkxyz/Projects/omnicast/...` backend paths** in RootSearch, Clipboard, Snippets, ScriptResult — non-portable.
-3. **No HUD/toast** after paste/copy/theme/script — P0 feedback; failures of `wtype` are silent.
-4. **AI is fake** — Phase 6 UI implies real product; Manhattan daily loop unmet.
+1. **`ScriptResultView` ignores `scriptArgs`**: Form → script path is broken (`ScriptResultView.qml` Process command only passes path).
+2. **Hardcoded `/home/iamkxyz/Projects/omnicast/...` backend paths** in RootSearch, Clipboard, Snippets, ScriptResult: non-portable.
+3. **No HUD/toast** after paste/copy/theme/script: P0 feedback; failures of `wtype` are silent.
+4. **AI is fake**: Phase 6 UI implies real product; Manhattan daily loop unmet.
 
 ### High
-5. **`Qt.createQmlObject(Process…)` everywhere** — lifecycle leaks, no error handling, shell injection risk.
-6. **No frecency / favorites / aliases** — Root Search won’t feel like Raycast.
+5. **`Qt.createQmlObject(Process…)` everywhere**: lifecycle leaks, no error handling, shell injection risk.
+6. **No frecency / favorites / aliases**: Root Search won’t feel like Raycast.
 7. **Script `mode` not honored** (silent/compact/inline).
 8. **Snippets: no global keyword expansion** (P0).
 9. **Pin/delete race** in ClipboardView (reload before Process finishes).
@@ -252,7 +252,7 @@ No long-lived daemon; every action is one-shot Process from QML. No FTS5 despite
 16. **Theme poll every 3s** instead of watch; Inter default font.
 17. **Terminal hardcoded to ghostty** in RootSearch + app_indexer.
 18. **Footer primary labels** inaccurate for clipboard/AI/snippets.
-19. **Empty root dumps entire catalog** — no recent/favorites-first.
+19. **Empty root dumps entire catalog**: no recent/favorites-first.
 20. **Personal email in default snippets**.
 21. **Calculator** eval-shaped; limited operators; no unit/currency.
 22. **App indexer** emoji icons, not freedesktop icons; incomplete desktop key handling (`OnlyShowIn`, etc.).
@@ -265,7 +265,7 @@ No long-lived daemon; every action is one-shot Process from QML. No FTS5 despite
 27. `bin/omnicast` fixed `sleep 0.25` race.
 28. Sample script library size (2); no user docs for `~/.config/omnicast/commands`.
 29. AiAssist preset chips overflow risk on narrow width; mouse-first.
-30. Markdown detail truncates content (2000–2500 chars) without “show more.”
+30. Markdown detail truncates content (2000-2500 chars) without “show more.”
 
 ---
 
@@ -290,4 +290,4 @@ No long-lived daemon; every action is one-shot Process from QML. No FTS5 despite
 
 ## 7. Bottom line
 
-Omnicast has a **credible Raycast-shaped shell** and a **genuinely strong Omarchy clipboard integration**, which is the right product bet. What blocks Manhattan is not missing QML files — it is **unfinished contracts** (script args/modes, HUD, ranking, real AI), **process-spawning fragility**, and **docs that mark Phase 4–5 complete while critical paths are partial or broken**. Treat the current tree as a high-fidelity prototype with one production-grade surface (clipboard), not a parity-complete launcher.
+Omnicast has a **credible Raycast-shaped shell** and a **genuinely strong Omarchy clipboard integration**, which is the right product bet. What blocks Manhattan is not missing QML files: it is **unfinished contracts** (script args/modes, HUD, ranking, real AI), **process-spawning fragility**, and **docs that mark Phase 4-5 complete while critical paths are partial or broken**. Treat the current tree as a high-fidelity prototype with one production-grade surface (clipboard), not a parity-complete launcher.

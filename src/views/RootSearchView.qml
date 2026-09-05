@@ -532,7 +532,7 @@ Item {
     return (Math.abs(out) >= 100 ? out.toFixed(2) : out.toFixed(4)).replace(/\.?0+$/, "") + " " + to
   }
 
-  // Rough offline FX vs USD — always treat as a guess; prefer Google for live rates.
+  // Rough offline FX vs USD: always treat as a guess; prefer Google for live rates.
   function tryCurrencyConversion(query) {
     if (!query) return null
     var m = query.trim().match(/^(-?[\d.]+)\s*(usd|eur|gbp|inr|jpy|aud|cad|\$|€|£|₹)\s*(?:to|in)\s*(usd|eur|gbp|inr|jpy|aud|cad|\$|€|£|₹)$/i)
@@ -567,7 +567,7 @@ Item {
     var q = googleQuery
     var item = {
       id: "calc-fx-google", title: "Search Google for live rate",
-      subtitle: "Recommended — offline FX is a rough guess only",
+      subtitle: "Recommended: offline FX is a rough guess only",
       icon: "󰍉", badge: "", category: "Calculator",
       primaryActionTitle: "Search", actions: []
     }
@@ -668,7 +668,7 @@ Item {
     return powerTools().concat(quickLinkItems, omarchyCommands, scriptCommands, desktopApps, windowCatalog())
   }
 
-  // Root-indexed Omarchy window helpers only (no classic hyprctl batches —
+  // Root-indexed Omarchy window helpers only (no classic hyprctl batches :
   // those break on Lua Hyprland and left windows floating/overlapping).
   function windowCatalog() {
     function wrap(id, title, subtitle, icon, run) {
@@ -786,7 +786,7 @@ Item {
     if (fxResult) {
       if (!results.length) results.push(header("Calculator"))
       results.push(calcRow("calc-fx", fxResult.approx,
-                           "⚠️ stale offline guess — prefer Google", fxResult.copyValue))
+                           "⚠️ stale offline guess: prefer Google", fxResult.copyValue))
       results.push(fxGoogleRow(fxResult.googleQuery))
     }
     var dateResult = tryDateEvaluation(q)
@@ -818,7 +818,7 @@ Item {
       results.push(header("Results"))
       for (var s = 0; s < scored.length; s++) results.push(scored[s].item)
     } else if (root.isLoading) {
-      // Catalogs still scanning — don't falsely fall back to web/AI
+      // Catalogs still scanning: don't falsely fall back to web/AI
       results.push(header("Loading"))
       results.push({
         id: "loading-catalog", title: "Indexing commands…", subtitle: "Try again in a moment",

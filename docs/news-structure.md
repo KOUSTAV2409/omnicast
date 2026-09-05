@@ -4,7 +4,7 @@ Mirrored from [omarchy.org/news](https://omarchy.org/news) (HEY World card layou
 
 ## Writing
 
-- **No em dashes (—).** Prefer a colon, period, comma, or semicolon.
+- **No em dashes (:).** Prefer a colon, period, comma, or semicolon.
 - Same rule for the landing page, README blurbs, tweets, and news posts.
 
 ## Index (`site/news/index.html`)
