@@ -1129,7 +1129,7 @@ Item {
 
     ListView {
       id: list
-      width: root.wideLayout ? Math.round(parent.width * 0.42) : parent.width
+      width: root.wideLayout ? Math.round(parent.width * 0.32) : parent.width
       height: parent.height
       clip: true
       model: root.filteredItems

@@ -29,11 +29,13 @@ Item {
   property var opener: ({})
   property string errorText: ""
 
-  readonly property bool isProse: kind === "docx" || kind === "pdf" || kind === "office" || kind === "markdown"
-  readonly property int previewFontSize: isProse ? (compactChrome ? 13 : 15) : (compactChrome ? 12 : 14)
-  readonly property real previewLineHeight: isProse ? 1.5 : 1.4
-  readonly property string previewFontFamily: (kind === "code" || (!isProse && kind !== "markdown"))
-                                              ? Theme.monoFontFamily : Theme.fontFamily
+  readonly property bool isProse: kind === "docx" || kind === "pdf" || kind === "office"
+                                  || kind === "markdown" || kind === "text"
+  readonly property int previewFontSize: isProse ? (compactChrome ? 14 : 16) : (compactChrome ? 12 : 14)
+  readonly property real previewLineHeight: isProse ? 1.55 : 1.4
+  readonly property string previewFontFamily: kind === "code"
+                                              ? Theme.monoFontFamily
+                                              : (isProse ? Theme.proseFontFamily : Theme.monoFontFamily)
 
   signal entryActivated(string path, string title)
   signal requestOpenExternal()

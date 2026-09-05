@@ -34,6 +34,14 @@ EXCLUDE_GLOBS = [
     "target/debug",
     "target/release",
     "__pycache__",
+    "*.pyc",
+    "*.pyo",
+    "*.pyd",
+    "*.so",
+    "*.o",
+    "*.a",
+    "*.class",
+    "*.egg-info",
     ".venv",
     "venv",
     "myenv",
@@ -43,6 +51,27 @@ EXCLUDE_GLOBS = [
     ".mypy_cache",
     ".pytest_cache",
 ]
+
+NOISE_SUFFIXES = (
+    ".pyc",
+    ".pyo",
+    ".pyd",
+    ".so",
+    ".o",
+    ".a",
+    ".class",
+    ".dll",
+    ".dylib",
+    ".exe",
+    ".whl",
+    ".egg",
+)
+
+NOISE_NAME_PARTS = (
+    ".cpython-",
+    ".pyc.",
+    "__pycache__",
+)
 
 SCOPE_DIRS = {
     "home": lambda: Path.home(),
@@ -134,6 +163,22 @@ def parse_query(raw: str, default_scope: str) -> tuple[str, str, bool]:
     return q, scope, force_content
 
 
+def is_noise_path(path: Path) -> bool:
+    """Drop bytecode / build artifacts that clutter Files results."""
+    name = path.name
+    low = name.lower()
+    full = str(path).lower()
+    if "__pycache__" in full:
+        return True
+    if any(low.endswith(suf) for suf in NOISE_SUFFIXES):
+        return True
+    if any(part in low for part in NOISE_NAME_PARTS):
+        return True
+    if ".egg-info" in full or "/dist/" in full:
+        return True
+    return False
+
+
 def search_fd(query: str, limit: int, root: Path) -> list[Path] | None:
     fd = shutil.which("fd") or shutil.which("fdfind")
     if not fd:
@@ -166,7 +211,7 @@ def search_fd(query: str, limit: int, root: Path) -> list[Path] | None:
         if not line:
             continue
         p = Path(line)
-        if p.exists():
+        if p.exists() and not is_noise_path(p):
             paths.append(p)
     return paths
 
@@ -207,7 +252,7 @@ def search_plocate(query: str, limit: int, root: Path) -> list[Path]:
         ):
             continue
         p = Path(line)
-        if p.exists():
+        if p.exists() and not is_noise_path(p):
             paths.append(p)
     return paths
 
@@ -239,6 +284,12 @@ def search_content(query: str, limit: int, root: Path) -> list[Path]:
         "!**/dist-packages/**",
         "--glob",
         "!target/**",
+        "--glob",
+        "!**/__pycache__/**",
+        "--glob",
+        "!*.pyc",
+        "--glob",
+        "!*.pyo",
         "--max-count",
         "1",
         "-m",
@@ -257,7 +308,7 @@ def search_content(query: str, limit: int, root: Path) -> list[Path]:
         if not line:
             continue
         p = Path(line)
-        if p.is_file():
+        if p.is_file() and not is_noise_path(p):
             paths.append(p)
         if len(paths) >= limit:
             break
@@ -336,8 +387,9 @@ def search(
             key = str(p.resolve())
         except Exception:
             key = str(p)
-        # Prefer name hit over content-only for same path
         if key in seen:
+            continue
+        if is_noise_path(p):
             continue
         seen.add(key)
         uniq.append((p, is_c))

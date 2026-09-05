@@ -55,11 +55,11 @@ PanelWindow {
 
     width: {
       var v = navStack.currentViewItem
-      return (v && v.wideLayout) ? Math.max(Theme.cardWidth, 720) : Theme.cardWidth
+      return (v && v.wideLayout) ? Math.max(Theme.cardWidth, 880) : Theme.cardWidth
     }
     height: {
       var v = navStack.currentViewItem
-      return (v && v.wideLayout) ? Math.max(Theme.cardHeight, 640) : Theme.cardHeight
+      return (v && v.wideLayout) ? Math.max(Theme.cardHeight, 680) : Theme.cardHeight
     }
 
     Behavior on width { NumberAnimation { duration: 160; easing.type: Easing.OutCubic } }

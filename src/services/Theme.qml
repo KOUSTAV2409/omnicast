@@ -39,6 +39,9 @@ QtObject {
 
   property string fontFamily: "monospace"
   property string monoFontFamily: "monospace"
+  // Readable body font for doc/markdown previews (UI stays on fontFamily/mono)
+  property string proseFontFamily: "Noto Sans"
+
 
   // Type scale: mirrors Omarchy Style.font (base 12)
   property int fontCaption: 10
@@ -95,6 +98,19 @@ QtObject {
           root.fontFamily = fam
           root.monoFontFamily = fam
         }
+      }
+    }
+  }
+
+  property Process proseFontResolver: Process {
+    command: ["fc-match", "-f", "%{family[0]}", "sans-serif"]
+    running: false
+    stdout: StdioCollector {
+      waitForEnd: true
+      onStreamFinished: text => {
+        var fam = (text || "").trim()
+        if (fam.length)
+          root.proseFontFamily = fam
       }
     }
   }
@@ -265,6 +281,8 @@ QtObject {
       shellTomlWatcher.running = true
     if (!fontResolver.running)
       fontResolver.running = true
+    if (!proseFontResolver.running)
+      proseFontResolver.running = true
     if (!hyprRounding.running)
       hyprRounding.running = true
   }
