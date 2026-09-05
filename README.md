@@ -6,7 +6,7 @@
 
 Not a Raycast UI clone. An **Omarchy umbrella**: same muscle memory as a modern launcher, styled like Omarchy’s menu/clipboard surfaces, wired into Hyprland and the Omarchy CLI.
 
-**Site:** [omnicast on GitHub Pages](https://koustav2409.github.io/omnicast/) · **Repo:** public — clone and run.
+**Site:** [omnicast.best](https://omnicast.best) · **Repo:** public — clone and run.
 
 ### Tell your agent
 
