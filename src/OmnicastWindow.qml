@@ -53,8 +53,17 @@ PanelWindow {
     anchors.horizontalCenter: parent.horizontalCenter
     anchors.verticalCenter: parent.verticalCenter
 
-    width: Theme.cardWidth
-    height: Theme.cardHeight
+    width: {
+      var v = navStack.currentViewItem
+      return (v && v.wideLayout) ? Math.max(Theme.cardWidth, 720) : Theme.cardWidth
+    }
+    height: {
+      var v = navStack.currentViewItem
+      return (v && v.wideLayout) ? Math.max(Theme.cardHeight, 640) : Theme.cardHeight
+    }
+
+    Behavior on width { NumberAnimation { duration: 160; easing.type: Easing.OutCubic } }
+    Behavior on height { NumberAnimation { duration: 160; easing.type: Easing.OutCubic } }
     radius: Theme.windowRadius
     color: Theme.darkerBackground
     border.color: Theme.border

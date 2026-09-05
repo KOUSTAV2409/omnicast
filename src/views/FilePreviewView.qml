@@ -21,6 +21,13 @@ Item {
   property var dirEntries: []
   property var opener: ({})
   property string errorText: ""
+  // Signal the shell to grow the launcher card for comfortable reading.
+  property bool wideLayout: true
+
+  readonly property bool isProse: kind === "docx" || kind === "pdf" || kind === "office"
+  readonly property int previewFontSize: isProse ? 15 : 14
+  readonly property real previewLineHeight: isProse ? 1.55 : 1.4
+  readonly property string previewFont: isProse ? Theme.fontFamily : Theme.monoFontFamily
 
   signal requestActionPalette(var actions)
   signal requestDismiss()
@@ -213,138 +220,138 @@ Item {
 
   Component.onCompleted: loadPreview()
 
-  // ---- UI ----
-  Flickable {
-    id: scroll
-    anchors.fill: parent
-    anchors.margins: 14
-    contentWidth: width
-    contentHeight: body.implicitHeight
-    clip: true
-    boundsBehavior: Flickable.StopAtBounds
+  // ---- UI: compact chrome + full remaining area for reading ----
+  Column {
+    id: chrome
+    anchors.left: parent.left
+    anchors.right: parent.right
+    anchors.top: parent.top
+    anchors.margins: 12
+    spacing: 6
 
-    Column {
-      id: body
+    Row {
       width: parent.width
-      spacing: 12
-
-      Row {
-        width: parent.width
-        spacing: 10
-
-        Text {
-          width: parent.width - 80
-          text: root.fileTitle || root.filePath
-          font.family: Theme.fontFamily
-          font.pixelSize: Theme.fontHeading
-          font.weight: Font.DemiBold
-          color: Theme.brightForeground
-          elide: Text.ElideMiddle
-          wrapMode: Text.NoWrap
-        }
-
-        Rectangle {
-          visible: root.kind.length > 0
-          anchors.verticalCenter: parent.verticalCenter
-          height: 22
-          radius: 4
-          color: Qt.rgba(Theme.accent.r, Theme.accent.g, Theme.accent.b, 0.18)
-          border.color: Qt.rgba(Theme.accent.r, Theme.accent.g, Theme.accent.b, 0.45)
-          border.width: 1
-          width: kindLabel.implicitWidth + 12
-
-          Text {
-            id: kindLabel
-            anchors.centerIn: parent
-            text: root.kind
-            font.family: Theme.fontFamily
-            font.pixelSize: Theme.fontCaption
-            color: Theme.accent
-          }
-        }
-      }
+      spacing: 10
 
       Text {
-        width: parent.width
-        text: root.subtitle
-        font.family: Theme.monoFontFamily
-        font.pixelSize: Theme.fontBodySmall
-        color: Theme.darkForeground
-        wrapMode: Text.WrapAnywhere
-      }
-
-      Flow {
-        width: parent.width
-        spacing: 14
-
-        Text {
-          visible: root.sizeLabel.length > 0
-          text: root.sizeLabel
-          font.family: Theme.fontFamily
-          font.pixelSize: Theme.fontCaption
-          color: Theme.muted
-        }
-        Text {
-          visible: root.modified.length > 0
-          text: root.modified
-          font.family: Theme.fontFamily
-          font.pixelSize: Theme.fontCaption
-          color: Theme.muted
-        }
-        Text {
-          visible: root.mime.length > 0
-          text: root.mime
-          font.family: Theme.fontFamily
-          font.pixelSize: Theme.fontCaption
-          color: Theme.muted
-        }
-      }
-
-      Text {
-        visible: root.isLoading
-        width: parent.width
-        text: "Loading preview…"
+        width: parent.width - (kindBadge.visible ? kindBadge.width + 12 : 0)
+        text: root.fileTitle || root.filePath
         font.family: Theme.fontFamily
-        font.pixelSize: Theme.fontBody
-        color: Theme.darkForeground
+        font.pixelSize: Theme.fontHeading
+        font.weight: Font.DemiBold
+        color: Theme.brightForeground
+        elide: Text.ElideMiddle
       }
 
-      Text {
-        visible: !root.isLoading && root.errorText.length > 0
-        width: parent.width
-        text: root.errorText
-        font.family: Theme.fontFamily
-        font.pixelSize: Theme.fontBody
-        color: Theme.urgent
-        wrapMode: Text.Wrap
-      }
-
-      // Image preview
       Rectangle {
-        visible: !root.isLoading && root.imageSource.length > 0
-        width: parent.width
-        height: Math.min(320, Math.max(160, parent.width * 0.55))
-        radius: Theme.itemRadius
-        color: Theme.itemHoverBackground
-        border.color: Theme.subtleBorder
+        id: kindBadge
+        visible: root.kind.length > 0
+        anchors.verticalCenter: parent.verticalCenter
+        height: 22
+        radius: 4
+        color: Qt.rgba(Theme.accent.r, Theme.accent.g, Theme.accent.b, 0.18)
+        border.color: Qt.rgba(Theme.accent.r, Theme.accent.g, Theme.accent.b, 0.45)
         border.width: 1
-        clip: true
+        width: kindLabel.implicitWidth + 12
 
-        Image {
-          anchors.fill: parent
-          anchors.margins: 6
-          source: root.imageSource
-          fillMode: Image.PreserveAspectFit
-          asynchronous: true
-          smooth: true
+        Text {
+          id: kindLabel
+          anchors.centerIn: parent
+          text: root.kind
+          font.family: Theme.fontFamily
+          font.pixelSize: Theme.fontCaption
+          color: Theme.accent
         }
       }
+    }
 
-      // Directory listing
+    Text {
+      width: parent.width
+      text: {
+        var bits = []
+        if (root.subtitle.length)
+          bits.push(root.subtitle)
+        if (root.sizeLabel.length)
+          bits.push(root.sizeLabel)
+        if (root.modified.length)
+          bits.push(root.modified)
+        return bits.join("  ·  ")
+      }
+      font.family: Theme.fontFamily
+      font.pixelSize: Theme.fontBodySmall
+      color: Theme.darkForeground
+      elide: Text.ElideMiddle
+      wrapMode: Text.NoWrap
+    }
+  }
+
+  // Reading surface fills everything below chrome
+  Item {
+    id: readingPane
+    anchors.left: parent.left
+    anchors.right: parent.right
+    anchors.top: chrome.bottom
+    anchors.bottom: parent.bottom
+    anchors.leftMargin: 12
+    anchors.rightMargin: 12
+    anchors.topMargin: 10
+    anchors.bottomMargin: 8
+
+    Text {
+      anchors.fill: parent
+      visible: root.isLoading
+      text: "Loading preview…"
+      font.family: Theme.fontFamily
+      font.pixelSize: Theme.fontBody
+      color: Theme.darkForeground
+      verticalAlignment: Text.AlignTop
+    }
+
+    Text {
+      anchors.fill: parent
+      visible: !root.isLoading && root.errorText.length > 0
+      text: root.errorText
+      font.family: Theme.fontFamily
+      font.pixelSize: Theme.fontBody
+      color: Theme.urgent
+      wrapMode: Text.Wrap
+      verticalAlignment: Text.AlignTop
+    }
+
+    // Image
+    Rectangle {
+      anchors.fill: parent
+      visible: !root.isLoading && root.imageSource.length > 0
+      radius: Theme.itemRadius
+      color: Theme.itemHoverBackground
+      border.color: Theme.subtleBorder
+      border.width: 1
+      clip: true
+
+      Image {
+        anchors.fill: parent
+        anchors.margins: 8
+        source: root.imageSource
+        fillMode: Image.PreserveAspectFit
+        asynchronous: true
+        smooth: true
+      }
+    }
+
+    // Directory listing
+    Flickable {
+      anchors.fill: parent
+      visible: !root.isLoading && root.kind === "dir" && root.dirEntries.length > 0
+      contentWidth: width
+      contentHeight: dirCol.implicitHeight
+      clip: true
+      boundsBehavior: Flickable.StopAtBounds
+      flickableDirection: Flickable.VerticalFlick
+
       Column {
-        visible: !root.isLoading && root.kind === "dir" && root.dirEntries.length > 0
+        id: dirCol
         width: parent.width
-        spacing: 4
+        spacing: 2
 
         Text {
           text: "Contents"
@@ -352,21 +359,22 @@ Item {
           font.pixelSize: Theme.fontBodySmall
           font.weight: Font.DemiBold
           color: Theme.brightForeground
+          bottomPadding: 6
         }
 
         Repeater {
           model: root.dirEntries
           delegate: Rectangle {
-            width: body.width
-            height: 28
+            width: dirCol.width
+            height: 32
             radius: 4
             color: "transparent"
 
             Row {
               anchors.fill: parent
-              anchors.leftMargin: 4
-              anchors.rightMargin: 4
-              spacing: 8
+              anchors.leftMargin: 2
+              anchors.rightMargin: 2
+              spacing: 10
 
               Text {
                 anchors.verticalCenter: parent.verticalCenter
@@ -375,7 +383,7 @@ Item {
                 color: Theme.accent
               }
               Text {
-                width: parent.width - 100
+                width: parent.width - 110
                 anchors.verticalCenter: parent.verticalCenter
                 text: modelData.name
                 font.family: Theme.fontFamily
@@ -394,42 +402,43 @@ Item {
           }
         }
       }
+    }
 
-      // Text / extracted preview
-      Rectangle {
-        visible: !root.isLoading && root.previewText.length > 0 && root.imageSource.length === 0
-        width: parent.width
-        radius: Theme.itemRadius
-        color: Theme.itemHoverBackground
-        border.color: Theme.subtleBorder
-        border.width: 1
-        height: previewLabel.implicitHeight + 20
-
-        Text {
-          id: previewLabel
-          anchors.left: parent.left
-          anchors.right: parent.right
-          anchors.top: parent.top
-          anchors.margins: 10
-          text: root.previewText
-          font.family: Theme.monoFontFamily
-          font.pixelSize: Theme.fontBodySmall
-          color: Theme.foreground
-          wrapMode: Text.Wrap
-        }
-      }
+    // Text / docx / code — primary reading pane
+    Flickable {
+      id: textScroll
+      anchors.fill: parent
+      visible: !root.isLoading && root.previewText.length > 0 && root.imageSource.length === 0
+      contentWidth: width
+      contentHeight: previewLabel.implicitHeight + 8
+      clip: true
+      boundsBehavior: Flickable.StopAtBounds
+      flickableDirection: Flickable.VerticalFlick
 
       Text {
-        visible: !root.isLoading && !root.errorText.length
-                 && root.imageSource.length === 0 && root.previewText.length === 0
-                 && !(root.kind === "dir" && root.dirEntries.length)
-        width: parent.width
-        text: "No inline preview. Press Enter to open externally."
-        font.family: Theme.fontFamily
-        font.pixelSize: Theme.fontBody
-        color: Theme.darkForeground
+        id: previewLabel
+        width: textScroll.width
+        text: root.previewText
+        font.family: root.previewFont
+        font.pixelSize: root.previewFontSize
+        lineHeight: root.previewLineHeight
+        lineHeightMode: Text.ProportionalHeight
+        color: Theme.brightForeground
         wrapMode: Text.Wrap
       }
+    }
+
+    Text {
+      anchors.fill: parent
+      visible: !root.isLoading && !root.errorText.length
+               && root.imageSource.length === 0 && root.previewText.length === 0
+               && !(root.kind === "dir" && root.dirEntries.length)
+      text: "No inline preview. Press Enter to open externally."
+      font.family: Theme.fontFamily
+      font.pixelSize: Theme.fontBody
+      color: Theme.darkForeground
+      wrapMode: Text.Wrap
+      verticalAlignment: Text.AlignTop
     }
   }
 }
