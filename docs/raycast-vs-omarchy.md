@@ -134,7 +134,7 @@ Omnicast stays on **`Alt+Space`** so it does not steal Super+Space.
 | Raycast | Omarchy | Omnicast role |
 | :--- | :--- | :--- |
 | Script Commands | Ad-hoc scripts; menu JSONC actions | **Own** frontmatter runner |
-| Extension Store | Themes/plugins install via Omarchy update flows | Distro model — not Raycast Store |
+| Extension Store | Themes/plugins via Omarchy + [omarchyplugins.com](https://omarchyplugins.com) | **Curate later (Berlin)** — index/handoff community Omarchy plugins in root search; not a Raycast Store clone |
 | Deeplinks | Shell IPC (`omarchy-shell …`) | Later: Omnicast IPC + handoff |
 | Cloud Sync | — | **Gap** (local-first by design) |
 

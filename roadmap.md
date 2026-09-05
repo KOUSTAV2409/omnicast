@@ -49,7 +49,13 @@
 8. **Packaging / install path** — AUR / omarchy plugin (still open)
 9. **Deeplinks** — `omnicast://…` style invoke
 10. **One Hyprland-only killer workflow** — clearly better than Raycast
-11. **Extension strategy ADR** — scripts-first vs store later
+11. **Omarchy plugin store in the umbrella** — index / handoff / launch community plugins from [omarchyplugins.com](https://omarchyplugins.com) (and installed local plugins), same doctrine as built-in Omarchy tools
+12. **Extension strategy ADR** — scripts-first today; Omarchy plugin registry next; never a Raycast Store clone
+
+### Maps we already have (north star inputs)
+- Raycast feature matrix → [`docs/spec/raycast-feature-matrix.md`](docs/spec/raycast-feature-matrix.md) + [`docs/raycast-vs-omarchy.md`](docs/raycast-vs-omarchy.md)
+- Omarchy tools / handoffs → same crosswalk + `/usr/share/omarchy`
+- Eventual goal → umbrella: handoff · own · curate (including community plugins)
 
 ### Explicitly not building (for now)
 - Raycast extension store / full API clone  
@@ -65,4 +71,4 @@ Authoritative checkboxes: [`implementation-plan.md`](implementation-plan.md) §5
 
 **Manhattan:** Raycast power-user daily loop on Omarchy without friction — launch, clipboard, snippets, windows, scripts, calc, ask AI — with HUD and ranking.  
 
-**Berlin:** Workflows that feel *better* than Raycast because of Hyprland/Omarchy (deep WM, free clipboard/themes, local AI, `omarchy` as OS API).
+**Berlin:** Workflows that feel *better* than Raycast because of Hyprland/Omarchy (deep WM, free clipboard/themes, local AI, `omarchy` as OS API) — and the umbrella also reaches **community Omarchy plugins**, not only stock tools.
