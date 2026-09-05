@@ -57,6 +57,25 @@ Audit [`docs/raycast-vs-omarchy.md`](docs/raycast-vs-omarchy.md) and ship any re
 
 When that loop is trustworthy, **declare Manhattan taken**: even with mock AI.
 
+### File search / preview — saved backlog (post-ship polish)
+
+Shipped on `koustav` (2026-09-05): typed Files, side preview, colored markdown/code, scopes, fast name search (`content:` opt-in).
+
+**Optional later**
+- Richer highlight via pygments (optional dep)
+- PDF multi-page browse
+- Image zoom / pan
+- Deduplicate same basename across folders more smartly
+- Remember last file scope
+- Tiny “no results in this scope” empty state
+
+**Still behind Raycast (file loop only)**
+1. Content search as a first-class, fast index — not only opt-in `content:` over live `rg`
+2. Richer Quick Look — PDF/Office thumbnails, media scrubbing, smoother type coverage
+3. Search scopes UX — saved scopes, ignore rules, manage UI (we have cycle + `in:`)
+4. Actions depth — duplicate, Quicklink, AI attach, etc.
+5. Edge-case polish — weird encodings, huge trees, permissions, network mounts
+
 ### Explicitly deferred (not Manhattan)
 - Real AI streaming (Ollama / BYOK)  
 - Quick AI from root / clipboard explain-summarize  
