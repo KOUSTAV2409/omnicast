@@ -10,15 +10,15 @@
   <meta property="og:type" content="website" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,700&family=Sora:wght@400;500;600&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Libre+Franklin:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
   <style>
     :root {
-      --ink: #1a1714;
-      --paper: #f2ebe0;
-      --mist: #d8cfc0;
-      --signal: #c45c26;
-      --signal-deep: #9a3f14;
-      --video-veil: rgba(26, 23, 20, 0.42);
+      --ink: #0e1116;
+      --paper: #f3f4f6;
+      --muted: #6b7280;
+      --line: #d1d5db;
+      --accent: #1d4ed8;
+      --accent-ink: #ffffff;
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -26,15 +26,22 @@
     html { scroll-behavior: smooth; }
 
     body {
-      font-family: "Sora", sans-serif;
-      color: var(--paper);
-      background: var(--ink);
-      line-height: 1.5;
-      min-height: 100vh;
+      font-family: "Libre Franklin", sans-serif;
+      color: var(--ink);
+      background: var(--paper);
+      line-height: 1.55;
+      font-size: 1.02rem;
+      -webkit-font-smoothing: antialiased;
     }
 
     a { color: inherit; }
 
+    a:focus-visible {
+      outline: 2px solid var(--accent);
+      outline-offset: 3px;
+    }
+
+    /* —— Hero: one composition, video is the room —— */
     .hero {
       position: relative;
       min-height: 100vh;
@@ -42,6 +49,7 @@
       display: grid;
       align-items: end;
       overflow: hidden;
+      color: #f8fafc;
       isolation: isolate;
     }
 
@@ -55,8 +63,7 @@
       width: 100%;
       height: 100%;
       object-fit: cover;
-      transform: scale(1.04);
-      animation: settle 2.4s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+      animation: settle 3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
     }
 
     .hero-veil {
@@ -64,157 +71,169 @@
       inset: 0;
       z-index: -1;
       background:
-        linear-gradient(180deg, rgba(26, 23, 20, 0.35) 0%, var(--video-veil) 45%, rgba(26, 23, 20, 0.92) 100%),
-        radial-gradient(ellipse 80% 50% at 50% 0%, transparent 0%, rgba(26, 23, 20, 0.5) 100%);
-    }
-
-    .hero-grain {
-      position: absolute;
-      inset: 0;
-      z-index: -1;
-      opacity: 0.07;
-      pointer-events: none;
-      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+        linear-gradient(
+          180deg,
+          rgba(14, 17, 22, 0.15) 0%,
+          rgba(14, 17, 22, 0.25) 40%,
+          rgba(14, 17, 22, 0.88) 100%
+        );
     }
 
     .hero-inner {
-      width: min(720px, calc(100% - 2.5rem));
+      width: min(40rem, calc(100% - 3rem));
       margin: 0 auto;
-      padding: 4.5rem 0 3.25rem;
+      padding: 0 0 clamp(2.75rem, 6vh, 4rem);
     }
 
     .brand {
-      font-family: "Fraunces", serif;
-      font-optical-sizing: auto;
       font-weight: 700;
-      font-size: clamp(3.1rem, 9vw, 5.4rem);
-      letter-spacing: -0.03em;
-      line-height: 0.95;
+      font-size: clamp(3.25rem, 10vw, 5.75rem);
+      letter-spacing: -0.045em;
+      line-height: 0.92;
       opacity: 0;
-      animation: rise 0.9s 0.15s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+      animation: rise 0.85s 0.12s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+
+    .rule {
+      width: 2.5rem;
+      height: 2px;
+      margin: 1.35rem 0 1.15rem;
+      background: #f8fafc;
+      opacity: 0;
+      transform-origin: left;
+      animation: draw 0.7s 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
     }
 
     .headline {
-      margin-top: 1.1rem;
-      font-family: "Fraunces", serif;
       font-weight: 500;
-      font-size: clamp(1.35rem, 3.2vw, 1.85rem);
+      font-size: clamp(1.2rem, 2.6vw, 1.45rem);
       letter-spacing: -0.02em;
-      max-width: 18ch;
+      line-height: 1.25;
+      max-width: 16ch;
       opacity: 0;
-      animation: rise 0.9s 0.32s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+      animation: rise 0.85s 0.28s cubic-bezier(0.16, 1, 0.3, 1) forwards;
     }
 
     .lede {
-      margin-top: 0.85rem;
-      font-size: clamp(0.95rem, 2vw, 1.05rem);
+      margin-top: 0.75rem;
       font-weight: 400;
-      color: var(--mist);
-      max-width: 36ch;
+      font-size: 1rem;
+      color: rgba(248, 250, 252, 0.78);
+      max-width: 34ch;
       opacity: 0;
-      animation: rise 0.9s 0.45s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+      animation: rise 0.85s 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
     }
 
     .cta-row {
       margin-top: 1.75rem;
       display: flex;
       flex-wrap: wrap;
-      gap: 0.85rem 1.25rem;
+      gap: 0.75rem 1.5rem;
       align-items: center;
       opacity: 0;
-      animation: rise 0.9s 0.58s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+      animation: rise 0.85s 0.52s cubic-bezier(0.16, 1, 0.3, 1) forwards;
     }
 
     .cta {
       display: inline-flex;
       align-items: center;
-      justify-content: center;
-      padding: 0.85rem 1.35rem;
-      background: var(--signal);
-      color: #fff8f2;
+      padding: 0.7rem 1.15rem;
+      background: #f8fafc;
+      color: var(--ink);
       text-decoration: none;
       font-weight: 600;
-      font-size: 0.95rem;
-      border: none;
-      transition: background 0.2s ease, transform 0.2s ease;
+      font-size: 0.92rem;
+      letter-spacing: -0.01em;
+      transition: background 0.2s ease, color 0.2s ease;
     }
 
     .cta:hover {
-      background: var(--signal-deep);
-      transform: translateY(-1px);
+      background: var(--accent);
+      color: var(--accent-ink);
     }
 
     .cta-ghost {
       font-size: 0.92rem;
       font-weight: 500;
-      color: var(--mist);
+      color: rgba(248, 250, 252, 0.78);
       text-decoration: none;
-      border-bottom: 1px solid transparent;
+      border-bottom: 1px solid rgba(248, 250, 252, 0.35);
+      padding-bottom: 1px;
       transition: color 0.2s ease, border-color 0.2s ease;
     }
 
     .cta-ghost:hover {
-      color: var(--paper);
-      border-bottom-color: var(--mist);
+      color: #f8fafc;
+      border-bottom-color: #f8fafc;
     }
 
+    /* —— Install: one job, quiet paper —— */
     .install {
-      padding: 4.5rem 0 5rem;
+      padding: clamp(3.5rem, 8vh, 5rem) 0 clamp(4rem, 9vh, 5.5rem);
+      border-top: 1px solid var(--line);
       background:
-        linear-gradient(180deg, #1a1714 0%, #241f1a 100%);
-      color: var(--paper);
+        linear-gradient(180deg, #ffffff 0%, var(--paper) 100%);
     }
 
     .install-inner {
-      width: min(720px, calc(100% - 2.5rem));
+      width: min(40rem, calc(100% - 3rem));
       margin: 0 auto;
     }
 
     .install h2 {
-      font-family: "Fraunces", serif;
       font-weight: 700;
-      font-size: clamp(1.6rem, 3.5vw, 2rem);
-      letter-spacing: -0.02em;
+      font-size: clamp(1.35rem, 3vw, 1.65rem);
+      letter-spacing: -0.025em;
     }
 
-    .install p {
-      margin-top: 0.65rem;
-      color: var(--mist);
-      max-width: 42ch;
+    .install > .install-inner > p {
+      margin-top: 0.55rem;
+      color: var(--muted);
+      max-width: 40ch;
+      font-size: 0.98rem;
     }
 
     pre {
       margin-top: 1.5rem;
-      padding: 1.15rem 1.25rem;
-      background: #0f0d0b;
-      color: #e8dfd2;
-      font-family: ui-monospace, "Cascadia Code", "SF Mono", Menlo, monospace;
-      font-size: 0.82rem;
-      line-height: 1.65;
+      padding: 1.2rem 1.25rem;
+      background: var(--ink);
+      color: #e5e7eb;
+      font-family: "IBM Plex Mono", ui-monospace, monospace;
+      font-size: 0.8rem;
+      line-height: 1.7;
       overflow-x: auto;
-      border-left: 3px solid var(--signal);
+      border: 1px solid #1f2937;
     }
 
     .foot {
-      margin-top: 2.25rem;
+      margin-top: 1.75rem;
       font-size: 0.85rem;
-      color: var(--mist);
+      color: var(--muted);
+      max-width: 42ch;
     }
 
     .foot a {
-      color: var(--paper);
+      color: var(--ink);
       text-decoration: underline;
       text-underline-offset: 3px;
+      text-decoration-thickness: 1px;
     }
 
+    .foot a:hover { color: var(--accent); }
+
     @keyframes rise {
-      from { opacity: 0; transform: translateY(18px); }
+      from { opacity: 0; transform: translateY(14px); }
       to { opacity: 1; transform: translateY(0); }
     }
 
+    @keyframes draw {
+      from { opacity: 0; transform: scaleX(0); }
+      to { opacity: 1; transform: scaleX(1); }
+    }
+
     @keyframes settle {
-      from { transform: scale(1.08); }
-      to { transform: scale(1.02); }
+      from { transform: scale(1.06); }
+      to { transform: scale(1); }
     }
 
     @media (prefers-reduced-motion: reduce) {
@@ -222,7 +241,7 @@
         animation: none !important;
         transition: none !important;
       }
-      .brand, .headline, .lede, .cta-row { opacity: 1; }
+      .brand, .headline, .lede, .cta-row, .rule { opacity: 1; transform: none; }
       .hero-media video { transform: none; }
     }
   </style>
@@ -230,16 +249,16 @@
 <body>
   <header class="hero">
     <div class="hero-media" aria-hidden="true">
-      <video autoplay muted loop playsinline poster="">
+      <video autoplay muted loop playsinline>
         <source src="assets/teaser.mp4" type="video/mp4" />
       </video>
     </div>
     <div class="hero-veil" aria-hidden="true"></div>
-    <div class="hero-grain" aria-hidden="true"></div>
     <div class="hero-inner">
       <p class="brand">Omnicast</p>
+      <div class="rule" aria-hidden="true"></div>
       <h1 class="headline">Alt+Space for Omarchy.</h1>
-      <p class="lede">One launcher that hands off to native Omarchy tools — and owns the gaps Raycast users miss on Linux.</p>
+      <p class="lede">Hands off to native tools. Owns the gaps Raycast users miss on Linux.</p>
       <div class="cta-row">
         <a class="cta" href="#install">Clone and run</a>
         <a class="cta-ghost" href="https://github.com/KOUSTAV2409/omnicast">GitHub</a>
@@ -250,16 +269,16 @@
   <section class="install" id="install">
     <div class="install-inner">
       <h2>Install on Omarchy</h2>
-      <p>Needs Omarchy (Hyprland) and Quickshell. Not macOS. Not a generic Arch box without Omarchy.</p>
+      <p>Needs Omarchy (Hyprland) and Quickshell. Not macOS.</p>
       <pre><code>git clone https://github.com/KOUSTAV2409/omnicast.git
 cd omnicast
 ./bin/omnicast
 
-# Bind Alt+Space to the absolute path of bin/omnicast
+# Bind Alt+Space → absolute path of bin/omnicast
 # Keep Super+Space for the Omarchy menu</code></pre>
       <p class="foot">
         Early dogfood · MIT ·
-        <a href="https://github.com/KOUSTAV2409/omnicast#readme">Full README</a>
+        <a href="https://github.com/KOUSTAV2409/omnicast#readme">README</a>
         · First we take Manhattan, then we take Berlin.
       </p>
     </div>
