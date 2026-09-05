@@ -53,7 +53,31 @@
 }
 
 .pre--news pre {
-  font-size: clamp(0.2rem, 0.55vw, 0.4rem);
+  font-size: clamp(0.32rem, 1.35vw, 0.55rem);
+}
+
+/* Narrow screens: ASCII mark → compact wordmark (same green mono family) */
+@media (max-width: 40em) {
+  .pre pre {
+    font-size: 0;
+    line-height: 0;
+    letter-spacing: 0;
+    overflow: hidden;
+  }
+
+  .pre pre::before {
+    content: "omnicast";
+    display: block;
+    font-size: clamp(1.5rem, 8vw, 2.25rem);
+    font-weight: 700;
+    letter-spacing: -0.045em;
+    line-height: 1;
+    color: inherit;
+  }
+
+  .pre--news pre::before {
+    font-size: clamp(1.25rem, 6.5vw, 1.75rem);
+  }
 }
 
 /* —— Page title under masthead —— */
@@ -143,11 +167,15 @@
 
 .news-post__title {
   color: var(--color-terminal-white);
-  font-size: var(--news-font-size-title);
+  font-size: clamp(1.65rem, 5vw, var(--news-font-size-title));
   font-weight: 700;
-  line-height: 1;
-  margin-top: var(--news-space-tight);
+  line-height: 1.1;
+  margin: var(--news-space-tight) 0 0;
   text-wrap: balance;
+}
+
+.news-prose {
+  text-wrap: pretty;
 }
 
 .news-feed {
