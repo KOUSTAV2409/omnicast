@@ -1,23 +1,104 @@
-/* Omnicast news — inspired by omarchy.org/news (HEY World–style cards on Tokyo Night) */
+/* Omnicast news portal — structure mirrored from omarchy.org/news
+ *
+ * INDEX:  .pre > a > pre  →  header.header > h1  →  main.news-page
+ *           → p.news-feed?  →  section.news-list > article.news-card…
+ *
+ * POST:   .pre.pre--news > a > pre  →  main.news-page > article.news-post
+ *           → header.news-post__header  →  div.news-prose
+ *
+ * Reading text = system sans (HEY World scale). ASCII masthead = mono green.
+ */
 
+/* —— Masthead (.pre) — same role as omarchy.org —— */
+.pre {
+  display: grid;
+  margin-top: var(--space-xx-large);
+  padding-inline: var(--space-large);
+}
+
+.pre a {
+  color: var(--color-green);
+  font-weight: normal;
+  justify-self: center;
+  text-decoration: none;
+}
+
+.pre pre {
+  margin: 0;
+  color: var(--color-green);
+  font-family: var(--font-family);
+  font-size: clamp(0.28rem, 1.05vw, 0.72rem);
+  justify-self: center;
+  letter-spacing: -0.0425em;
+  line-height: 1.09375;
+  transition: color var(--transition);
+  white-space: pre;
+  overflow-x: auto;
+  max-width: 100%;
+}
+
+@media (hover: hover) {
+  .pre a:hover pre { color: var(--color-turquoise); }
+}
+
+@media (min-width: 64em) {
+  .pre {
+    margin-top: var(--space-xxxx-large);
+    padding-inline: var(--space-xx-large);
+  }
+}
+
+.pre--news {
+  margin-top: var(--space-x-large);
+}
+
+.pre--news pre {
+  font-size: clamp(0.2rem, 0.55vw, 0.4rem);
+}
+
+/* —— Page title under masthead —— */
+.header {
+  display: grid;
+  margin-top: var(--space-medium);
+  padding-inline: var(--space-large);
+}
+
+.header h1 {
+  margin: 0;
+  font-size: var(--font-size-medium);
+  text-align: center;
+}
+
+@media (min-width: 64em) {
+  .header { padding-inline: var(--space-xx-large); }
+}
+
+/* —— News body (HEY World type on Tokyo Night) —— */
 .news-body {
-  --news-font-family: "JetBrains Mono", ui-monospace, monospace;
-  --news-font-size: 1.05rem;
+  --news-font-family: -apple-system, BlinkMacSystemFont, Aptos, Roboto, "Segoe UI", Helvetica, Arial, sans-serif;
+  --news-font-size: 1.1rem;
   --news-font-size-small: 0.825rem;
-  --news-font-size-title: 2.1rem;
-  --news-font-size-heading: 1.45rem;
+  --news-font-size-title: 2.3375rem;
+  --news-font-size-heading: 1.65rem;
   --news-measure: 51.5rem;
   --news-space: 2.75rem;
   --news-space-tight: 0.5rem;
-  --news-border-color: var(--border-color);
-  --news-border-width: var(--border-width);
+  --news-border-color: rgb(var(--rgb-border) / 0.8);
+  --news-border-width: max(1px, 0.0625em);
 
   background: var(--color-background-night);
   color: var(--color-terminal-white);
   font-family: var(--news-font-family);
   font-size: var(--news-font-size);
-  line-height: 1.45;
+  line-height: 1.4;
+  min-height: 100vh;
+  min-height: 100dvh;
   -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+.news-body .pre {
+  font-family: var(--font-family);
 }
 
 .news-body a {
@@ -27,59 +108,6 @@
   transition: color var(--transition);
 }
 
-.news-body a:hover { color: var(--color-white); }
-
-.news-masthead {
-  margin-top: clamp(2.5rem, 6vw, 5rem);
-  text-align: center;
-  padding-inline: 1.1rem;
-}
-
-.news-masthead a {
-  color: var(--color-green);
-  text-decoration: none;
-  font-weight: 700;
-  font-size: clamp(1.75rem, 5vw, 2.75rem);
-  letter-spacing: -0.045em;
-}
-
-.news-masthead a:hover { color: var(--color-turquoise); }
-
-.news-masthead .tag {
-  display: block;
-  margin-top: 0.55rem;
-  color: rgb(var(--rgb-white) / 0.55);
-  font-size: 0.8rem;
-  letter-spacing: 0.05em;
-}
-
-.news-nav {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.75rem 1.25rem;
-  justify-content: center;
-  margin-top: 1.25rem;
-  font-size: 0.85rem;
-}
-
-.news-nav a { color: var(--color-terminal-blue); }
-.news-nav a:hover { color: var(--color-white); }
-
-.news-header {
-  margin-top: 1.5rem;
-  text-align: center;
-  padding-inline: 1.1rem;
-}
-
-.news-header h1 {
-  margin: 0;
-  color: var(--color-terminal-blue);
-  font-family: var(--font-family);
-  font-size: var(--font-size);
-  font-weight: 400;
-  line-height: var(--line-height);
-}
-
 .news-page {
   margin-inline: auto;
   max-width: var(--news-measure);
@@ -87,10 +115,46 @@
   padding-inline: 1.1rem;
 }
 
+.news-body .header {
+  font-size: var(--font-size);
+}
+
+.news-body .header h1 {
+  color: var(--color-terminal-blue);
+  font-family: var(--font-family);
+  font-weight: 400;
+  line-height: var(--line-height);
+}
+
+/* Centred masthead block, left-aligned reading column — as on HEY World / Omarchy news */
+
+.news-post__header {
+  margin-bottom: var(--news-space);
+  text-align: center;
+}
+
+.news-meta {
+  color: var(--color-terminal-blue);
+  font-size: var(--news-font-size-small);
+  margin: 0;
+}
+
+.news-meta a { color: inherit; }
+
+.news-post__title {
+  color: var(--color-terminal-white);
+  font-size: var(--news-font-size-title);
+  font-weight: 700;
+  line-height: 1;
+  margin-top: var(--news-space-tight);
+  text-wrap: balance;
+}
+
 .news-feed {
   color: var(--color-terminal-blue);
+  font-family: var(--font-family);
   font-size: var(--font-size);
-  margin: 0 0 calc(var(--news-space) / 2);
+  margin-block: calc(var(--news-space-tight) - var(--news-space)) calc(var(--news-space) / 2);
   text-align: center;
 }
 
@@ -107,32 +171,20 @@
   box-shadow: 0.3em 0.3em 0.45em rgb(0 0 0 / 0.2);
   padding: 1.5em;
   position: relative;
-  background: rgb(var(--rgb-bg-storm) / 0.35);
 }
 
 .news-card header { text-align: center; }
 
-.news-meta {
-  margin: 0;
-  color: var(--color-terminal-blue);
-  font-size: var(--news-font-size-small);
-}
-
-.news-meta a { color: inherit; }
-
 .news-card__title {
-  color: var(--color-terminal-white);
   font-size: var(--news-font-size-heading);
   font-weight: 700;
-  line-height: 1.15;
-  margin: var(--news-space-tight) 0 1.3rem;
+  line-height: 1;
+  margin-block: var(--news-space-tight) 1.3rem;
   text-wrap: balance;
+  color: var(--color-terminal-white);
 }
 
-.news-card__excerpt {
-  margin: 0;
-  text-wrap: pretty;
-}
+.news-card__excerpt { text-wrap: pretty; }
 
 .news-card__link {
   inset: 0;
@@ -160,73 +212,73 @@
   font-size: var(--news-font-size-small);
   padding: 0.3em 0.8em;
   transition: color var(--transition);
-}
-
-.news-card:hover .news-card__button { color: var(--color-white); }
-
-/* Single post */
-.news-post__header {
-  margin-bottom: var(--news-space);
-  text-align: center;
-}
-
-.news-post__title {
-  color: var(--color-terminal-white);
-  font-size: var(--news-font-size-title);
-  font-weight: 700;
-  line-height: 1.1;
-  margin: var(--news-space-tight) 0 0;
-  text-wrap: balance;
+  white-space: nowrap;
 }
 
 .news-prose > * + * { margin-top: 1.4em; }
 
-.news-prose p { margin: 0; text-wrap: pretty; }
+.news-prose p { margin: 0; }
 
-.news-prose h2 {
+.news-prose h2,
+.news-prose h3,
+.news-prose h4 {
   color: var(--color-terminal-white);
-  font-size: 1.35em;
   font-weight: 700;
   line-height: 1.2;
   margin-top: 2em;
 }
+
+.news-prose h2 { font-size: 1.4em; }
+.news-prose h3 { font-size: 1.2em; }
 
 .news-prose strong {
   color: var(--color-white);
   font-weight: 700;
 }
 
-.news-prose ul {
-  margin: 0;
-  padding-left: 1.6em;
-  list-style: disc;
-}
+.news-prose em { font-style: italic; }
+
+.news-prose ul,
+.news-prose ol { padding-left: 1.6em; margin: 0; }
+
+.news-prose ul { list-style: disc; }
+.news-prose ol { list-style: decimal; }
 
 .news-prose li + li { margin-top: 0.35em; }
 
-.news-prose a { color: var(--color-terminal-cyan); }
+.news-prose blockquote {
+  border-left: 0.25rem solid var(--news-border-color);
+  font-style: italic;
+  margin-inline-start: 1.4em;
+  padding-left: 1.25rem;
+}
+
+.news-prose code,
+.news-prose pre { font-family: var(--font-family); }
 
 .news-prose code {
   background: var(--color-background-storm);
   color: var(--color-turquoise);
-  font-family: var(--font-family);
   font-size: 0.9em;
   padding: 0.12em 0.3em;
 }
 
 .news-prose pre {
   background: var(--color-background-storm);
-  color: var(--color-green);
+  color: var(--color-turquoise);
   overflow-x: auto;
   padding: 1.2rem;
-  border: var(--news-border-width) solid var(--news-border-color);
-  border-radius: 0.35em;
+  margin: 0;
 }
 
 .news-prose pre code {
   background: transparent;
   padding: 0;
-  color: inherit;
+}
+
+.news-prose img {
+  height: auto;
+  width: 100%;
 }
 
 .news-back {
@@ -236,16 +288,10 @@
   text-align: center;
 }
 
-.news-foot {
-  border-top: var(--news-border-width) solid var(--news-border-color);
-  margin-top: var(--news-space);
-  padding: var(--news-space) 1.1rem calc(var(--news-space) * 1.4);
-  text-align: center;
-  color: var(--color-terminal-blue);
-  font-size: 0.85em;
+@media (hover: hover) {
+  .news-body a:hover { color: var(--color-white); }
+  .news-card:hover .news-card__button { color: var(--color-white); }
 }
-
-.news-foot a { color: var(--color-terminal-cyan); }
 
 @media (min-width: 40em) {
   .news-card { padding: 2em; }
@@ -254,10 +300,10 @@
 
 @media (min-width: 60em) {
   .news-body {
-    --news-font-size: 1.15rem;
-    --news-font-size-small: 0.9rem;
-    --news-font-size-title: 2.5rem;
-    --news-font-size-heading: 1.7rem;
+    --news-font-size: 1.2375rem;
+    --news-font-size-small: 0.9625rem;
+    --news-font-size-title: 2.75rem;
+    --news-font-size-heading: 1.925rem;
     --news-space: 3.09rem;
   }
 }
