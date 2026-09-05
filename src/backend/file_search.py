@@ -369,7 +369,7 @@ def search(
     query: str,
     limit: int = 16,
     scope: str = "home",
-    content: bool = True,
+    content: bool = False,
 ) -> tuple[list[dict], str, str]:
     q, scope_name, force_content = parse_query(query, scope)
     root = scope_root(scope_name)
@@ -390,7 +390,9 @@ def search(
         for p in found or []:
             paths.append((p, False))
 
-    do_content = content and (force_content or len(q) >= 3)
+    # Content search is opt-in only (content:query or --content).
+    # Auto-rg over $HOME made every keystroke ~3s; name search is ~80ms.
+    do_content = force_content or content
     if do_content:
         for p in search_content(q, content_limit, root):
             paths.append((p, True))
@@ -421,7 +423,7 @@ def main() -> int:
     ap.add_argument("query")
     ap.add_argument("--limit", type=int, default=16)
     ap.add_argument("--scope", default="home")
-    ap.add_argument("--content", dest="content", action="store_true", default=True)
+    ap.add_argument("--content", dest="content", action="store_true", default=False)
     ap.add_argument("--no-content", dest="content", action="store_false")
     args = ap.parse_args()
 

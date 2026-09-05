@@ -108,7 +108,7 @@ Item {
 
   Timer {
     id: fileSearchDebounce
-    interval: 100
+    interval: 70
     repeat: false
     onTriggered: root.runFileSearch(root.filterText)
   }
