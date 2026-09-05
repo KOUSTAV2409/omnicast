@@ -89,6 +89,12 @@ QtObject {
     detached(["xdg-open", String(path)])
   }
 
+  function openArgv(argv) {
+    if (!argv || !argv.length)
+      return
+    detached(argv)
+  }
+
   function revealPath(path) {
     if (!path || !String(path).length)
       return

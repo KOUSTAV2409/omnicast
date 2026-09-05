@@ -37,6 +37,7 @@ Item {
   property Component aiAssistComp: Component { AiAssistView {} }
   property Component scriptResultComp: Component { ScriptResultView {} }
   property Component formViewComp: Component { FormView {} }
+  property Component filePreviewComp: Component { FilePreviewView {} }
 
   Process {
     id: scriptScanner
@@ -325,16 +326,23 @@ Item {
       id: f.id, title: f.title || f.name || path, subtitle: f.subtitle || path,
       icon: f.icon || "󰈔", category: "Files", badge: f.badge || (f.is_dir ? "Dir" : "File"),
       path: path, isDir: !!f.is_dir, keyword: path,
-      primaryActionTitle: "Open", actions: []
+      primaryActionTitle: "Preview", actions: []
     }
     item.action = function() {
       Ranking.bump(item.id)
-      root.requestDismiss()
-      Exec.openPath(item.path)
-      Hud.success("Opened " + item.title)
+      root.requestPushViewWithProps(item.title, root.filePreviewComp, {
+        filePath: item.path,
+        fileTitle: item.title
+      })
     }
     item.actions = withMetaActions(item, [
-      { title: "Open", icon: "󰈔", shortcut: "↵", callback: item.action },
+      { title: "Preview", icon: "󰈈", shortcut: "↵", callback: item.action },
+      { title: "Open Externally", icon: "󰏌", callback: function() {
+        Ranking.bump(item.id)
+        root.requestDismiss()
+        Exec.openPath(item.path)
+        Hud.success("Opened " + item.title)
+      }},
       { title: "Copy Path", icon: "", callback: function() {
         Exec.copyText(item.path)
         Hud.success("Copied path")
