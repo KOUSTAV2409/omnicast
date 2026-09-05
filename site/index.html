@@ -119,7 +119,8 @@
       margin: 0;
       color: inherit;
       font-family: inherit;
-      font-size: clamp(0.28rem, 1.05vw, 0.72rem);
+      /* ~66 glyph mark: scale with viewport so ASCII stays on phones */
+      font-size: clamp(0.22rem, calc((100vw - 2.5rem) / 72), 0.72rem);
       letter-spacing: -0.0425em;
       line-height: 1.09375;
       white-space: pre;
@@ -141,22 +142,6 @@
     @media (max-width: 40em) {
       .pre {
         margin-top: max(var(--space-xl), env(safe-area-inset-top));
-      }
-
-      .pre pre {
-        font-size: 0;
-        line-height: 0;
-        letter-spacing: 0;
-      }
-
-      .pre pre::before {
-        content: "omnicast";
-        display: block;
-        font-size: clamp(1.75rem, 11vw, 2.35rem);
-        font-weight: 700;
-        letter-spacing: -0.045em;
-        line-height: 1;
-        color: inherit;
       }
 
       .pre .tag {
