@@ -8,6 +8,8 @@ Not a Raycast UI clone. An **Omarchy umbrella**: same muscle memory as a modern 
 
 **Site:** [omnicast.best](https://omnicast.best) · **Code:** [github.com/KOUSTAV2409/omnicast](https://github.com/KOUSTAV2409/omnicast)
 
+> **Not affiliated with [omarchy.org](https://omarchy.org).** Independent community project that intends to earn a place in that ecosystem.
+
 ### Tell your agent
 
 Paste this to Cursor / Claude / ChatGPT on an Omarchy machine:
