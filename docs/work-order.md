@@ -1,4 +1,4 @@
-# Work order — take Manhattan (non-AI)
+# Work order: take Manhattan (non-AI)
 
 > Ordered setup for the next Omnicast stretch. AI and Omarchy-LLM stay out of band (ADR 015).
 
@@ -23,11 +23,11 @@ Output: a short gap list (file issues or checklist in this doc).
 ## 2. Close non-AI gaps (priority order)
 Fix only what the dogfood pass proves broken or missing.
 
-1. **Root / catalog honesty** — empty states; no false fallbacks while catalogs scan  
-2. **Script commands** — arg forms, failure HUD, docs accuracy  
-3. **Windows / Hyprland helpers** — broken or missing daily actions  
-4. **Quicklinks / snippets / calc** — edge cases from real use  
-5. **Install docs** — README + site stay accurate for newcomers  
+1. **Root / catalog honesty**: empty states; no false fallbacks while catalogs scan  
+2. **Script commands**: arg forms, failure HUD, docs accuracy  
+3. **Windows / Hyprland helpers**: broken or missing daily actions  
+4. **Quicklinks / snippets / calc**: edge cases from real use  
+5. **Install docs**: README + site stay accurate for newcomers  
 
 ## 3. Declare Manhattan
 When the loop in §1 is trustworthy:
@@ -57,7 +57,7 @@ Omnicast is public.
 https://omnicast.best
 https://github.com/KOUSTAV2409/omnicast
 
-Alt+Space umbrella for Omarchy — handoff native tools, own the gaps.
+Alt+Space umbrella for Omarchy: handoff native tools, own the gaps.
 
 Not affiliated with @OmarchyLinux / omarchy.org. Independent community project that intends to be.
 

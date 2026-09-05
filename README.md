@@ -2,7 +2,7 @@
 
 > First we take Manhattan, then we take Berlin.
 
-**Alt+Space for Omarchy** — one launcher that searches your machine and either **hands off** to native Omarchy tools or **owns** the gaps they don’t cover.
+**Alt+Space for Omarchy**: one launcher that searches your machine and either **hands off** to native Omarchy tools or **owns** the gaps they don’t cover.
 
 Not a Raycast UI clone. An **Omarchy umbrella**: same muscle memory as a modern launcher, styled like Omarchy’s menu/clipboard surfaces, wired into Hyprland and the Omarchy CLI.
 
@@ -54,7 +54,7 @@ Use the **absolute path** to your clone. Keep **Super+Space** for the Omarchy me
 ./bin/omnicast-snippetd
 ```
 
-Script commands: drop executables in `~/.config/omnicast/commands/` — see [`docs/script-commands.md`](docs/script-commands.md).
+Script commands: drop executables in `~/.config/omnicast/commands/`. See [`docs/script-commands.md`](docs/script-commands.md).
 
 **Stuck?** [Open an issue](https://github.com/KOUSTAV2409/omnicast/issues). Feedback from Raycast → Omarchy users is especially welcome.
 
@@ -83,25 +83,25 @@ Omnicast dismisses and opens the native surface:
 - System menu, capture, share, reminders  
 
 ### Own (Omnicast fills the gap)
-- **Apps & commands** — `.desktop` apps + Omarchy CLI catalog  
+- **Apps & commands**: `.desktop` apps + Omarchy CLI catalog  
   - Try: `foot`, `screenshot`, `nightlight` (→ Omarchy: Toggle Nightlight)
-- **Calculator** — math, `#hex` colors, units, rough FX (verify on Google), dates  
+- **Calculator**: math, `#hex` colors, units, rough FX (verify on Google), dates  
   - Try: `12*7+3` · `#ff8800` · `10 km to mi` · `10 usd to inr` (shows ≈ guess + Google live rate) · `days until 2026-12-25`
-- **Quicklinks** — bookmarks with `{argument}` / `{clipboard}` placeholders  
+- **Quicklinks**: bookmarks with `{argument}` / `{clipboard}` placeholders  
   - Try: open **Quicklinks**, or search a link title you saved
-- **Script commands** — Raycast-style frontmatter (`@raycast.*` / `@omarchy.*`), form args, `silent` / `compact` / `fullOutput`  
-  - Drop scripts in `~/.config/omnicast/commands/` — see [`docs/script-commands.md`](docs/script-commands.md)
-- **Snippets** — manage + optional global expander (`bin/omnicast-snippetd`)  
+- **Script commands**: Raycast-style frontmatter (`@raycast.*` / `@omarchy.*`), form args, `silent` / `compact` / `fullOutput`  
+  - Drop scripts in `~/.config/omnicast/commands/`. See [`docs/script-commands.md`](docs/script-commands.md)
+- **Snippets**: manage + optional global expander (`bin/omnicast-snippetd`)  
   - Try: open **Snippets**, or type a keyword like `:shrug` if snippetd is running  
   - Settings: `~/.config/omnicast/snippetd.json` → `{ "delay_ms": 150, "backend": "auto" }` (`wtype` / `ydotool`)
-- **Windows** — curated Omarchy Hyprland helpers (pop, gaps, transparency, layout) + Lua-safe float/fullscreen  
-  - Try: `pop`, `gaps`, `float` — or open **Windows**
-- **Fallbacks** — no match → Search Web or Ask AI  
+- **Windows**: curated Omarchy Hyprland helpers (pop, gaps, transparency, layout) + Lua-safe float/fullscreen  
+  - Try: `pop`, `gaps`, `float`, or open **Windows**
+- **Fallbacks**: no match → Search Web or Ask AI  
   - Try: type nonsense → **Search Web** / **Ask AI** rows appear
 
 ### Not ready yet
-- **AI** — UI stub only; **deferred** (not required for Manhattan). Custom Omarchy-LLM is a separate mission outside this repo.  
-- **Packaged install** — clone-and-run for now (AUR / plugin path later)
+- **AI**: UI stub only; **deferred** (not required for Manhattan). Custom Omarchy-LLM is a separate mission outside this repo.  
+- **Packaged install**: clone-and-run for now (AUR / plugin path later)
 
 Full Raycast ↔ Omarchy map: [`docs/raycast-vs-omarchy.md`](docs/raycast-vs-omarchy.md)
 
@@ -137,7 +137,7 @@ Full Raycast ↔ Omarchy map: [`docs/raycast-vs-omarchy.md`](docs/raycast-vs-oma
 
 ## Status
 
-**Manhattan (non-AI umbrella):** close remaining handoff/own/curate gaps, then declare taken — **without** shipping real AI.  
+**Manhattan (non-AI umbrella):** close remaining handoff/own/curate gaps, then declare taken **without** shipping real AI.  
 
 **Next:** non-AI dogfood + gap close. AI gateway and Omarchy-LLM are out of band. Public site: [omnicast.best](https://omnicast.best).
 

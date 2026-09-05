@@ -1,4 +1,4 @@
-/* Omnicast news portal — structure mirrored from omarchy.org/news
+/* Omnicast news portal - structure mirrored from omarchy.org/news
  *
  * INDEX:  .pre > a > pre  →  header.header > h1  →  main.news-page
  *           → p.news-feed?  →  section.news-list > article.news-card…
@@ -9,7 +9,7 @@
  * Reading text = system sans (HEY World scale). ASCII masthead = mono green.
  */
 
-/* —— Masthead (.pre) — same role as omarchy.org —— */
+/* -- Masthead (.pre) - same role as omarchy.org -- */
 .pre {
   display: grid;
   margin-top: var(--space-xx-large);
@@ -80,7 +80,7 @@
   }
 }
 
-/* —— Page title under masthead —— */
+/* -- Page title under masthead -- */
 .header {
   display: grid;
   margin-top: var(--space-medium);
@@ -97,7 +97,7 @@
   .header { padding-inline: var(--space-xx-large); }
 }
 
-/* —— News body (HEY World type on Tokyo Night) —— */
+/* -- News body (HEY World type on Tokyo Night) -- */
 .news-body {
   --news-font-family: -apple-system, BlinkMacSystemFont, Aptos, Roboto, "Segoe UI", Helvetica, Arial, sans-serif;
   --news-font-size: 1.1rem;
@@ -150,7 +150,7 @@
   line-height: var(--line-height);
 }
 
-/* Centred masthead block, left-aligned reading column — as on HEY World / Omarchy news */
+/* Centred masthead block, left-aligned reading column - as on HEY World / Omarchy news */
 
 .news-post__header {
   margin-bottom: var(--news-space);
