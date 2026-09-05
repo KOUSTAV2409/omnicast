@@ -210,6 +210,7 @@ Adjust if dogfooding reveals a broken hero path: **always prioritize trust (A/B)
 - [x] Curate Hyprland + `omarchy-hyprland-*` into searchable Windows palette + root index
 - [x] No-match fallbacks (web search; Ask AI stub OK)
 - [x] File search handoff (`Find Files` → omarchy-file-select)
+- [x] Typed file search in Root (`fd` / `plocate` under `$HOME`)
 - [x] Snippetd reliability (delay/backend settings, wtype/ydotool, failure notify/HUD)
 - [x] Calc depth (currency approx + dates)
 - [ ] Non-AI dogfood pass: close remaining handoff/own/curate gaps from the crosswalk

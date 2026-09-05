@@ -83,6 +83,21 @@ QtObject {
     detached(["xdg-open", url])
   }
 
+  function openPath(path) {
+    if (!path || !String(path).length)
+      return
+    detached(["xdg-open", String(path)])
+  }
+
+  function revealPath(path) {
+    if (!path || !String(path).length)
+      return
+    var p = String(path).replace(/\/$/, "")
+    var slash = p.lastIndexOf("/")
+    var parent = slash > 0 ? p.substring(0, slash) : "/"
+    detached(["xdg-open", parent])
+  }
+
   function launchApp(execLine) {
     var cleaned = (execLine || "").replace(/%[fFuUdDnNickvm]/g, "").replace(/\s+/g, " ").trim()
     if (!cleaned.length)

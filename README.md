@@ -85,6 +85,8 @@ Omnicast dismisses and opens the native surface:
 ### Own (Omnicast fills the gap)
 - **Apps & commands**: `.desktop` apps + Omarchy CLI catalog  
   - Try: `foot`, `screenshot`, `nightlight` (→ Omarchy: Toggle Nightlight)
+- **File search**: type a name → Files section (`fd`, falls back to `plocate`) under `$HOME`  
+  - Try: a folder/file name on your machine · Enter opens · Ctrl+K Copy Path / Reveal
 - **Calculator**: math, `#hex` colors, units, rough FX (verify on Google), dates  
   - Try: `12*7+3` · `#ff8800` · `10 km to mi` · `10 usd to inr` (shows ≈ guess + Google live rate) · `days until 2026-12-25`
 - **Quicklinks**: bookmarks with `{argument}` / `{clipboard}` placeholders  

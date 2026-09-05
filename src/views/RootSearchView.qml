@@ -16,10 +16,13 @@ Item {
   property var omarchyCommands: []
   property var desktopApps: []
   property var quickLinkItems: []
+  property var fileHits: []
+  property string fileQuery: ""
   property var itemById: ({})
 
   property bool isLoading: scriptScanner.running || omarchyScanner.running
                               || appScanner.running || quicklinkScanner.running
+  property bool filesSearching: fileScanner.running || fileSearchDebounce.running || fileSearchStartTimer.running
 
   signal requestActionPalette(var actions)
   signal requestPushView(string title, var component)
@@ -72,6 +75,42 @@ Item {
     command: ["python3", Paths.py("quicklinks.py"), "list"]
     running: false
     stdout: StdioCollector { waitForEnd: true; onStreamFinished: text => root.handleQuicklinkScanMeta(text) }
+  }
+
+  Process {
+    id: fileScanner
+    property string pendingQuery: ""
+    // Bind query into argv (SnippetsView insertProc pattern)
+    command: ["python3", Paths.py("file_search.py"), pendingQuery, "--limit", "16"]
+    running: false
+    stdout: StdioCollector {
+      waitForEnd: true
+      onStreamFinished: text => root.handleFileScanMeta(fileScanner.pendingQuery, text)
+    }
+  }
+
+  FileView {
+    id: fileSearchCacheFile
+    path: Paths.cacheFile("file-search.json")
+    blockLoading: true
+    printErrors: false
+  }
+
+  Timer {
+    id: fileSearchDebounce
+    interval: 100
+    repeat: false
+    onTriggered: root.runFileSearch(root.filterText)
+  }
+
+  Timer {
+    id: fileSearchStartTimer
+    interval: 1
+    repeat: false
+    onTriggered: {
+      if (fileScanner.pendingQuery.length >= 2)
+        fileScanner.running = true
+    }
   }
 
   FileView {
@@ -165,7 +204,7 @@ Item {
       handoffTool("images", "Images", "Browse Pictures",
                   "󰋫", "Omarchy", "Omarchy", "Open Images",
                   function() { Exec.omarchyImages() }),
-      handoffTool("files", "Find Files", "Portal file picker · open",
+      handoffTool("files", "Find Files", "Portal picker (typed search is below)",
                   "󰈔", "Omarchy", "Omarchy", "Open Files",
                   function() { Exec.omarchyFileOpen() }),
       handoffTool("keybindings", "Keybindings", "Super+K",
@@ -278,6 +317,116 @@ Item {
       { title: "Open Link", icon: "🔗", shortcut: "↵", callback: item.action }
     ])
     return item
+  }
+
+  function makeFileItem(f) {
+    var path = f.path || ""
+    var item = {
+      id: f.id, title: f.title || f.name || path, subtitle: f.subtitle || path,
+      icon: f.icon || "󰈔", category: "Files", badge: f.badge || (f.is_dir ? "Dir" : "File"),
+      path: path, isDir: !!f.is_dir, keyword: path,
+      primaryActionTitle: "Open", actions: []
+    }
+    item.action = function() {
+      Ranking.bump(item.id)
+      root.requestDismiss()
+      Exec.openPath(item.path)
+      Hud.success("Opened " + item.title)
+    }
+    item.actions = withMetaActions(item, [
+      { title: "Open", icon: "󰈔", shortcut: "↵", callback: item.action },
+      { title: "Copy Path", icon: "", callback: function() {
+        Exec.copyText(item.path)
+        Hud.success("Copied path")
+      }},
+      { title: "Reveal", icon: "󰉋", callback: function() {
+        Ranking.bump(item.id)
+        root.requestDismiss()
+        if (item.isDir)
+          Exec.openPath(item.path)
+        else
+          Exec.revealPath(item.path)
+      }}
+    ])
+    return item
+  }
+
+  function runFileSearch(query) {
+    var q = (query || "").trim()
+    if (q.length < 2) {
+      fileHits = []
+      fileQuery = ""
+      fileScanner.pendingQuery = ""
+      fileScanner.running = false
+      fileSearchStartTimer.stop()
+      return
+    }
+    if (fileScanner.running && fileScanner.pendingQuery === q)
+      return
+    fileScanner.running = false
+    fileScanner.pendingQuery = q
+    console.log("[Omnicast] file search start:", q)
+    // Defer restart so Quickshell Process fully stops before relaunch
+    fileSearchStartTimer.restart()
+  }
+
+  function scheduleFileSearch(query) {
+    var q = (query || "").trim()
+    if (q.length < 2) {
+      fileSearchDebounce.stop()
+      fileSearchStartTimer.stop()
+      fileHits = []
+      fileQuery = ""
+      fileScanner.pendingQuery = ""
+      fileScanner.running = false
+      return
+    }
+    // Already have results for this query, or search already queued/running
+    if (fileQuery === q)
+      return
+    if (fileScanner.pendingQuery === q && (fileScanner.running || fileSearchDebounce.running || fileSearchStartTimer.running))
+      return
+    fileSearchDebounce.restart()
+  }
+
+  function handleFileScanMeta(query, raw) {
+    var q = (query || "").trim()
+    console.log("[Omnicast] file search meta:", q, (raw || "").trim().slice(0, 120))
+    // Ignore stale responses when the user kept typing
+    if (q !== (root.filterText || "").trim())
+      return
+
+    var hits = []
+    try {
+      // Prefer cache file (reliable); fall back to inline JSON list if present
+      fileSearchCacheFile.path = ""
+      fileSearchCacheFile.path = Paths.cacheFile("file-search.json")
+      var cached = ""
+      try { cached = fileSearchCacheFile.text() || "" } catch (e0) {}
+      var data = null
+      if (cached.length) {
+        var payload = JSON.parse(cached)
+        if (payload && payload.query === q && payload.hits)
+          data = payload.hits
+      }
+      if (!data) {
+        var meta = JSON.parse((raw || "").trim() || "{}")
+        if (meta && meta.hits)
+          data = meta.hits
+        else if (Array.isArray(meta))
+          data = meta
+      }
+      if (data && data.length) {
+        for (var i = 0; i < data.length; i++)
+          hits.push(makeFileItem(data[i]))
+      }
+    } catch (e) {
+      console.error("[Omnicast] file search parse failed:", e, raw)
+    }
+    fileQuery = q
+    fileHits = hits
+    console.log("[Omnicast] file search hits:", hits.length, "for", q)
+    root.filter(root.filterText)
   }
 
   function handleOmarchyScanMeta(raw) {
@@ -796,10 +945,17 @@ Item {
     }
 
     if (!q.length) {
+      fileSearchDebounce.stop()
+      fileHits = []
+      fileQuery = ""
+      fileScanner.running = false
       filteredItems = results.length ? results.concat(allItems) : allItems
       findNextSelectable(0, 1)
       return
     }
+
+    // Kick async file search (fd/plocate under $HOME)
+    scheduleFileSearch(q)
 
     var aliasId = Ranking.aliasTarget(q)
     var scored = [], catalog = catalogItems()
@@ -817,18 +973,40 @@ Item {
     if (scored.length) {
       results.push(header("Results"))
       for (var s = 0; s < scored.length; s++) results.push(scored[s].item)
-    } else if (root.isLoading) {
-      // Catalogs still scanning: don't falsely fall back to web/AI
-      results.push(header("Loading"))
+    }
+
+    // Files section: show hits for this exact query
+    if (fileQuery === q && fileHits.length) {
+      results.push(header("Files"))
+      for (var fi = 0; fi < fileHits.length; fi++) results.push(fileHits[fi])
+    } else if (q.length >= 2 && filesSearching) {
+      results.push(header("Files"))
       results.push({
-        id: "loading-catalog", title: "Indexing commands…", subtitle: "Try again in a moment",
-        icon: "⏳", badge: "", category: "System", isHeader: false,
+        id: "loading-files", title: "Searching files…", subtitle: "fd · " + q,
+        icon: "⏳", badge: "", category: "Files", isHeader: false,
         primaryActionTitle: "", actions: [], action: function() {}
       })
-    } else {
-      results.push(header("Fallback"))
-      var fb = fallbackItems(q)
-      for (var f = 0; f < fb.length; f++) results.push(fb[f])
+    }
+
+    if (!scored.length && !(fileQuery === q && fileHits.length)) {
+      if (root.isLoading || (q.length >= 2 && filesSearching)) {
+        // Still indexing catalogs or files: don't falsely fall back to web/AI
+        if (!results.length || (results.length && results[results.length - 1].id !== "loading-files")) {
+          // Keep loading-files row if present; else show catalog loading
+          if (!(q.length >= 2 && filesSearching)) {
+            results.push(header("Loading"))
+            results.push({
+              id: "loading-catalog", title: "Indexing commands…", subtitle: "Try again in a moment",
+              icon: "⏳", badge: "", category: "System", isHeader: false,
+              primaryActionTitle: "", actions: [], action: function() {}
+            })
+          }
+        }
+      } else {
+        results.push(header("Fallback"))
+        var fb = fallbackItems(q)
+        for (var f = 0; f < fb.length; f++) results.push(fb[f])
+      }
     }
     filteredItems = results
     findNextSelectable(0, 1)

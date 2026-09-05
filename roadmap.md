@@ -22,7 +22,7 @@
 | **Identity** | Done | Omarchy umbrella: handoff native tools; match Omarchy menu UX |
 | **Shell & search** | Done | Fuzzy + frecency/favorites/aliases, Form, HUD, script modes, catalog cache |
 | **Omarchy handoffs** | Done | Clipboard, emoji, theme, background, images, keybindings, menu, capture, share, reminders, Find Files |
-| **Omnicast-owned** | Done | Apps, calc, quicklinks, scripts, snippets, Windows (Lua/Omarchy), fallbacks |
+| **Omnicast-owned** | Done | Apps, calc, **file search**, quicklinks, scripts, snippets, Windows (Lua/Omarchy), fallbacks |
 | **AI** | Deferred | Mock UI only: **not required for Manhattan**; real AI later; Omarchy-LLM elsewhere |
 | **Visual language** | Done | shell.toml menu/launcher tokens + Hyprland rounding |
 | **Public release** | Open | [omnicast.best](https://omnicast.best) + public clone-and-run; packaging later |
