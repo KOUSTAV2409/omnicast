@@ -2,7 +2,9 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#1a1b26" />
+  <meta name="color-scheme" content="dark" />
   <title>Omnicast · Alt+Space for Omarchy</title>
   <meta name="description" content="Omnicast is a free, open-source Omarchy umbrella launcher. Alt+Space searches your machine, hands off to native tools, and owns the gaps." />
   <meta property="og:title" content="Omnicast · Alt+Space for Omarchy" />
@@ -43,22 +45,30 @@
       --white: rgb(var(--rgb-white));
       --border: rgb(var(--rgb-border) / 0.8);
       --space: clamp(1rem, 2.5vw, 1.5rem);
-      --space-lg: clamp(1.5rem, 4vw, 3rem);
-      --space-xl: clamp(2.5rem, 6vw, 5rem);
+      --space-lg: clamp(1rem, 4vw, 3rem);
+      --space-xl: clamp(1.75rem, 6vw, 5rem);
+      --pad-inline: max(var(--space-lg), env(safe-area-inset-left), env(safe-area-inset-right));
       --ease: 0.15s cubic-bezier(0.33, 1, 0.68, 1);
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; }
 
-    html { scroll-behavior: smooth; }
+    html {
+      scroll-behavior: smooth;
+      -webkit-text-size-adjust: 100%;
+      text-size-adjust: 100%;
+    }
 
     body {
       background: var(--bg);
       color: var(--blue);
       font-family: "JetBrains Mono", ui-monospace, monospace;
-      font-size: clamp(0.8rem, 1.35vw, 1rem);
-      line-height: 1.45;
+      font-size: clamp(0.9375rem, 0.85rem + 0.4vw, 1rem);
+      line-height: 1.5;
       min-height: 100vh;
+      min-height: 100dvh;
+      overflow-x: clip;
+      padding-bottom: env(safe-area-inset-bottom);
       -webkit-font-smoothing: antialiased;
     }
 
@@ -77,7 +87,7 @@
     .wrap {
       width: min(90em, 100%);
       margin-inline: auto;
-      padding-inline: var(--space-lg);
+      padding-inline: var(--pad-inline);
     }
 
     /* Masthead: green ASCII mark (same as /news) */
@@ -116,8 +126,6 @@
       overflow: hidden;
       max-width: 100%;
       transition: color var(--ease);
-      opacity: 0;
-      animation: rise 0.85s 0.08s cubic-bezier(0.33, 1, 0.68, 1) forwards;
     }
 
     .pre .tag {
@@ -128,11 +136,13 @@
       font-weight: 400;
       letter-spacing: 0.06em;
       text-transform: lowercase;
-      opacity: 0;
-      animation: rise 0.85s 0.28s cubic-bezier(0.33, 1, 0.68, 1) forwards;
     }
 
     @media (max-width: 40em) {
+      .pre {
+        margin-top: max(var(--space-xl), env(safe-area-inset-top));
+      }
+
       .pre pre {
         font-size: 0;
         line-height: 0;
@@ -142,17 +152,36 @@
       .pre pre::before {
         content: "omnicast";
         display: block;
-        font-size: clamp(1.5rem, 8vw, 2.25rem);
+        font-size: clamp(1.75rem, 11vw, 2.35rem);
         font-weight: 700;
         letter-spacing: -0.045em;
         line-height: 1;
         color: inherit;
+      }
+
+      .pre .tag {
+        font-size: 0.8em;
+        letter-spacing: 0.04em;
+        padding-inline: 0.5rem;
       }
     }
 
     @keyframes rise {
       from { opacity: 0; transform: translateY(12px); }
       to { opacity: 1; transform: translateY(0); }
+    }
+
+    @media (prefers-reduced-motion: no-preference) {
+      .pre pre,
+      .pre .tag,
+      .header .headline {
+        opacity: 0;
+        animation: rise 0.85s cubic-bezier(0.33, 1, 0.68, 1) forwards;
+      }
+
+      .pre pre { animation-delay: 0.08s; }
+      .pre .tag { animation-delay: 0.28s; }
+      .header .headline { animation-delay: 0.4s; }
     }
 
     /* Header copy: sits above the video, never on it */
@@ -162,12 +191,10 @@
     }
 
     .header .headline {
-      font-size: clamp(1.15em, 2.4vw, 1.35em);
+      font-size: clamp(1.2em, 2.4vw, 1.4em);
       font-weight: 700;
       color: var(--blue);
       text-wrap: balance;
-      opacity: 0;
-      animation: rise 0.85s 0.4s cubic-bezier(0.33, 1, 0.68, 1) forwards;
     }
 
     .header p {
@@ -177,6 +204,7 @@
       font-weight: 400;
       color: var(--blue);
       text-wrap: pretty;
+      overflow-wrap: break-word;
     }
 
     .header p a { color: inherit; }
@@ -200,7 +228,7 @@
     .actions {
       display: flex;
       flex-wrap: wrap;
-      gap: 0.75rem;
+      gap: 0.65rem;
       justify-content: center;
       margin-top: var(--space-lg);
     }
@@ -210,8 +238,8 @@
       align-items: center;
       justify-content: center;
       gap: 0.65em;
-      height: 2.75em;
-      padding-inline: 1em;
+      min-height: 2.85em;
+      padding: 0.65em 1.05em;
       background: var(--blue);
       color: var(--bg);
       font-family: inherit;
@@ -224,6 +252,8 @@
       border-radius: 0.4em;
       box-shadow: 0 0.35em 1.2em -0.4em rgba(0, 0, 0, 0.55);
       transition: background var(--ease), color var(--ease);
+      -webkit-tap-highlight-color: transparent;
+      touch-action: manipulation;
     }
 
     .button svg {
@@ -309,8 +339,8 @@
     .term-bar {
       display: flex;
       align-items: center;
-      gap: 0.75rem;
-      padding: 0.65rem 0.9rem;
+      gap: 0.6rem;
+      padding: 0.65rem 0.75rem;
       background: var(--bg-storm);
       border-bottom: 1px solid var(--border);
     }
@@ -344,6 +374,7 @@
 
     .term-copy {
       appearance: none;
+      flex-shrink: 0;
       border: 1px solid var(--border);
       background: transparent;
       color: var(--cyan);
@@ -352,10 +383,13 @@
       font-weight: 600;
       text-transform: uppercase;
       letter-spacing: 0.04em;
-      padding: 0.35em 0.7em;
+      min-height: 2.25rem;
+      padding: 0.4em 0.75em;
       border-radius: 0.3em;
       cursor: pointer;
       transition: background var(--ease), color var(--ease), border-color var(--ease);
+      -webkit-tap-highlight-color: transparent;
+      touch-action: manipulation;
     }
 
     .term-copy:hover {
@@ -376,16 +410,21 @@
       border: none;
       border-radius: 0;
       overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
       font-family: inherit;
       font-size: 0.88em;
       line-height: 1.75;
       color: var(--white);
+      tab-size: 2;
     }
 
     .term .c { color: rgb(var(--rgb-white) / 0.4); }
     .term .p { color: var(--blue); user-select: none; }
     .term .cmd { color: var(--green); }
-    .term .path { color: var(--cyan); }
+    .term .path {
+      color: var(--cyan);
+      overflow-wrap: anywhere;
+    }
 
     .bind-hint {
       margin-top: 1rem;
@@ -396,11 +435,14 @@
       background: rgb(var(--rgb-bg-storm) / 0.55);
       color: rgb(var(--rgb-white) / 0.7);
       font-size: 0.88em;
+      overflow-wrap: break-word;
     }
 
     .bind-hint code {
       color: var(--cyan);
       font-family: inherit;
+      overflow-wrap: anywhere;
+      word-break: break-word;
     }
 
     .foot {
@@ -429,12 +471,85 @@
 
     footer a { color: var(--cyan); }
 
+    /* Phone / small tablet: stacked CTAs, readable install, no sideways spill */
+    @media (max-width: 40em) {
+      .header .note {
+        font-size: 0.88em;
+        line-height: 1.55;
+      }
+
+      .actions {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 0.6rem;
+        width: 100%;
+      }
+
+      .actions .button {
+        width: 100%;
+        min-height: 3rem;
+        font-size: 0.82em;
+        padding-inline: 0.7em;
+      }
+
+      .demo {
+        margin-top: var(--space-lg);
+        margin-bottom: var(--space-lg);
+      }
+
+      .demo-frame {
+        border-radius: 0.35em;
+      }
+
+      .term-bar {
+        flex-wrap: wrap;
+        row-gap: 0.45rem;
+      }
+
+      .term-title {
+        order: 3;
+        flex: 1 0 100%;
+        font-size: 0.72em;
+      }
+
+      .term-copy {
+        margin-left: auto;
+      }
+
+      .term pre {
+        padding: 1rem 0.85rem 1.15rem;
+        font-size: 0.78em;
+        line-height: 1.7;
+        white-space: pre-wrap;
+        overflow-wrap: anywhere;
+        word-break: break-word;
+      }
+
+      .bind-hint {
+        padding: 0.85rem 0.85rem;
+        font-size: 0.84em;
+        line-height: 1.55;
+      }
+
+      .foot {
+        font-size: 0.8em;
+        line-height: 1.55;
+      }
+
+      footer {
+        padding-bottom: max(var(--space-xl), env(safe-area-inset-bottom));
+      }
+    }
+
+    @media (max-width: 22em) {
+      .actions {
+        grid-template-columns: 1fr;
+      }
+    }
+
     @media (prefers-reduced-motion: reduce) {
       html { scroll-behavior: auto; }
       * { transition: none !important; animation: none !important; }
-      .pre pre,
-      .pre .tag,
-      .header .headline { opacity: 1; transform: none; }
     }
   </style>
 </head>
@@ -484,7 +599,7 @@
 
   <main class="demo wrap">
     <div class="demo-frame">
-      <video autoplay muted loop playsinline>
+      <video autoplay muted loop playsinline preload="metadata" aria-label="Omnicast teaser">
         <source src="assets/teaser.mp4" type="video/mp4" />
       </video>
     </div>
