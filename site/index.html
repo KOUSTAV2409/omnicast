@@ -211,6 +211,13 @@
       padding: var(--space-lg) 0 var(--space-xl);
     }
 
+    .install .wrap {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+    }
+
     .install-head {
       max-width: 44em;
     }
@@ -229,7 +236,8 @@
 
     .term {
       margin-top: 1.5rem;
-      max-width: 48rem;
+      width: min(100%, 48rem);
+      text-align: left;
       border: 1px solid var(--border);
       border-radius: 0.5em;
       background: #16161e;
@@ -323,7 +331,8 @@
     .bind-hint {
       margin-top: 1rem;
       padding: 0.85rem 1rem;
-      max-width: 48rem;
+      width: min(100%, 48rem);
+      text-align: left;
       border-left: 2px solid var(--blue);
       background: rgb(var(--rgb-bg-storm) / 0.55);
       color: rgb(var(--rgb-white) / 0.7);
@@ -340,6 +349,7 @@
       color: rgb(var(--rgb-white) / 0.55);
       font-size: 0.85em;
       max-width: 48em;
+      text-wrap: balance;
     }
 
     .foot a { color: var(--cyan); }
