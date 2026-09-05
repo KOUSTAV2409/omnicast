@@ -1,0 +1,268 @@
+/* Omnicast news — inspired by omarchy.org/news (HEY World–style cards on Tokyo Night) */
+
+.news-body {
+  --news-font-family: "JetBrains Mono", ui-monospace, monospace;
+  --news-font-size: 1.05rem;
+  --news-font-size-small: 0.825rem;
+  --news-font-size-title: 2.1rem;
+  --news-font-size-heading: 1.45rem;
+  --news-measure: 51.5rem;
+  --news-space: 2.75rem;
+  --news-space-tight: 0.5rem;
+  --news-border-color: var(--border-color);
+  --news-border-width: var(--border-width);
+
+  background: var(--color-background-night);
+  color: var(--color-terminal-white);
+  font-family: var(--news-font-family);
+  font-size: var(--news-font-size);
+  line-height: 1.45;
+  -webkit-font-smoothing: antialiased;
+}
+
+.news-body a {
+  color: var(--color-terminal-cyan);
+  text-decoration-thickness: from-font;
+  text-underline-offset: 0.14em;
+  transition: color var(--transition);
+}
+
+.news-body a:hover { color: var(--color-white); }
+
+.news-masthead {
+  margin-top: clamp(2.5rem, 6vw, 5rem);
+  text-align: center;
+  padding-inline: 1.1rem;
+}
+
+.news-masthead a {
+  color: var(--color-green);
+  text-decoration: none;
+  font-weight: 700;
+  font-size: clamp(1.75rem, 5vw, 2.75rem);
+  letter-spacing: -0.045em;
+}
+
+.news-masthead a:hover { color: var(--color-turquoise); }
+
+.news-masthead .tag {
+  display: block;
+  margin-top: 0.55rem;
+  color: rgb(var(--rgb-white) / 0.55);
+  font-size: 0.8rem;
+  letter-spacing: 0.05em;
+}
+
+.news-nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem 1.25rem;
+  justify-content: center;
+  margin-top: 1.25rem;
+  font-size: 0.85rem;
+}
+
+.news-nav a { color: var(--color-terminal-blue); }
+.news-nav a:hover { color: var(--color-white); }
+
+.news-header {
+  margin-top: 1.5rem;
+  text-align: center;
+  padding-inline: 1.1rem;
+}
+
+.news-header h1 {
+  margin: 0;
+  color: var(--color-terminal-blue);
+  font-family: var(--font-family);
+  font-size: var(--font-size);
+  font-weight: 400;
+  line-height: var(--line-height);
+}
+
+.news-page {
+  margin-inline: auto;
+  max-width: var(--news-measure);
+  padding-block: var(--news-space);
+  padding-inline: 1.1rem;
+}
+
+.news-feed {
+  color: var(--color-terminal-blue);
+  font-size: var(--font-size);
+  margin: 0 0 calc(var(--news-space) / 2);
+  text-align: center;
+}
+
+.news-feed a { color: inherit; }
+
+.news-list {
+  display: grid;
+  gap: 1.25em;
+}
+
+.news-card {
+  border: var(--news-border-width) solid var(--news-border-color);
+  border-radius: 0.2em;
+  box-shadow: 0.3em 0.3em 0.45em rgb(0 0 0 / 0.2);
+  padding: 1.5em;
+  position: relative;
+  background: rgb(var(--rgb-bg-storm) / 0.35);
+}
+
+.news-card header { text-align: center; }
+
+.news-meta {
+  margin: 0;
+  color: var(--color-terminal-blue);
+  font-size: var(--news-font-size-small);
+}
+
+.news-meta a { color: inherit; }
+
+.news-card__title {
+  color: var(--color-terminal-white);
+  font-size: var(--news-font-size-heading);
+  font-weight: 700;
+  line-height: 1.15;
+  margin: var(--news-space-tight) 0 1.3rem;
+  text-wrap: balance;
+}
+
+.news-card__excerpt {
+  margin: 0;
+  text-wrap: pretty;
+}
+
+.news-card__link {
+  inset: 0;
+  overflow: hidden;
+  position: absolute;
+  text-indent: -100vw;
+  z-index: 1;
+}
+
+.news-card .news-meta a {
+  position: relative;
+  z-index: 2;
+}
+
+.news-card__more {
+  margin-top: 1.5em;
+  text-align: center;
+}
+
+.news-card__button {
+  border: var(--news-border-width) solid var(--news-border-color);
+  border-radius: 3rem;
+  color: var(--color-terminal-blue);
+  display: inline-block;
+  font-size: var(--news-font-size-small);
+  padding: 0.3em 0.8em;
+  transition: color var(--transition);
+}
+
+.news-card:hover .news-card__button { color: var(--color-white); }
+
+/* Single post */
+.news-post__header {
+  margin-bottom: var(--news-space);
+  text-align: center;
+}
+
+.news-post__title {
+  color: var(--color-terminal-white);
+  font-size: var(--news-font-size-title);
+  font-weight: 700;
+  line-height: 1.1;
+  margin: var(--news-space-tight) 0 0;
+  text-wrap: balance;
+}
+
+.news-prose > * + * { margin-top: 1.4em; }
+
+.news-prose p { margin: 0; text-wrap: pretty; }
+
+.news-prose h2 {
+  color: var(--color-terminal-white);
+  font-size: 1.35em;
+  font-weight: 700;
+  line-height: 1.2;
+  margin-top: 2em;
+}
+
+.news-prose strong {
+  color: var(--color-white);
+  font-weight: 700;
+}
+
+.news-prose ul {
+  margin: 0;
+  padding-left: 1.6em;
+  list-style: disc;
+}
+
+.news-prose li + li { margin-top: 0.35em; }
+
+.news-prose a { color: var(--color-terminal-cyan); }
+
+.news-prose code {
+  background: var(--color-background-storm);
+  color: var(--color-turquoise);
+  font-family: var(--font-family);
+  font-size: 0.9em;
+  padding: 0.12em 0.3em;
+}
+
+.news-prose pre {
+  background: var(--color-background-storm);
+  color: var(--color-green);
+  overflow-x: auto;
+  padding: 1.2rem;
+  border: var(--news-border-width) solid var(--news-border-color);
+  border-radius: 0.35em;
+}
+
+.news-prose pre code {
+  background: transparent;
+  padding: 0;
+  color: inherit;
+}
+
+.news-back {
+  border-top: var(--news-border-width) solid var(--news-border-color);
+  margin-top: var(--news-space);
+  padding-top: var(--news-space);
+  text-align: center;
+}
+
+.news-foot {
+  border-top: var(--news-border-width) solid var(--news-border-color);
+  margin-top: var(--news-space);
+  padding: var(--news-space) 1.1rem calc(var(--news-space) * 1.4);
+  text-align: center;
+  color: var(--color-terminal-blue);
+  font-size: 0.85em;
+}
+
+.news-foot a { color: var(--color-terminal-cyan); }
+
+@media (min-width: 40em) {
+  .news-card { padding: 2em; }
+  .news-card__more { margin-top: 2em; }
+}
+
+@media (min-width: 60em) {
+  .news-body {
+    --news-font-size: 1.15rem;
+    --news-font-size-small: 0.9rem;
+    --news-font-size-title: 2.5rem;
+    --news-font-size-heading: 1.7rem;
+    --news-space: 3.09rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  * { transition: none !important; }
+}

@@ -1,0 +1,41 @@
+/* Shared Omnicast site tokens (Omarchy-family Tokyo Night) */
+:root {
+  --rgb-bg-night: 26, 27, 38;
+  --rgb-bg-storm: 36, 40, 59;
+  --rgb-green: 158, 206, 106;
+  --rgb-blue: 122, 162, 247;
+  --rgb-cyan: 125, 207, 255;
+  --rgb-turquoise: 180, 249, 248;
+  --rgb-white: 192, 202, 245;
+  --rgb-border: 65, 72, 104;
+  --rgb-black: 0, 0, 0;
+
+  --color-background-night: rgb(var(--rgb-bg-night));
+  --color-background-storm: rgb(var(--rgb-bg-storm));
+  --color-green: rgb(var(--rgb-green));
+  --color-terminal-blue: rgb(var(--rgb-blue));
+  --color-terminal-cyan: rgb(var(--rgb-cyan));
+  --color-turquoise: rgb(var(--rgb-turquoise));
+  --color-terminal-white: rgb(var(--rgb-white));
+  --color-white: #ffffff;
+  --color-terminal-black: rgb(var(--rgb-border));
+
+  --font-family: "JetBrains Mono", ui-monospace, monospace;
+  --font-size: clamp(0.8rem, 1.35vw, 1rem);
+  --line-height: 1.45;
+  --transition: 0.15s cubic-bezier(0.33, 1, 0.68, 1);
+  --border-color: rgb(var(--rgb-border) / 0.8);
+  --border-width: max(1px, 0.0625em);
+}
+
+*,
+*::before,
+*::after { box-sizing: border-box; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  min-height: 100dvh;
+}
