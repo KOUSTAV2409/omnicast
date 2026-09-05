@@ -45,6 +45,8 @@
 ## What’s left to build
 
 ### Must finish for Manhattan (non-AI only)
+Ordered checklist: [`docs/work-order.md`](docs/work-order.md).
+
 Audit [`docs/raycast-vs-omarchy.md`](docs/raycast-vs-omarchy.md) and ship any remaining **handoff / own / curate** gaps that do not need a model. Candidate polish (reconfirm against dogfood):
 
 1. **Root / catalog honesty** — empty states, mid-scan UX, no false web/AI fallbacks while catalogs load  
