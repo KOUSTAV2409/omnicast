@@ -44,7 +44,17 @@ CODE_EXT = {
 MAX_TEXT_BYTES = 200_000
 MAX_TEXT_CHARS = 40_000
 MAX_DIR_ENTRIES = 80
-MAX_HIGHLIGHT_CHARS = 12_000
+MAX_HIGHLIGHT_CHARS = 24_000
+
+# Omarchy-ish syntax palette (readable on dark card)
+C_FG = "#f5f0ec"
+C_MUTED = "#6d7c8d"
+C_ACCENT = "#fa8526"
+C_STR = "#8fbf7a"
+C_NUM = "#c9a0dc"
+C_TYPE = "#6cb6ff"
+C_PUNCT = "#9aa7b5"
+C_BG_CODE = "#0e131b"
 
 KEYWORDS = {
     ".py": {
@@ -85,6 +95,40 @@ KEYWORDS[".sh"] = {
 }
 KEYWORDS[".bash"] = KEYWORDS[".sh"]
 KEYWORDS[".zsh"] = KEYWORDS[".sh"]
+KEYWORDS[".lua"] = {
+    "function", "local", "return", "if", "then", "else", "elseif", "end", "for",
+    "while", "do", "repeat", "until", "in", "and", "or", "not", "true", "false",
+    "nil", "require",
+}
+KEYWORDS[".c"] = {
+    "int", "char", "void", "return", "if", "else", "for", "while", "switch",
+    "case", "break", "continue", "struct", "typedef", "enum", "const", "static",
+    "sizeof", "include",
+}
+KEYWORDS[".cpp"] = KEYWORDS[".c"] | {
+    "class", "public", "private", "protected", "namespace", "template", "typename",
+    "using", "new", "delete", "this", "true", "false", "nullptr", "auto",
+}
+KEYWORDS[".java"] = {
+    "class", "public", "private", "protected", "static", "void", "return", "if",
+    "else", "for", "while", "new", "this", "import", "package", "extends",
+    "implements", "try", "catch", "finally", "true", "false", "null",
+}
+KEYWORDS[".css"] = {
+    "color", "background", "display", "flex", "grid", "margin", "padding",
+    "border", "width", "height", "font", "position", "absolute", "relative",
+    "important",
+}
+KEYWORDS[".sql"] = {
+    "SELECT", "FROM", "WHERE", "INSERT", "UPDATE", "DELETE", "JOIN", "LEFT",
+    "RIGHT", "INNER", "ON", "AND", "OR", "NOT", "NULL", "AS", "CREATE", "TABLE",
+    "INDEX", "VALUES", "INTO", "SET", "ORDER", "BY", "GROUP", "LIMIT",
+}
+KEYWORDS[".php"] = {
+    "function", "return", "if", "else", "elseif", "foreach", "for", "while",
+    "class", "public", "private", "protected", "echo", "new", "true", "false",
+    "null", "array",
+}
 
 
 
@@ -241,40 +285,364 @@ def html_escape(s: str) -> str:
     )
 
 
+def _span(color: str, text: str) -> str:
+    return f'<span style="color:{color}">{html_escape(text)}</span>'
+
+
+def _lang_style(ext: str) -> dict:
+    """Comment / string rules per language family."""
+    hash_comments = ext in {".py", ".pyi", ".sh", ".bash", ".zsh", ".fish", ".rb", ".yml", ".yaml", ".toml", ".r", ".pl", ".pm"}
+    slash_comments = ext in {
+        ".js", ".jsx", ".ts", ".tsx", ".mjs", ".cjs", ".go", ".rs", ".c", ".h", ".cpp",
+        ".hpp", ".cc", ".java", ".kt", ".swift", ".qml", ".css", ".scss", ".less", ".php", ".sql",
+    }
+    return {
+        "hash": hash_comments,
+        "slash": slash_comments,
+        "block": slash_comments or ext in {".css", ".scss", ".qml", ".java", ".c", ".cpp", ".h"},
+        "backtick": ext in {".js", ".jsx", ".ts", ".tsx", ".mjs", ".cjs", ".qml"},
+    }
+
+
 def highlight_code_html(text: str, ext: str) -> str:
-    """Lightweight keyword highlighter (no pygments)."""
+    """Editor-like syntax colors via a small tokenizer (no pygments)."""
     if len(text) > MAX_HIGHLIGHT_CHARS:
         text = text[:MAX_HIGHLIGHT_CHARS] + "\n… truncated …"
-    words = KEYWORDS.get(ext) or KEYWORDS.get(".js" if ext in {".mjs", ".cjs"} else "")
-    escaped = html_escape(text)
-    if words:
-        # Longest keywords first
-        ordered = sorted(words, key=len, reverse=True)
-        pattern = r"\b(" + "|".join(re.escape(w) for w in ordered) + r")\b"
 
-        def repl(m: re.Match) -> str:
-            return f'<span style="color:#fa8526">{m.group(0)}</span>'
+    if ext in {".json", ".jsonc"}:
+        body = _highlight_json(text)
+    else:
+        body = _tokenize_highlight(text, ext)
 
-        escaped = re.sub(pattern, repl, escaped)
-    # Comments (simple)
-    if ext in {".py", ".sh", ".bash", ".zsh", ".rb", ".yml", ".yaml", ".toml"}:
-        escaped = re.sub(
-            r"(?m)^( *)(#.*?)$",
-            r'\1<span style="color:#6d7c8d">\2</span>',
-            escaped,
-        )
-    elif ext in {".js", ".ts", ".tsx", ".jsx", ".go", ".rs", ".c", ".h", ".cpp", ".java", ".qml", ".css"}:
-        escaped = re.sub(
-            r"(//.*?)$",
-            r'<span style="color:#6d7c8d">\1</span>',
-            escaped,
-            flags=re.M,
-        )
     return (
-        '<div style="font-family:monospace; white-space:pre-wrap; '
-        'color:#f5f0ec; font-size:13px; line-height:1.45;">'
-        f"{escaped}</div>"
+        f'<div style="font-family:monospace; white-space:pre-wrap; '
+        f'color:{C_FG}; font-size:13px; line-height:1.5; '
+        f'background-color:{C_BG_CODE};">'
+        f"{body}</div>"
     )
+
+
+def _highlight_json(text: str) -> str:
+    out: list[str] = []
+    i = 0
+    n = len(text)
+    while i < n:
+        ch = text[i]
+        if ch in " \t\n\r":
+            out.append(html_escape(ch))
+            i += 1
+            continue
+        if ch in "{}[],:":
+            out.append(_span(C_PUNCT, ch))
+            i += 1
+            continue
+        if ch == '"':
+            j = i + 1
+            while j < n:
+                if text[j] == "\\" and j + 1 < n:
+                    j += 2
+                    continue
+                if text[j] == '"':
+                    j += 1
+                    break
+                j += 1
+            token = text[i:j]
+            # key if next non-space is :
+            k = j
+            while k < n and text[k] in " \t\n\r":
+                k += 1
+            if k < n and text[k] == ":":
+                out.append(_span(C_TYPE, token))
+            else:
+                out.append(_span(C_STR, token))
+            i = j
+            continue
+        if ch.isdigit() or (ch == "-" and i + 1 < n and text[i + 1].isdigit()):
+            j = i + 1
+            while j < n and (text[j].isdigit() or text[j] in ".eE+-"):
+                j += 1
+            out.append(_span(C_NUM, text[i:j]))
+            i = j
+            continue
+        if text.startswith("true", i) or text.startswith("false", i) or text.startswith("null", i):
+            for lit in ("true", "false", "null"):
+                if text.startswith(lit, i) and (i + len(lit) >= n or not text[i + len(lit)].isalnum()):
+                    out.append(_span(C_ACCENT, lit))
+                    i += len(lit)
+                    break
+            else:
+                out.append(html_escape(ch))
+                i += 1
+            continue
+        out.append(html_escape(ch))
+        i += 1
+    return "".join(out)
+
+
+def _tokenize_highlight(text: str, ext: str) -> str:
+    style = _lang_style(ext)
+    keywords = KEYWORDS.get(ext) or set()
+    if ext in {".mjs", ".cjs", ".jsx"}:
+        keywords = KEYWORDS.get(".js", set())
+    if ext == ".tsx":
+        keywords = KEYWORDS.get(".ts", set())
+    if ext in {".hpp", ".cc", ".hh"}:
+        keywords = KEYWORDS.get(".cpp", set()) | KEYWORDS.get(".c", set())
+
+    out: list[str] = []
+    i = 0
+    n = len(text)
+
+    while i < n:
+        ch = text[i]
+
+        # whitespace
+        if ch in " \t\n\r":
+            out.append(ch if ch == "\n" else html_escape(ch))
+            i += 1
+            continue
+
+        # hash comments
+        if style["hash"] and ch == "#":
+            j = i
+            while j < n and text[j] != "\n":
+                j += 1
+            out.append(_span(C_MUTED, text[i:j]))
+            i = j
+            continue
+
+        # line comments //
+        if style["slash"] and text.startswith("//", i):
+            j = i
+            while j < n and text[j] != "\n":
+                j += 1
+            out.append(_span(C_MUTED, text[i:j]))
+            i = j
+            continue
+
+        # block comments /* */
+        if style["block"] and text.startswith("/*", i):
+            j = text.find("*/", i + 2)
+            j = n if j < 0 else j + 2
+            out.append(_span(C_MUTED, text[i:j]))
+            i = j
+            continue
+
+        # strings
+        if ch in "'\"" or (style["backtick"] and ch == "`"):
+            quote = ch
+            j = i + 1
+            while j < n:
+                if text[j] == "\\" and j + 1 < n:
+                    j += 2
+                    continue
+                if text[j] == quote:
+                    j += 1
+                    break
+                # template ${ } — keep simple, stay in string
+                j += 1
+            out.append(_span(C_STR, text[i:j]))
+            i = j
+            continue
+
+        # numbers
+        if ch.isdigit() or (ch == "." and i + 1 < n and text[i + 1].isdigit()):
+            j = i + 1
+            while j < n and (text[j].isalnum() or text[j] in ".xXbBoO_"):
+                j += 1
+            out.append(_span(C_NUM, text[i:j]))
+            i = j
+            continue
+
+        # identifiers / keywords
+        if ch.isalpha() or ch == "_" or ch == "$":
+            j = i + 1
+            while j < n and (text[j].isalnum() or text[j] in "_$"):
+                j += 1
+            word = text[i:j]
+            if word in keywords:
+                out.append(_span(C_ACCENT, word))
+            elif word[:1].isupper() and any(c.islower() for c in word[1:]):
+                out.append(_span(C_TYPE, word))
+            else:
+                out.append(_span(C_FG, word))
+            i = j
+            continue
+
+        # punctuation
+        if ch in "{}[]().,;:?<>+-*/%=&|!~^":
+            out.append(_span(C_PUNCT, ch))
+            i += 1
+            continue
+
+        out.append(html_escape(ch))
+        i += 1
+
+    return "".join(out)
+
+
+def render_markdown_html(text: str) -> str:
+    """Zero-dep markdown → Qt-friendly RichText HTML."""
+    if len(text) > MAX_TEXT_CHARS:
+        text = text[:MAX_TEXT_CHARS] + "\n\n… truncated …"
+
+    lines = text.replace("\r\n", "\n").replace("\r", "\n").split("\n")
+    parts: list[str] = [
+        f'<div style="color:{C_FG}; font-size:14px; line-height:1.55;">'
+    ]
+    i = 0
+    in_ul = False
+    in_ol = False
+
+    def close_lists() -> None:
+        nonlocal in_ul, in_ol
+        if in_ul:
+            parts.append("</ul>")
+            in_ul = False
+        if in_ol:
+            parts.append("</ol>")
+            in_ol = False
+
+    def inline_md(s: str) -> str:
+        # order matters: code first, then bold/italic, links
+        s = html_escape(s)
+
+        def code_repl(m: re.Match) -> str:
+            return (
+                f'<span style="font-family:monospace; background-color:#1b2532; '
+                f'color:{C_STR};">{m.group(1)}</span>'
+            )
+
+        s = re.sub(r"`([^`]+)`", code_repl, s)
+        s = re.sub(
+            r"\*\*([^*]+)\*\*",
+            rf'<span style="font-weight:600; color:{C_FG};">\1</span>',
+            s,
+        )
+        s = re.sub(
+            r"(?<!\*)\*([^*]+)\*(?!\*)",
+            rf'<span style="font-style:italic; color:{C_PUNCT};">\1</span>',
+            s,
+        )
+        s = re.sub(
+            r"\[([^\]]+)\]\(([^)]+)\)",
+            rf'<a href="\2" style="color:{C_TYPE}; text-decoration:none;">\1</a>',
+            s,
+        )
+        return s
+
+    while i < len(lines):
+        line = lines[i]
+        stripped = line.strip()
+
+        # fenced code block
+        fence = re.match(r"^```(\w+)?\s*$", stripped)
+        if fence:
+            close_lists()
+            lang = (fence.group(1) or "").lower()
+            ext_map = {
+                "python": ".py", "py": ".py", "javascript": ".js", "js": ".js",
+                "typescript": ".ts", "ts": ".ts", "tsx": ".tsx", "jsx": ".jsx",
+                "rust": ".rs", "rs": ".rs", "go": ".go", "c": ".c", "cpp": ".cpp",
+                "java": ".java", "lua": ".lua", "qml": ".qml", "bash": ".sh",
+                "sh": ".sh", "shell": ".sh", "json": ".json", "yaml": ".yaml",
+                "yml": ".yml", "toml": ".toml", "css": ".css", "sql": ".sql",
+            }
+            i += 1
+            buf: list[str] = []
+            while i < len(lines) and not re.match(r"^```\s*$", lines[i].strip()):
+                buf.append(lines[i])
+                i += 1
+            if i < len(lines):
+                i += 1
+            code = "\n".join(buf)
+            ext = ext_map.get(lang, ".txt")
+            if lang:
+                hi = _tokenize_highlight(code, ext) if ext != ".json" else _highlight_json(code)
+            else:
+                hi = html_escape(code)
+            parts.append(
+                f'<div style="font-family:monospace; white-space:pre-wrap; '
+                f'background-color:{C_BG_CODE}; color:{C_FG}; font-size:12px; '
+                f'line-height:1.45; margin:8px 0;">{hi}</div>'
+            )
+            continue
+
+        if not stripped:
+            close_lists()
+            parts.append("<br/>")
+            i += 1
+            continue
+
+        if stripped.startswith("---") and set(stripped) <= {"-", " "}:
+            close_lists()
+            parts.append(
+                f'<hr style="border:none; border-top:1px solid {C_MUTED}; margin:10px 0;"/>'
+            )
+            i += 1
+            continue
+
+        heading = re.match(r"^(#{1,6})\s+(.*)$", stripped)
+        if heading:
+            close_lists()
+            level = len(heading.group(1))
+            sizes = {1: 20, 2: 17, 3: 15, 4: 14, 5: 13, 6: 12}
+            size = sizes.get(level, 14)
+            color = C_ACCENT if level <= 2 else C_FG
+            parts.append(
+                f'<div style="font-size:{size}px; font-weight:600; color:{color}; '
+                f'margin:10px 0 4px 0;">{inline_md(heading.group(2))}</div>'
+            )
+            i += 1
+            continue
+
+        if stripped.startswith("> "):
+            close_lists()
+            quote = stripped[2:]
+            parts.append(
+                f'<div style="border-left:3px solid {C_ACCENT}; padding-left:10px; '
+                f'color:{C_MUTED}; margin:4px 0;">{inline_md(quote)}</div>'
+            )
+            i += 1
+            continue
+
+        ul = re.match(r"^[-*+]\s+(.*)$", stripped)
+        if ul:
+            if in_ol:
+                parts.append("</ol>")
+                in_ol = False
+            if not in_ul:
+                parts.append("<ul>")
+                in_ul = True
+            parts.append(
+                f'<li style="color:{C_FG}; margin:2px 0;">{inline_md(ul.group(1))}</li>'
+            )
+            i += 1
+            continue
+
+        ol = re.match(r"^(\d+)\.\s+(.*)$", stripped)
+        if ol:
+            if in_ul:
+                parts.append("</ul>")
+                in_ul = False
+            if not in_ol:
+                parts.append("<ol>")
+                in_ol = True
+            parts.append(
+                f'<li style="color:{C_FG}; margin:2px 0;">{inline_md(ol.group(2))}</li>'
+            )
+            i += 1
+            continue
+
+        close_lists()
+        parts.append(
+            f'<div style="margin:3px 0;">{inline_md(stripped)}</div>'
+        )
+        i += 1
+
+    close_lists()
+    parts.append("</div>")
+    return "".join(parts)
 
 
 def list_dir(path: Path) -> list[dict]:
@@ -389,7 +757,8 @@ def preview(path_str: str) -> dict:
         if text:
             base["kind"] = "markdown"
             base["text"] = text
-            base["text_format"] = "markdown"
+            base["html"] = render_markdown_html(text)
+            base["text_format"] = "html"
             return base
 
     if ext in CODE_EXT or ext in TEXT_EXT or mime.startswith("text/") or mime in (
@@ -401,10 +770,10 @@ def preview(path_str: str) -> dict:
     ):
         text = read_text_file(path)
         if text:
-            if ext in CODE_EXT:
+            if ext in CODE_EXT or ext in {".json", ".jsonc"}:
                 base["kind"] = "code"
                 base["text"] = text
-                base["html"] = highlight_code_html(text, ext)
+                base["html"] = highlight_code_html(text, ext if ext else ".txt")
                 base["text_format"] = "html"
             else:
                 base["kind"] = "text"

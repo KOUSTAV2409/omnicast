@@ -494,18 +494,20 @@ Item {
                  ? Math.min(page.proseMax, parent.width - page.pagePad * 2)
                  : (parent.width - page.pagePad * 2)
           text: {
-            if (root.textFormat === "html" && root.previewHtml.length)
+            if (root.previewHtml.length)
               return root.previewHtml
             return root.previewText
           }
           textFormat: {
-            if (root.textFormat === "html" && root.previewHtml.length)
+            if (root.previewHtml.length)
               return Text.RichText
             if (root.textFormat === "markdown")
               return Text.MarkdownText
             return Text.PlainText
           }
-          font.family: root.previewFontFamily
+          font.family: root.previewHtml.length && root.kind === "code"
+                       ? Theme.monoFontFamily
+                       : (root.isProse ? Theme.proseFontFamily : Theme.monoFontFamily)
           font.pixelSize: root.previewFontSize
           lineHeight: root.previewLineHeight
           lineHeightMode: Text.ProportionalHeight
