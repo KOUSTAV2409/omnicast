@@ -44,7 +44,7 @@ Item {
   function runScript() {
     isRunning = true
     lastError = ""
-    outputMarkdown = "### Executing Script...\n\n`" + root.scriptPath + "`"
+    outputMarkdown = "Executing: " + root.scriptPath
     scriptRunner.command = _buildCommand()
     scriptRunner.running = true
   }

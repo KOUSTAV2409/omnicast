@@ -131,7 +131,14 @@ def read_omarchy_history(query="", filter_type="all", limit=120):
             
         if etype == "image":
             img_path = entry.get("path", "")
-            if not os.path.exists(img_path):
+            if not img_path or not os.path.exists(img_path):
+                continue
+            try:
+                from path_safety import allowed_path
+
+                if not allowed_path(Path(img_path)):
+                    continue
+            except Exception:
                 continue
                 
             captured_at = entry.get("capturedAt", "Recent")

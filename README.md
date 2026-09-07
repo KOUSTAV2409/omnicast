@@ -149,6 +149,16 @@ Full leftover backlog: [`roadmap.md`](roadmap.md) → **What’s left to build**
 
 ---
 
+## Security (local desktop)
+
+Omnicast is a **local** Alt+Space launcher. Cloning it from GitHub does **not** give anyone remote access to your machine. It runs as your user, like a browser or editor.
+
+Hardening includes: secrets/session paths blocked from search & preview, owner-only cache (`0600`), no shell launch of desktop `Exec=` lines, script commands only from allowlisted folders, and no executing `.sh`/binaries from Files search.
+
+Optional **`omnicast-snippetd`** uses the `input` group (keystroke expansion). Only enable it if you understand that; it is not required for the launcher.
+
+---
+
 ## License
 
 [MIT](LICENSE)
