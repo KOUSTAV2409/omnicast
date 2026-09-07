@@ -52,17 +52,22 @@ PanelWindow {
     anchors.horizontalCenter: parent.horizontalCenter
     anchors.verticalCenter: parent.verticalCenter
 
-    width: {
+    // Latch size to avoid resize thrash while browsing mixed results
+    property bool preferWide: {
       var v = navStack.currentViewItem
-      return (v && v.wideLayout) ? Math.max(Theme.cardWidth, 880) : Theme.cardWidth
+      return !!(v && v.wideLayout)
     }
-    height: {
-      var v = navStack.currentViewItem
-      return (v && v.wideLayout) ? Math.max(Theme.cardHeight, 680) : Theme.cardHeight
-    }
+    width: preferWide ? Math.max(Theme.cardWidth, 880) : Theme.cardWidth
+    height: preferWide ? Math.max(Theme.cardHeight, 680) : Theme.cardHeight
 
-    Behavior on width { NumberAnimation { duration: 200; easing.type: Easing.OutCubic } }
-    Behavior on height { NumberAnimation { duration: 200; easing.type: Easing.OutCubic } }
+    Behavior on width {
+      enabled: windowCard.visible
+      NumberAnimation { duration: 160; easing.type: Easing.OutCubic }
+    }
+    Behavior on height {
+      enabled: windowCard.visible
+      NumberAnimation { duration: 160; easing.type: Easing.OutCubic }
+    }
     radius: Theme.windowRadius
     color: Theme.darkerBackground
     border.color: Theme.border
@@ -321,11 +326,6 @@ PanelWindow {
       if (searchBar.textInput)
         searchBar.textInput.forceActiveFocus()
     })
-  }
-
-  function syncSearchBusy() {
-    var view = navStack.currentViewItem
-    searchBar.busy = !!(view && (view.isBusy || view.isLoading))
   }
 
   function dismiss() {

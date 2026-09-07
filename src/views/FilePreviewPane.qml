@@ -2,6 +2,7 @@ import QtQuick
 import Quickshell
 import Quickshell.Io
 import "../services"
+import "../components"
 
 // Reusable file preview surface (side pane + full FilePreviewView).
 Item {
@@ -89,9 +90,12 @@ Item {
   onFilePathChanged: {
     if (!filePath || !filePath.length) {
       clearPreview()
+      contentOpacity = 1
       return
     }
-    contentOpacity = 0.25
+    // Compact side pane: keep opacity steady to avoid flicker while arrowing
+    if (!compactChrome)
+      contentOpacity = 0.25
     isLoading = true
     errorText = ""
     debounce.restart()
@@ -250,8 +254,18 @@ Item {
     root.siblingRequested(delta)
   }
 
+  // Idle shell while wide layout is open but no file row is selected
+  EmptyState {
+    visible: !root.filePath.length && !root.isLoading
+    anchors.centerIn: parent
+    title: "Select a file"
+    subtitle: "Arrow to a Files row for preview"
+    iconText: ""
+  }
+
   Column {
     id: chrome
+    visible: root.filePath.length > 0 || root.isLoading
     anchors.left: parent.left
     anchors.right: parent.right
     anchors.top: parent.top
@@ -365,6 +379,7 @@ Item {
 
   Item {
     id: readingPane
+    visible: root.filePath.length > 0 || root.isLoading || root.errorText.length > 0
     anchors.left: parent.left
     anchors.right: parent.right
     anchors.top: chrome.bottom

@@ -27,8 +27,13 @@ Item {
   readonly property bool fileSelected: !!(selectedItem && selectedItem.path && selectedItem.category === "Files"
                                           && selectedItem.id !== "loading-files"
                                           && selectedItem.id !== "empty-files")
-  // Widen only when a real file row is selected (preview follows)
-  property bool wideLayout: fileSelected
+  // Stay wide for the whole file-search session so arrowing apps↔files
+  // does not resize the card on every selection change.
+  readonly property bool filesInPlay: {
+    var q = (filterText || "").trim()
+    return fileHits.length > 0 || filesSearching || (q.length >= 2 && fileQuery.length > 0)
+  }
+  property bool wideLayout: filesInPlay
 
   property bool isLoading: scriptScanner.running || omarchyScanner.running
                               || appScanner.running || quicklinkScanner.running
@@ -1287,10 +1292,6 @@ Item {
       highlightMoveDuration: 120
       highlightMoveVelocity: -1
 
-      Behavior on width {
-        NumberAnimation { duration: 180; easing.type: Easing.OutCubic }
-      }
-
       delegate: ItemRow {
         width: list.width
         title: modelData.title
@@ -1319,8 +1320,6 @@ Item {
       width: root.wideLayout ? 12 : 0
       height: parent.height
       opacity: root.wideLayout ? 1 : 0
-      Behavior on width { NumberAnimation { duration: 180; easing.type: Easing.OutCubic } }
-      Behavior on opacity { NumberAnimation { duration: 140 } }
 
       Rectangle {
         anchors.horizontalCenter: parent.horizontalCenter
@@ -1350,8 +1349,7 @@ Item {
         return sibs.indexOf(root.sidePreviewPath)
       }
 
-      Behavior on width { NumberAnimation { duration: 180; easing.type: Easing.OutCubic } }
-      Behavior on opacity { NumberAnimation { duration: 160; easing.type: Easing.OutCubic } }
+      Behavior on opacity { NumberAnimation { duration: 120; easing.type: Easing.OutCubic } }
 
       onEntryActivated: (path, title) => {
         Ranking.bump("file-side-drill")
