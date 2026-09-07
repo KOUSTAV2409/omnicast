@@ -27,20 +27,14 @@ Item {
   readonly property bool fileSelected: !!(selectedItem && selectedItem.path && selectedItem.category === "Files"
                                           && selectedItem.id !== "loading-files"
                                           && selectedItem.id !== "empty-files")
-  // Stay wide for the whole file-search session so arrowing apps↔files
-  // does not resize the card on every selection change.
-  readonly property bool filesInPlay: {
-    var q = (filterText || "").trim()
-    return fileHits.length > 0 || filesSearching || (q.length >= 2 && fileQuery.length > 0)
-  }
-  property bool wideLayout: filesInPlay
+  // Root search stays list-only — no split filesystem pane while browsing hits.
+  // Full preview is an explicit push (Ctrl+K → Full Preview).
+  property bool wideLayout: false
 
   property bool isLoading: scriptScanner.running || omarchyScanner.running
                               || appScanner.running || quicklinkScanner.running
   property bool filesSearching: fileScanner.running || fileSearchDebounce.running || fileSearchStartTimer.running
   readonly property bool isBusy: isLoading || filesSearching
-  property string sidePreviewPath: ""
-  property string sidePreviewTitle: ""
   // Footer / chrome hints for OmnicastWindow (FooterBar keeps Enter/Ctrl+K)
   readonly property bool queryLocksScope: /^in:\w+\s+/i.test((filterText || "").trim())
   readonly property string statusHint: {
@@ -160,40 +154,8 @@ Item {
     }
   }
 
-  Timer {
-    id: sidePreviewDebounce
-    interval: 70
-    repeat: false
-    onTriggered: root.syncSidePreview()
-  }
-
   function isFileStatusId(id) {
     return id === "loading-files" || id === "empty-files" || id === "loading-catalog"
-  }
-
-  function selectionIsRealFile() {
-    var item = root.selectedItem
-    return !!(item && item.path && item.category === "Files" && !root.isFileStatusId(item.id))
-  }
-
-  onSelectedIndexChanged: {
-    // Drop stale preview immediately when leaving Files; debounce only file→file
-    if (!root.selectionIsRealFile()) {
-      sidePreviewDebounce.stop()
-      sidePreviewPath = ""
-      sidePreviewTitle = ""
-    } else {
-      sidePreviewDebounce.restart()
-    }
-  }
-  onFilteredItemsChanged: {
-    if (!root.selectionIsRealFile()) {
-      sidePreviewDebounce.stop()
-      sidePreviewPath = ""
-      sidePreviewTitle = ""
-    } else {
-      sidePreviewDebounce.restart()
-    }
   }
 
   FileView {
@@ -511,18 +473,6 @@ Item {
     return out
   }
 
-  function syncSidePreview() {
-    var item = root.selectedItem
-    if (item && item.path && item.category === "Files"
-        && item.id !== "loading-files" && item.id !== "empty-files") {
-      sidePreviewPath = item.path
-      sidePreviewTitle = item.title || ""
-    } else {
-      sidePreviewPath = ""
-      sidePreviewTitle = ""
-    }
-  }
-
   function cycleCategory(direction) {
     var q = (filterText || "").trim()
     if (root.queryLocksScope) {
@@ -569,6 +519,7 @@ Item {
       fileHits = []
       fileQuery = ""
       fileScanner.pendingQuery = ""
+      fileScanner.activeQuery = ""
       fileScanner.running = false
       fileSearchStartTimer.stop()
       return
@@ -1339,7 +1290,7 @@ Item {
 
     ListView {
       id: list
-      width: root.wideLayout ? Math.round(parent.width * 0.30) : parent.width
+      width: parent.width
       height: parent.height
       clip: true
       model: root.filteredItems
@@ -1359,84 +1310,14 @@ Item {
         isSelected: index === root.selectedIndex
         onClicked: {
           root.selectedIndex = index
-          // File hits: select only (side preview follows). Others: run immediately.
-          if (!(modelData.path && modelData.category === "Files"))
+          // Same as apps/commands: activate. Peek via Ctrl+K → Full Preview.
+          if (!(modelData.isHeader || root.isFileStatusId(modelData.id)))
             root.executeCurrent()
         }
         onDoubleClicked: {
           root.selectedIndex = index
           root.executeCurrent()
         }
-      }
-    }
-
-    // Soft seam between list and preview
-    Item {
-      visible: root.wideLayout
-      width: root.wideLayout ? 12 : 0
-      height: parent.height
-      opacity: root.wideLayout ? 1 : 0
-
-      Rectangle {
-        anchors.horizontalCenter: parent.horizontalCenter
-        anchors.top: parent.top
-        anchors.bottom: parent.bottom
-        anchors.topMargin: 6
-        anchors.bottomMargin: 6
-        width: 1
-        color: Theme.subtleBorder
-      }
-    }
-
-    FilePreviewPane {
-      id: sidePreview
-      visible: width > 8
-      width: root.wideLayout ? parent.width - list.width - 12 : 0
-      height: parent.height
-      opacity: root.wideLayout ? 1 : 0
-      filePath: root.sidePreviewPath
-      fileTitle: root.sidePreviewTitle
-      cacheName: "file-preview-side.json"
-      compactChrome: true
-      interactiveDirs: true
-      siblingPaths: root.fileSiblingPaths()
-      siblingIndex: {
-        var sibs = root.fileSiblingPaths()
-        return sibs.indexOf(root.sidePreviewPath)
-      }
-
-      Behavior on opacity { NumberAnimation { duration: 120; easing.type: Easing.OutCubic } }
-
-      onEntryActivated: (path, title) => {
-        Ranking.bump("file-side-drill")
-        var sibs = []
-        var entries = sidePreview.dirEntries || []
-        for (var i = 0; i < entries.length; i++) {
-          if (entries[i] && entries[i].path)
-            sibs.push(entries[i].path)
-        }
-        root.requestPushViewWithProps(title, root.filePreviewComp, {
-          filePath: path,
-          fileTitle: title,
-          siblingPaths: sibs,
-          siblingIndex: sibs.indexOf(path)
-        })
-      }
-
-      onSiblingRequested: delta => {
-        var sibs = root.fileSiblingPaths()
-        if (sibs.length < 2) return
-        var idx = sibs.indexOf(root.sidePreviewPath)
-        if (idx < 0) idx = 0
-        var next = (idx + delta + sibs.length) % sibs.length
-        for (var i = 0; i < filteredItems.length; i++) {
-          if (filteredItems[i].path === sibs[next]) {
-            selectedIndex = i
-            list.positionViewAtIndex(i, ListView.Contain)
-            return
-          }
-        }
-        // Don't orphan preview from list selection
       }
     }
   }
