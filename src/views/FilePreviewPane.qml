@@ -127,6 +127,12 @@ Item {
     startTimer.restart()
   }
 
+  function pathsEqual(a, b) {
+    var x = String(a || "").replace(/\/$/, "")
+    var y = String(b || "").replace(/\/$/, "")
+    return x.length > 0 && x === y
+  }
+
   function applyPayload(data) {
     if (!data || !data.ok) {
       errorText = (data && data.error) ? data.error : "Preview failed"
@@ -146,7 +152,60 @@ Item {
     opener = data.opener || {}
     if (!fileTitle || !fileTitle.length)
       fileTitle = data.name || filePath
+    errorText = ""
     contentOpacity = 1
+  }
+
+  function readPreviewCache(preferredPath) {
+    var cached = ""
+    try {
+      previewCacheFile.path = ""
+      previewCacheFile.path = preferredPath && preferredPath.length
+                            ? preferredPath
+                            : Paths.cacheFile(root.cacheName)
+      cached = previewCacheFile.text() || ""
+    } catch (e1) {
+      console.error("[Omnicast] preview cache read failed:", e1)
+    }
+    return cached
+  }
+
+  function tryApplyCache(want, metaPath, cacheFilePath) {
+    var cached = readPreviewCache(cacheFilePath || "")
+    if (!cached.length)
+      return false
+    try {
+      var data = JSON.parse(cached)
+      if (!data || !data.ok)
+        return false
+      var cachePath = data.path ? String(data.path) : ""
+      // Accept only payloads for the file we asked to preview
+      if (pathsEqual(cachePath, want)
+          || (pathsEqual(cachePath, metaPath) && pathsEqual(metaPath, want))) {
+        applyPayload(data)
+        return true
+      }
+    } catch (e) {
+      console.error("[Omnicast] preview cache parse failed:", e)
+    }
+    return false
+  }
+
+  Timer {
+    id: cacheRetryTimer
+    interval: 40
+    repeat: false
+    property string wantPath: ""
+    property string metaPath: ""
+    property string cacheHint: ""
+    onTriggered: {
+      if (previewLoader.pendingPath !== root.filePath)
+        return
+      if (root.tryApplyCache(wantPath, metaPath, cacheHint))
+        return
+      root.errorText = "Preview failed (no cache)"
+      root.contentOpacity = 1
+    }
   }
 
   function handlePreviewMeta(raw) {
@@ -161,38 +220,30 @@ Item {
       console.error("[Omnicast] preview meta parse failed:", e0, raw)
     }
 
-    var cached = ""
-    try {
-      previewCacheFile.path = ""
-      previewCacheFile.path = Paths.cacheFile(root.cacheName)
-      cached = previewCacheFile.text() || ""
-    } catch (e1) {
-      console.error("[Omnicast] preview cache read failed:", e1)
+    var want = String(filePath || "")
+    var metaPath = meta.path ? String(meta.path) : ""
+    var cachePathHint = meta.cache ? String(meta.cache) : ""
+
+    if (meta && meta.ok === false) {
+      errorText = meta.error || "Preview failed"
+      contentOpacity = 1
+      return
     }
 
-    try {
-      if (cached.length) {
-        var data = JSON.parse(cached)
-        var cachePath = (data && data.path) ? String(data.path) : ""
-        var want = String(filePath || "")
-        var metaPath = meta.path ? String(meta.path) : ""
-        if (data && cachePath === want && metaPath === want) {
-          applyPayload(data)
-          return
-        }
-      }
-      if (meta && meta.ok === false) {
-        errorText = meta.error || "Preview failed"
-        contentOpacity = 1
-        return
-      }
-      errorText = "Preview failed (no cache)"
-      contentOpacity = 1
-    } catch (e) {
-      errorText = "Failed to parse preview"
-      contentOpacity = 1
-      console.error("[Omnicast] preview parse failed:", e, raw)
+    if (tryApplyCache(want, metaPath, cachePathHint))
+      return
+
+    // FileView can briefly miss a just-written cache — one deferred retry
+    if (meta && meta.ok && (pathsEqual(metaPath, want) || !metaPath.length)) {
+      cacheRetryTimer.wantPath = want
+      cacheRetryTimer.metaPath = metaPath
+      cacheRetryTimer.cacheHint = cachePathHint
+      cacheRetryTimer.restart()
+      return
     }
+
+    errorText = "Preview failed (no cache)"
+    contentOpacity = 1
   }
 
   function goSibling(delta) {
