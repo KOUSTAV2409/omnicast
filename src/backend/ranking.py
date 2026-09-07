@@ -31,9 +31,16 @@ def load():
 
 
 def save(data):
+    from path_safety import write_secure_json
+
     DATA_DIR.mkdir(parents=True, exist_ok=True)
-    with open(DATA_FILE, "w") as f:
-        json.dump(data, f, indent=2)
+    try:
+        import os
+
+        os.chmod(DATA_DIR, 0o700)
+    except Exception:
+        pass
+    write_secure_json(DATA_FILE, data)
 
 
 def bump(item_id: str):

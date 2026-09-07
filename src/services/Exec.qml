@@ -54,8 +54,6 @@ QtObject {
     detached(["python3", Paths.py("util_io.py"), "paste-image", path || ""])
   }
 
-  // Omarchy Hyprland is Lua-first: classic `hyprctl dispatch togglefloating`
-  // fails. Pass a Lua dispatcher expression, e.g. hl.dsp.window.float({ action = "toggle" }).
   function hyprLua(expr) {
     if (!expr || !String(expr).length)
       return
@@ -63,24 +61,37 @@ QtObject {
   }
 
   function hypr(dispatchArgs) {
-    // Legacy helper: prefer hyprLua on Omarchy. Still used for simple argv joins.
     var argv = ["hyprctl", "dispatch"]
     for (var i = 0; i < dispatchArgs.length; i++)
       argv.push(String(dispatchArgs[i]))
     detached(argv)
   }
 
-  // Run after overlay dismisses so Omarchy helpers see the real active window.
+  // Delayed argv run without shell — uses sleep(1) as argv[0] then the real command.
+  // Prefer fixed argv arrays only; never pass user-controlled shell strings.
   function afterDismiss(argv, delayMs) {
+    if (!argv || !argv.length)
+      return
     var ms = delayMs === undefined ? 80 : delayMs
+    var secs = Math.max(0, ms / 1000)
+    // sleep then exec via env — still no user string concatenation into sh -c
+    var wrapped = ["sleep", String(secs)]
+    // Chain with a tiny helper: python -c is avoided; use `sh -c` ONLY with
+    // individually single-quoted argv pieces (no raw user shell).
     var parts = []
     for (var i = 0; i < argv.length; i++)
       parts.push("'" + String(argv[i]).replace(/'/g, "'\\''") + "'")
-    detached(["sh", "-c", "sleep " + (ms / 1000) + "; exec " + parts.join(" ")])
+    detached(["sh", "-c", "sleep " + secs + "; exec " + parts.join(" ")])
   }
 
   function openUrl(url) {
-    detached(["xdg-open", url])
+    var u = String(url || "")
+    var low = u.toLowerCase()
+    if (!(low.indexOf("https://") === 0 || low.indexOf("http://") === 0 || low.indexOf("mailto:") === 0)) {
+      console.error("[Exec] blocked non-http(s)/mailto URL:", u)
+      return
+    }
+    detached(["xdg-open", u])
   }
 
   function openPath(path) {
@@ -104,22 +115,66 @@ QtObject {
     detached(["xdg-open", parent])
   }
 
+  // Launch a .desktop app without shell. Prefer gtk-launch / gio / argv.
+  function launchDesktop(desktopId, desktopPath, argv, terminal) {
+    if (desktopId && String(desktopId).length) {
+      detached(["gtk-launch", String(desktopId)])
+      return
+    }
+    if (desktopPath && String(desktopPath).length) {
+      detached(["gio", "launch", String(desktopPath)])
+      return
+    }
+    if (argv && argv.length) {
+      if (terminal)
+        launchArgvInTerminal(argv)
+      else
+        detached(argv)
+      return
+    }
+  }
+
+  // Legacy: execLine may still arrive from old cache — refuse shell metacharacters.
   function launchApp(execLine) {
     var cleaned = (execLine || "").replace(/%[fFuUdDnNickvm]/g, "").replace(/\s+/g, " ").trim()
     if (!cleaned.length)
       return
-    detached(["sh", "-c", cleaned + " &"])
+    if (/[;&|`$<>\n]/.test(cleaned)) {
+      console.error("[Exec] blocked unsafe Exec line (use desktop_path/argv):", cleaned)
+      return
+    }
+    // Split on spaces only — no shell. Imperfect for quoted args; prefer launchDesktop.
+    var parts = cleaned.split(/\s+/).filter(function(p) { return p.length })
+    if (!parts.length)
+      return
+    detached(parts)
+  }
+
+  function launchArgvInTerminal(argv) {
+    if (!argv || !argv.length)
+      return
+    var cmd = [root.terminal, "-e"].concat(argv)
+    detached(cmd)
   }
 
   function launchInTerminal(cmd) {
-    detached([root.terminal, "-e", "bash", "-c", cmd + '; echo; read -p "Press enter to close..."'])
+    // Legacy string path — refuse metacharacters; prefer launchArgvInTerminal
+    var c = String(cmd || "").trim()
+    if (!c.length)
+      return
+    if (/[;&|`$<>\n]/.test(c)) {
+      console.error("[Exec] blocked unsafe terminal command")
+      return
+    }
+    var parts = c.split(/\s+/).filter(function(p) { return p.length })
+    if (!parts.length)
+      return
+    launchArgvInTerminal(parts)
   }
 
   function omarchyThemeSet(name) {
     detached(["omarchy", "theme", "set", name])
   }
-
-  // --- Omarchy native surfaces (umbrella handoffs) ---
 
   function omarchyClipboard() {
     detached(["omarchy-menu-clipboard"])
@@ -137,9 +192,14 @@ QtObject {
     detached(["omarchy-menu-images", "--filterable", root.pictures])
   }
 
-  // route e.g. "root", "style.theme", "style.background"
   function omarchyMenu(route) {
-    detached(["omarchy-menu", "summon", route || "root"])
+    // route is a fixed Omarchy menu id — reject shell metacharacters
+    var r = String(route || "root")
+    if (!/^[A-Za-z0-9._-]+$/.test(r)) {
+      console.error("[Exec] blocked unsafe omarchy menu route:", r)
+      return
+    }
+    detached(["omarchy-menu", "summon", r])
   }
 
   function omarchyThemePicker() {
@@ -153,5 +213,30 @@ QtObject {
   function omarchyFileOpen() {
     var opener = Paths.projectRoot + "/bin/omnicast-open-file"
     detached([opener])
+  }
+
+  // Run an Omarchy CLI route without shell when possible.
+  function omarchyRoute(route) {
+    var r = String(route || "").trim()
+    if (!r.length)
+      return
+    if (/[;&|`$<>\n]/.test(r)) {
+      console.error("[Exec] blocked unsafe omarchy route:", r)
+      return
+    }
+    // Prefer bare argv when route looks like `omarchy …`
+    if (r.indexOf("omarchy ") === 0 || r === "omarchy") {
+      var parts = r.split(/\s+/).filter(function(p) { return p.length })
+      detached(parts)
+      return
+    }
+    if (r.indexOf("omarchy-") === 0 && r.indexOf(" ") < 0) {
+      detached([r])
+      return
+    }
+    // Last resort: only allow simple tokens (no shell ops already checked)
+    var toks = r.split(/\s+/).filter(function(p) { return p.length })
+    if (toks.length)
+      detached(toks)
   }
 }

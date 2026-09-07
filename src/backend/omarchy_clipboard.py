@@ -22,9 +22,15 @@ def get_pinned():
     return []
 
 def save_pinned(pinned_list):
+    from path_safety import write_secure_json
+    import os
+
     CONFIG_DIR.mkdir(parents=True, exist_ok=True)
-    with open(PINNED_FILE, "w") as f:
-        json.dump(pinned_list, f, indent=2)
+    try:
+        os.chmod(CONFIG_DIR, 0o700)
+    except Exception:
+        pass
+    write_secure_json(PINNED_FILE, pinned_list)
 
 def hex_to_rgb(hex_str):
     hex_str = hex_str.lstrip('#')
@@ -278,8 +284,9 @@ def remove_entry(key):
             k = f"image:{e.get('path')}" if e.get("type") == "image" else f"text:{e.get('text', '')}"
             if k != key:
                 filtered.append(e)
-        with open(HISTORY_FILE, "w") as f:
-            json.dump(filtered, f, indent=2)
+        from path_safety import write_secure_json
+
+        write_secure_json(HISTORY_FILE, filtered)
     except:
         pass
 

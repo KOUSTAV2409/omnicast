@@ -10,6 +10,8 @@ Rectangle {
   property string imageSource: ""
   property string headerBadge: ""
   property string swatchColor: ""
+  // "markdown" (default) or "plain" — plain avoids script-stdout Markdown injection
+  property string contentFormat: "markdown"
 
   color: "transparent"
 
@@ -102,7 +104,7 @@ Rectangle {
         visible: root.markdownContent.length > 0
         width: parent.width
         text: root.markdownContent
-        textFormat: Text.MarkdownText
+        textFormat: root.contentFormat === "plain" ? Text.PlainText : Text.MarkdownText
         font.family: Theme.fontFamily
         font.pixelSize: 13
         lineHeight: 1.4

@@ -6,10 +6,16 @@ Omarchy paste flow:
   2. sleep ~0.15s (launcher must already be dismissed / focus restored)
   3. Shift+Insert (more reliable than Ctrl+V across terminals/apps)
 """
-import sys
+from __future__ import annotations
+
 import subprocess
+import sys
 import time
 from pathlib import Path
+
+from path_safety import allowed_path, deny_reason
+
+MAX_CLIP_BYTES = 20 * 1024 * 1024  # 20 MiB
 
 
 def copy_text(text: str) -> None:
@@ -17,11 +23,35 @@ def copy_text(text: str) -> None:
     p.communicate(input=(text or "").encode("utf-8", errors="replace"))
 
 
+def _safe_file(path: str) -> Path:
+    raw = (path or "").strip()
+    if not raw:
+        raise ValueError("No path")
+    p = Path(raw).expanduser().resolve()
+    reason = deny_reason(p)
+    if reason:
+        raise PermissionError(reason)
+    if not allowed_path(p):
+        raise PermissionError("Path not allowed")
+    if not p.is_file():
+        raise FileNotFoundError(str(p))
+    if p.stat().st_size > MAX_CLIP_BYTES:
+        raise ValueError("File too large for clipboard")
+    return p
+
+
 def copy_file(path: str) -> None:
-    data = Path(path).read_bytes()
-    mime = "image/png" if path.lower().endswith(".png") else "application/octet-stream"
-    p = subprocess.Popen(["wl-copy", "--type", mime], stdin=subprocess.PIPE)
-    p.communicate(input=data)
+    p = _safe_file(path)
+    data = p.read_bytes()
+    mime = "image/png" if p.suffix.lower() == ".png" else "application/octet-stream"
+    if p.suffix.lower() in {".jpg", ".jpeg"}:
+        mime = "image/jpeg"
+    elif p.suffix.lower() == ".webp":
+        mime = "image/webp"
+    elif p.suffix.lower() == ".gif":
+        mime = "image/gif"
+    proc = subprocess.Popen(["wl-copy", "--type", mime], stdin=subprocess.PIPE)
+    proc.communicate(input=data)
 
 
 def _shift_insert() -> None:
@@ -53,7 +83,6 @@ def main():
         print("usage: util_io.py copy|copy-file|paste|paste-image ...", file=sys.stderr)
         sys.exit(1)
     op = sys.argv[1]
-    # Prefer stdin for large payloads: util_io.py copy -- (then body on stdin)
     if op in ("copy", "paste") and len(sys.argv) > 2 and sys.argv[2] == "--":
         arg = sys.stdin.read()
     elif op in ("copy", "paste") and len(sys.argv) > 3:
@@ -61,16 +90,20 @@ def main():
     else:
         arg = sys.argv[2] if len(sys.argv) > 2 else ""
 
-    if op == "copy":
-        copy_text(arg)
-    elif op == "copy-file":
-        copy_file(arg)
-    elif op == "paste":
-        paste_text(arg)
-    elif op == "paste-image":
-        paste_image(arg)
-    else:
-        sys.exit(2)
+    try:
+        if op == "copy":
+            copy_text(arg)
+        elif op == "copy-file":
+            copy_file(arg)
+        elif op == "paste":
+            paste_text(arg)
+        elif op == "paste-image":
+            paste_image(arg)
+        else:
+            sys.exit(2)
+    except Exception as e:
+        print(str(e), file=sys.stderr)
+        sys.exit(1)
 
 
 if __name__ == "__main__":

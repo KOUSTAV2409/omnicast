@@ -63,17 +63,29 @@ DEFAULT_SNIPPETS = [
 
 
 def init_snippets():
+    from path_safety import write_secure_json
+    import os
+
     SNIPPETS_FILE.parent.mkdir(parents=True, exist_ok=True)
+    try:
+        os.chmod(SNIPPETS_FILE.parent, 0o700)
+    except Exception:
+        pass
     if not SNIPPETS_FILE.exists():
-        with open(SNIPPETS_FILE, "w") as f:
-            json.dump(DEFAULT_SNIPPETS, f, indent=2)
+        write_secure_json(SNIPPETS_FILE, DEFAULT_SNIPPETS)
 
 
 def load_settings():
+    from path_safety import write_secure_json
+    import os
+
     SETTINGS_FILE.parent.mkdir(parents=True, exist_ok=True)
+    try:
+        os.chmod(SETTINGS_FILE.parent, 0o700)
+    except Exception:
+        pass
     if not SETTINGS_FILE.exists():
-        with open(SETTINGS_FILE, "w") as f:
-            json.dump(DEFAULT_SETTINGS, f, indent=2)
+        write_secure_json(SETTINGS_FILE, DEFAULT_SETTINGS)
         return dict(DEFAULT_SETTINGS)
     try:
         with open(SETTINGS_FILE) as f:
@@ -95,9 +107,15 @@ def load_snippets():
 
 
 def save_snippets(snippets):
+    from path_safety import write_secure_json
+    import os
+
     SNIPPETS_FILE.parent.mkdir(parents=True, exist_ok=True)
-    with open(SNIPPETS_FILE, "w") as f:
-        json.dump(snippets, f, indent=2)
+    try:
+        os.chmod(SNIPPETS_FILE.parent, 0o700)
+    except Exception:
+        pass
+    write_secure_json(SNIPPETS_FILE, snippets)
 
 
 def resolve_template(template_str):
@@ -175,7 +193,7 @@ def type_expanded(text: str, settings: dict | None = None) -> dict:
                 r = _run_type(["wtype", "-M", "shift", "-k", "Insert", "-m", "shift"])
                 if r.returncode == 0:
                     return {"ok": True, "backend": "wtype-shift-insert"}
-                r = _run_type(["wtype", text], timeout=4)
+                r = _run_type(["wtype", "--", text], timeout=4)
                 if r.returncode == 0:
                     return {"ok": True, "backend": "wtype"}
                 last_err = f"wtype exit {r.returncode}"

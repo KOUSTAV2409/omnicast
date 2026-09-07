@@ -176,8 +176,7 @@ Item {
         var cachePath = (data && data.path) ? String(data.path) : ""
         var want = String(filePath || "")
         var metaPath = meta.path ? String(meta.path) : ""
-        if (data && (cachePath === want || cachePath === metaPath || metaPath === want
-                     || (meta.ok && metaPath.length && cachePath === metaPath))) {
+        if (data && cachePath === want && metaPath === want) {
           applyPayload(data)
           return
         }

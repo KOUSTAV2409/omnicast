@@ -90,13 +90,34 @@ Item {
       Hud.error(pane.errorText || "Blocked: sensitive path")
       return
     }
+    if (pane.opener && pane.opener.argv && pane.opener.argv.length) {
+      var argvPath = ""
+      var argv = pane.opener.argv
+      for (var i = 0; i < argv.length; i++) {
+        var a = String(argv[i] || "")
+        if (a.indexOf("--view=") === 0)
+          argvPath = a.substring(7)
+        else if (a.indexOf("/") === 0 || a.indexOf("~") === 0)
+          argvPath = a
+      }
+      if (argvPath.length && argvPath !== root.filePath) {
+        Hud.error("Preview out of sync — reopen from search")
+        return
+      }
+      var bin = String(argv[0] || "")
+      if (bin !== "xdg-open" && bin.indexOf("onlyoffice") < 0) {
+        Hud.error("Blocked: unexpected opener")
+        return
+      }
+      Ranking.bump("file-open-external")
+      root.requestDismiss()
+      Exec.detached(argv)
+      Hud.success("Opening " + (root.fileTitle || root.filePath))
+      return
+    }
     Ranking.bump("file-open-external")
     root.requestDismiss()
-    var argv = (pane.opener && pane.opener.argv) ? pane.opener.argv : null
-    if (argv && argv.length)
-      Exec.detached(argv)
-    else
-      Exec.openPath(root.filePath)
+    Exec.openPath(root.filePath)
     Hud.success("Opening " + (root.fileTitle || root.filePath))
   }
 

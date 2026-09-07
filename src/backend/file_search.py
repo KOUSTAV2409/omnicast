@@ -83,6 +83,8 @@ EXCLUDE_GLOBS = [
     ".config/1Password",
     ".config/Signal",
     ".config/Element",
+    ".config/discord",
+    ".config/slack",
     ".local/share/keyrings",
 ]
 
@@ -284,16 +286,7 @@ def search_plocate(query: str, limit: int, root: Path) -> list[Path]:
             timeout=2.5,
         )
     except Exception:
-        # Older locate may lack --
-        try:
-            out = subprocess.check_output(
-                [loc, "-i", "-l", str(max(limit * 5, 50)), query],
-                text=True,
-                stderr=subprocess.DEVNULL,
-                timeout=2.5,
-            )
-        except Exception:
-            return []
+        return []
     paths = []
     for line in out.splitlines():
         line = line.strip()

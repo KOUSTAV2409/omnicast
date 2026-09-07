@@ -39,7 +39,11 @@ SECRET_DIR_PARTS = (
     "/.config/slack/",
     "/.config/Bitwarden/",
     "/.config/1Password/",
+    "/.config/op/",
     "/.electrum/",
+    "/.var/app/org.mozilla.firefox/",
+    "/.var/app/com.google.Chrome/",
+    "/.var/app/com.brave.Browser/",
     "/Library/Keychains/",  # macOS-ish; harmless on Linux
 )
 
@@ -55,6 +59,7 @@ SECRET_NAMES = {
     ".env.development",
     ".env.production",
     ".env.staging",
+    ".envrc",
     "id_rsa",
     "id_dsa",
     "id_ecdsa",
@@ -70,6 +75,7 @@ SECRET_NAMES = {
     "secrets.json",
     "secrets.yaml",
     "secrets.yml",
+    "secrets.toml",
     "token",
     "token.json",
     "cookies",
@@ -94,10 +100,11 @@ SECRET_SUFFIXES = (
     ".asc",  # often armored private material
 )
 
-# Extra rg --glob denials (content search).
+# Extra rg --glob denials (content search) — keep in sync with SECRET_DIR_PARTS.
 SECRET_RG_GLOBS = [
     "!.ssh/**",
     "!.gnupg/**",
+    "!.gpg/**",
     "!.password-store/**",
     "!.aws/**",
     "!.azure/**",
@@ -109,12 +116,28 @@ SECRET_RG_GLOBS = [
     "!.config/chromium/**",
     "!.config/google-chrome/**",
     "!.config/BraveSoftware/**",
+    "!.config/microsoft-edge/**",
     "!.mozilla/firefox/**",
+    "!.thunderbird/**",
     "!.local/share/keyrings/**",
+    "!.local/share/kwalletd/**",
+    "!.config/Element/**",
+    "!.config/Signal/**",
+    "!.config/discord/**",
+    "!.config/slack/**",
+    "!.config/Bitwarden/**",
+    "!.config/1Password/**",
+    "!.config/op/**",
+    "!.electrum/**",
+    "!.var/app/org.mozilla.firefox/**",
+    "!.var/app/com.google.Chrome/**",
+    "!.var/app/com.brave.Browser/**",
     "!.env",
     "!.env.*",
+    "!.envrc",
     "!**/.env",
     "!**/.env.*",
+    "!**/.envrc",
     "!**/id_rsa",
     "!**/id_ed25519",
     "!**/id_ecdsa",
@@ -127,6 +150,8 @@ SECRET_RG_GLOBS = [
     "!**/.git-credentials",
     "!**/credentials.json",
     "!**/service_account.json",
+    "!**/secrets.json",
+    "!**/secrets.toml",
     "!**/Cookies",
     "!**/Login Data",
     "!**/logins.json",

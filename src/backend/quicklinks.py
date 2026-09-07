@@ -5,6 +5,8 @@ import subprocess
 import urllib.parse
 from pathlib import Path
 
+from path_safety import write_secure_json
+
 CONFIG = Path.home() / ".config/omnicast/quicklinks.json"
 
 DEFAULTS = [
@@ -35,11 +37,20 @@ DEFAULTS = [
 ]
 
 
-def load():
+def _ensure_config_perms() -> None:
     CONFIG.parent.mkdir(parents=True, exist_ok=True)
+    try:
+        import os
+
+        os.chmod(CONFIG.parent, 0o700)
+    except Exception:
+        pass
+
+
+def load():
+    _ensure_config_perms()
     if not CONFIG.exists():
-        with open(CONFIG, "w") as f:
-            json.dump(DEFAULTS, f, indent=2)
+        write_secure_json(CONFIG, DEFAULTS)
         return list(DEFAULTS)
     try:
         with open(CONFIG) as f:
@@ -62,23 +73,30 @@ def resolve(url: str, argument: str = "") -> str:
     return out
 
 
+def url_allowed(url: str) -> bool:
+    low = (url or "").strip().lower()
+    return low.startswith("https://") or low.startswith("http://") or low.startswith("mailto:")
+
+
 def list_links():
     results = []
     for q in load():
         needs_arg = "{argument}" in q.get("url", "") or "{query}" in q.get("url", "")
-        results.append({
-            "id": q.get("id"),
-            "title": q.get("title"),
-            "subtitle": q.get("subtitle") or q.get("url"),
-            "icon": q.get("icon") or "🔗",
-            "badge": "Link",
-            "category": "Quicklinks",
-            "url": q.get("url"),
-            "keyword": q.get("keyword") or "",
-            "needsArgument": needs_arg,
-            "primaryActionTitle": "Open Link",
-            "markdown": f"### {q.get('title')}\n\n`{q.get('url')}`\n\nKeyword: `{q.get('keyword', '')}`",
-        })
+        results.append(
+            {
+                "id": q.get("id"),
+                "title": q.get("title"),
+                "subtitle": q.get("subtitle") or q.get("url"),
+                "icon": q.get("icon") or "🔗",
+                "badge": "Link",
+                "category": "Quicklinks",
+                "url": q.get("url"),
+                "keyword": q.get("keyword") or "",
+                "needsArgument": needs_arg,
+                "primaryActionTitle": "Open Link",
+                "markdown": f"### {q.get('title')}\n\n`{q.get('url')}`\n\nKeyword: `{q.get('keyword', '')}`",
+            }
+        )
     return results
 
 
@@ -86,6 +104,9 @@ def open_link(link_id: str, argument: str = ""):
     for q in load():
         if q.get("id") == link_id:
             url = resolve(q.get("url", ""), argument)
+            if not url_allowed(url):
+                print(json.dumps({"ok": False, "error": "blocked scheme (http/https/mailto only)"}))
+                return
             subprocess.Popen(["xdg-open", url])
             print(json.dumps({"ok": True, "url": url}))
             return
@@ -94,7 +115,8 @@ def open_link(link_id: str, argument: str = ""):
 
 if __name__ == "__main__":
     if len(sys.argv) < 2 or sys.argv[1] == "list":
-        from path_safety import write_secure_json, cache_dir
+        from path_safety import cache_dir
+
         results = list_links()
         cache_file = cache_dir() / "quicklinks.json"
         write_secure_json(cache_file, results)

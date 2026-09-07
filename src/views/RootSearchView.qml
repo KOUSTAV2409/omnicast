@@ -277,7 +277,7 @@ Item {
     }
     item.action = function() {
       Ranking.bump(item.id)
-      Exec.detached(["sh", "-c", item.route + " &"])
+      Exec.omarchyRoute(item.route)
       Hud.success("Ran " + item.title)
       root.requestDismiss()
     }
@@ -297,11 +297,14 @@ Item {
     var item = {
       id: a.id, title: a.title, subtitle: a.subtitle || "Application",
       icon: a.icon || "", category: "Applications", badge: "App",
-      exec: a.exec, desktopPath: a.desktop_path, primaryActionTitle: "Open", actions: []
+      exec: a.exec, argv: a.argv || [], terminal: !!a.terminal,
+      desktopPath: a.desktop_path || a.desktopPath || "",
+      desktopId: a.desktop_id || a.desktopId || "",
+      primaryActionTitle: "Open", actions: []
     }
     item.action = function() {
       Ranking.bump(item.id)
-      Exec.launchApp(item.exec)
+      Exec.launchDesktop(item.desktopId, item.desktopPath, item.argv, item.terminal)
       Hud.success("Launched " + item.title)
       root.requestDismiss()
     }
@@ -309,7 +312,10 @@ Item {
       { title: "Launch Application", icon: "🚀", shortcut: "↵", callback: item.action },
       { title: "Launch in Terminal", icon: "", callback: function() {
         Ranking.bump(item.id)
-        Exec.launchInTerminal(item.exec || "")
+        if (item.argv && item.argv.length)
+          Exec.launchArgvInTerminal(item.argv)
+        else
+          Exec.launchInTerminal(item.exec || "")
         Hud.success("Launched in terminal")
         root.requestDismiss()
       }}
@@ -424,6 +430,12 @@ Item {
       return
     }
     var low = p.toLowerCase()
+    // Never hand scripts/binaries to xdg-open (often executes them)
+    if (/\.(sh|bash|zsh|fish|py|rb|pl|js|mjs|cjs|exe|bin|run|appimage)$/.test(low)) {
+      Exec.copyText(p)
+      Hud.error("Script/binary not launched from Files — path copied")
+      return
+    }
     if (/\.(docx?|odt|rtf|xlsx?|ods|pptx?|odp)$/.test(low)) {
       Exec.detached(["onlyoffice-desktopeditors", "--view=" + p])
       return
