@@ -40,7 +40,7 @@ Item {
     anchors.left: breadcrumb.visible ? breadcrumb.right : parent.left
     anchors.right: parent.right
     anchors.verticalCenter: parent.verticalCenter
-    text: "Search…"
+    text: root.placeholderText.length ? root.placeholderText : "Apps, commands, files…"
     font.family: Theme.fontFamily
     font.pixelSize: Theme.fontHeading
     font.weight: Font.Medium

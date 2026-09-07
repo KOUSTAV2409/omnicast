@@ -83,7 +83,7 @@ Rectangle {
 
             Text {
               anchors.fill: parent
-              text: "Search actions..."
+              text: "Search actions…  Enter run · Esc close"
               font.family: Theme.fontFamily
               font.pixelSize: 13
               color: Theme.muted

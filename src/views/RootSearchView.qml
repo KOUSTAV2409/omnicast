@@ -22,15 +22,35 @@ Item {
   property var fileScopes: ["home", "projects", "documents", "downloads", "desktop"]
   property int fileScopeIndex: 0
   readonly property string fileScope: fileScopes[fileScopeIndex] || "home"
-  readonly property bool fileSelected: !!(selectedItem && selectedItem.path && selectedItem.category === "Files")
-  // Grow card when browsing files with a live side preview
-  property bool wideLayout: fileSelected || (fileHits && fileHits.length > 0 && filterText.trim().length >= 2)
+  // Scope actually used by the last completed search (honors in:)
+  property string activeFileScope: "home"
+  readonly property bool fileSelected: !!(selectedItem && selectedItem.path && selectedItem.category === "Files"
+                                          && selectedItem.id !== "loading-files"
+                                          && selectedItem.id !== "empty-files")
+  // Widen only when a real file row is selected (preview follows)
+  property bool wideLayout: fileSelected
 
   property bool isLoading: scriptScanner.running || omarchyScanner.running
                               || appScanner.running || quicklinkScanner.running
   property bool filesSearching: fileScanner.running || fileSearchDebounce.running || fileSearchStartTimer.running
+  readonly property bool isBusy: isLoading || filesSearching
   property string sidePreviewPath: ""
   property string sidePreviewTitle: ""
+  // Footer / chrome hints for OmnicastWindow
+  readonly property string statusHint: {
+    var q = (filterText || "").trim()
+    if (fileSelected)
+      return "Files · " + activeFileScope + " · Ctrl+Shift+P scope"
+    if (q.length >= 2 && (fileHits.length || filesSearching || fileQuery === q))
+      return "Files · " + activeFileScope + " · Ctrl+Shift+P · content: · in:"
+    return "Enter · Ctrl+K · Esc"
+  }
+  readonly property string searchPlaceholder: {
+    var q = (filterText || "").trim()
+    if (q.length >= 2)
+      return "name · content:phrase · in:projects foo"
+    return "Apps, commands, files…"
+  }
 
   signal requestActionPalette(var actions)
   signal requestPushView(string title, var component)
@@ -230,7 +250,7 @@ Item {
       handoffTool("images", "Images", "Browse Pictures",
                   "󰋫", "Omarchy", "Omarchy", "Open Images",
                   function() { Exec.omarchyImages() }),
-      handoffTool("files", "Find Files", "Portal picker (typed search is below)",
+      handoffTool("files", "Find Files", "Type a name here · in:projects · Ctrl+Shift+P",
                   "󰈔", "Omarchy", "Omarchy", "Open Files",
                   function() { Exec.omarchyFileOpen() }),
       handoffTool("keybindings", "Keybindings", "Super+K",
@@ -358,7 +378,7 @@ Item {
       id: f.id, title: f.title || f.name || path, subtitle: f.subtitle || path,
       icon: f.icon || "󰈔", category: "Files", badge: f.badge || (f.is_dir ? "Dir" : "File"),
       path: path, isDir: !!f.is_dir, keyword: path, contentMatch: !!f.content_match,
-      primaryActionTitle: isDoc ? "Open" : "Open", actions: []
+      primaryActionTitle: f.is_dir ? "Open Folder" : "Open", actions: []
     }
     item.action = function() {
       Ranking.bump(item.id)
@@ -454,15 +474,10 @@ Item {
 
   function syncSidePreview() {
     var item = root.selectedItem
-    if (item && item.path && item.category === "Files") {
+    if (item && item.path && item.category === "Files"
+        && item.id !== "loading-files" && item.id !== "empty-files") {
       sidePreviewPath = item.path
       sidePreviewTitle = item.title || ""
-    } else if (fileHits && fileHits.length && filterText.trim().length >= 2) {
-      // Keep last / first file hit visible while cursor is on catalog rows
-      if (!sidePreviewPath.length && fileHits[0]) {
-        sidePreviewPath = fileHits[0].path
-        sidePreviewTitle = fileHits[0].title || ""
-      }
     } else {
       sidePreviewPath = ""
       sidePreviewTitle = ""
@@ -472,10 +487,31 @@ Item {
   function cycleCategory(direction) {
     var dir = direction || 1
     fileScopeIndex = (fileScopeIndex + dir + fileScopes.length) % fileScopes.length
-    Hud.info("Files scope · " + fileScope)
+    activeFileScope = fileScope
+    Hud.info("Files scope · " + fileScope + " · also in:" + fileScope)
     fileQuery = ""
     if ((filterText || "").trim().length >= 2)
       scheduleFileSearch(filterText)
+  }
+
+  function scopeFromQuery(query) {
+    var m = String(query || "").match(/^in:(\w+)\s+/i)
+    if (m) {
+      var name = m[1].toLowerCase()
+      var idx = fileScopes.indexOf(name)
+      if (idx >= 0)
+        return name
+    }
+    return fileScope
+  }
+
+  function syncScopeFromName(name) {
+    var n = (name || "").toLowerCase()
+    var idx = fileScopes.indexOf(n)
+    if (idx >= 0) {
+      fileScopeIndex = idx
+      activeFileScope = n
+    }
   }
 
   function runFileSearch(query) {
@@ -488,12 +524,14 @@ Item {
       fileSearchStartTimer.stop()
       return
     }
-    if (fileScanner.running && fileScanner.pendingQuery === q && fileScanner.pendingScope === fileScope)
+    var scope = scopeFromQuery(q)
+    syncScopeFromName(scope)
+    if (fileScanner.running && fileScanner.pendingQuery === q && fileScanner.pendingScope === scope)
       return
     fileScanner.running = false
     fileScanner.pendingQuery = q
-    fileScanner.pendingScope = fileScope
-    console.log("[Omnicast] file search start:", q, "scope:", fileScope)
+    fileScanner.pendingScope = scope
+    console.log("[Omnicast] file search start:", q, "scope:", scope)
     fileSearchStartTimer.restart()
   }
 
@@ -525,20 +563,23 @@ Item {
 
     var hits = []
     try {
-      // Prefer cache file (reliable); fall back to inline JSON list if present
       fileSearchCacheFile.path = ""
       fileSearchCacheFile.path = Paths.cacheFile("file-search.json")
       var cached = ""
       try { cached = fileSearchCacheFile.text() || "" } catch (e0) {}
       var data = null
+      var payload = null
       if (cached.length) {
-        var payload = JSON.parse(cached)
-        // Accept cache when query matches (scope may be embedded in payload)
+        payload = JSON.parse(cached)
         if (payload && payload.query === q && payload.hits)
           data = payload.hits
+        if (payload && payload.scope)
+          syncScopeFromName(payload.scope)
       }
       if (!data) {
         var meta = JSON.parse((raw || "").trim() || "{}")
+        if (meta && meta.scope)
+          syncScopeFromName(meta.scope)
         if (meta && meta.hits)
           data = meta.hits
         else if (Array.isArray(meta))
@@ -1040,9 +1081,15 @@ Item {
   }
 
   function filter(query) {
+    var prevId = (root.selectedItem && root.selectedItem.id) ? root.selectedItem.id : ""
+    var prevQuery = root.filterText
     root.filterText = query
     var results = []
     var q = (query || "").trim()
+
+    // Honor in: immediately so loading/empty headers stay honest
+    if (q.length >= 2)
+      syncScopeFromName(scopeFromQuery(q))
 
     var mathResult = tryMathEvaluation(q)
     if (mathResult !== null) {
@@ -1078,7 +1125,7 @@ Item {
       fileQuery = ""
       fileScanner.running = false
       filteredItems = results.length ? results.concat(allItems) : allItems
-      findNextSelectable(0, 1)
+      restoreSelection(prevId, prevQuery, q)
       return
     }
 
@@ -1103,46 +1150,88 @@ Item {
       for (var s = 0; s < scored.length; s++) results.push(scored[s].item)
     }
 
-    // Files section: show hits for this exact query
+    var contentMark = fileHits.some(function(h){ return h.contentMatch }) ? " · content" : ""
+    var filesHeader = "Files · " + activeFileScope + contentMark
+
+    // Files section: hits, loading, or honest empty
     if (fileQuery === q && fileHits.length) {
-      results.push(header("Files · " + fileScope + (fileHits.some(function(h){ return h.contentMatch }) ? " · content" : "")))
+      results.push(header(filesHeader))
       for (var fi = 0; fi < fileHits.length; fi++) results.push(fileHits[fi])
     } else if (q.length >= 2 && filesSearching) {
-      results.push(header("Files · " + fileScope))
+      results.push(header("Files · " + activeFileScope))
       results.push({
-        id: "loading-files", title: "Searching files…", subtitle: fileScope + " · " + q,
-        icon: "⏳", badge: "", category: "Files", isHeader: false,
+        id: "loading-files", title: "Searching files…",
+        subtitle: activeFileScope + " · " + q,
+        icon: "󰔟", badge: "", category: "Files", isHeader: false,
+        primaryActionTitle: "", actions: [], action: function() {}
+      })
+    } else if (fileQuery === q && q.length >= 2 && !filesSearching && !fileHits.length) {
+      results.push(header("Files · " + activeFileScope))
+      results.push({
+        id: "empty-files",
+        title: "No files in " + activeFileScope,
+        subtitle: "Try another name · in:projects · content:phrase · Ctrl+Shift+P",
+        icon: "󰈔", badge: "", category: "Files", isHeader: false,
         primaryActionTitle: "", actions: [], action: function() {}
       })
     }
 
-    if (!scored.length && !(fileQuery === q && fileHits.length)) {
+    if (!scored.length && !(fileQuery === q && fileHits.length) && !(fileQuery === q && q.length >= 2)) {
       if (root.isLoading || (q.length >= 2 && filesSearching)) {
-        // Still indexing catalogs or files: don't falsely fall back to web/AI
         if (!results.length || (results.length && results[results.length - 1].id !== "loading-files")) {
-          // Keep loading-files row if present; else show catalog loading
           if (!(q.length >= 2 && filesSearching)) {
             results.push(header("Loading"))
             results.push({
               id: "loading-catalog", title: "Indexing commands…", subtitle: "Try again in a moment",
-              icon: "⏳", badge: "", category: "System", isHeader: false,
+              icon: "󰔟", badge: "", category: "System", isHeader: false,
               primaryActionTitle: "", actions: [], action: function() {}
             })
           }
         }
-      } else {
+      } else if (!(fileQuery === q && q.length >= 2 && !fileHits.length)) {
         results.push(header("Fallback"))
         var fb = fallbackItems(q)
         for (var f = 0; f < fb.length; f++) results.push(fb[f])
       }
+    } else if (!scored.length && fileQuery === q && q.length >= 2 && !fileHits.length && !filesSearching) {
+      // Keep empty-files; still offer web fallback below
+      results.push(header("Also"))
+      var fb2 = fallbackItems(q)
+      for (var f2 = 0; f2 < fb2.length; f2++) results.push(fb2[f2])
     }
+
     filteredItems = results
+    restoreSelection(prevId, prevQuery, q)
+  }
+
+  function restoreSelection(prevId, prevQuery, newQuery) {
+    // Preserve selection across async file-hit refreshes; reset when the query changes
+    if (prevId && prevQuery === newQuery) {
+      for (var i = 0; i < filteredItems.length; i++) {
+        var it = filteredItems[i]
+        if (it && !it.isHeader && it.id === prevId
+            && it.id !== "loading-files" && it.id !== "empty-files") {
+          selectedIndex = i
+          return
+        }
+      }
+    }
     findNextSelectable(0, 1)
   }
 
   function findNextSelectable(start, direction) {
     if (!filteredItems.length) { selectedIndex = 0; return }
     var idx = start
+    while (idx >= 0 && idx < filteredItems.length) {
+      var it = filteredItems[idx]
+      if (!it.isHeader && it.id !== "loading-files" && it.id !== "empty-files") {
+        selectedIndex = idx
+        return
+      }
+      idx += direction
+    }
+    // Fall back to first non-header (including status rows) so list isn't stuck
+    idx = start
     while (idx >= 0 && idx < filteredItems.length) {
       if (!filteredItems[idx].isHeader) { selectedIndex = idx; return }
       idx += direction
@@ -1162,7 +1251,12 @@ Item {
   }
 
   function executeCurrent() {
-    if (selectedItem && !selectedItem.isHeader && typeof selectedItem.action === "function")
+    if (!selectedItem || selectedItem.isHeader)
+      return
+    if (selectedItem.id === "loading-files" || selectedItem.id === "empty-files"
+        || selectedItem.id === "loading-catalog")
+      return
+    if (typeof selectedItem.action === "function")
       selectedItem.action()
   }
 
@@ -1290,8 +1384,8 @@ Item {
 
   EmptyState {
     visible: !root.isLoading && root.filteredItems.length === 0
-    title: "No Matching Commands"
-    subtitle: "No apps or commands match '" + root.filterText + "'"
+    title: "Nothing matched"
+    subtitle: "Try a name, content:phrase, or in:projects …"
   }
 
   Component.onCompleted: {

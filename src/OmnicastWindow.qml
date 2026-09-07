@@ -31,7 +31,6 @@ PanelWindow {
       onRequestPushView: (title, comp) => root.pushSubView(title, comp)
       onRequestPushViewWithProps: (title, comp, props) => root.pushSubViewWithProps(title, comp, props)
       onRequestDismiss: root.dismissWithHud()
-      onIsLoadingChanged: searchBar.busy = isLoading
     }
   }
 
@@ -91,6 +90,16 @@ PanelWindow {
         id: searchBar
         width: parent.width
         breadcrumbText: navStack.depth > 1 ? navStack.views.map(function(v) { return v.title }).join(" › ") : ""
+        placeholderText: {
+          var view = navStack.currentViewItem
+          if (view && view.searchPlaceholder)
+            return view.searchPlaceholder
+          return "Apps, commands, files…"
+        }
+        busy: {
+          var view = navStack.currentViewItem
+          return !!(view && (view.isBusy || view.isLoading))
+        }
 
         onTextChangedByUser: text => {
           var view = navStack.currentViewItem
@@ -173,7 +182,6 @@ PanelWindow {
             } else {
               Qt.callLater(searchBar.setFocus)
             }
-            searchBar.busy = !!(view && view.isLoading)
           }
         }
       }
@@ -183,15 +191,25 @@ PanelWindow {
         width: parent.width
         primaryActionText: {
           var item = navStack.currentViewItem ? navStack.currentViewItem.selectedItem : null
+          if (item && (item.id === "loading-files" || item.id === "empty-files" || item.id === "loading-catalog"))
+            return ""
           if (item && item.primaryActionTitle)
             return item.primaryActionTitle
           return "Select"
         }
         subtitleText: {
           var item = navStack.currentViewItem ? navStack.currentViewItem.selectedItem : null
+          if (item && item.category === "Files" && item.path)
+            return "↵ Open · click selects"
           if (item && item.badge) return item.badge
           if (navStack.views.length > 0) return navStack.views[navStack.views.length - 1].title
           return "Omnicast"
+        }
+        hintText: {
+          var view = navStack.currentViewItem
+          if (view && view.statusHint)
+            return view.statusHint
+          return "Enter · Ctrl+K · Esc"
         }
         canPop: navStack.depth > 1
 
@@ -303,6 +321,11 @@ PanelWindow {
       if (searchBar.textInput)
         searchBar.textInput.forceActiveFocus()
     })
+  }
+
+  function syncSearchBusy() {
+    var view = navStack.currentViewItem
+    searchBar.busy = !!(view && (view.isBusy || view.isLoading))
   }
 
   function dismiss() {

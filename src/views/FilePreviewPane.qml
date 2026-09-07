@@ -229,8 +229,8 @@ Item {
         anchors.verticalCenter: parent.verticalCenter
 
         Rectangle {
-          width: 22; height: 22; radius: 4
-          color: Theme.itemHoverBackground
+          width: 22; height: 22; radius: Theme.itemRadius
+          color: "transparent"
           border.color: Theme.subtleBorder; border.width: 1
           Text {
             anchors.centerIn: parent
@@ -240,6 +240,9 @@ Item {
           }
           MouseArea {
             anchors.fill: parent
+            hoverEnabled: true
+            onEntered: parent.color = Theme.itemHoverBackground
+            onExited: parent.color = "transparent"
             onClicked: root.goSibling(-1)
           }
         }
@@ -251,8 +254,8 @@ Item {
           color: Theme.muted
         }
         Rectangle {
-          width: 22; height: 22; radius: 4
-          color: Theme.itemHoverBackground
+          width: 22; height: 22; radius: Theme.itemRadius
+          color: "transparent"
           border.color: Theme.subtleBorder; border.width: 1
           Text {
             anchors.centerIn: parent
@@ -262,6 +265,9 @@ Item {
           }
           MouseArea {
             anchors.fill: parent
+            hoverEnabled: true
+            onEntered: parent.color = Theme.itemHoverBackground
+            onExited: parent.color = "transparent"
             onClicked: root.goSibling(1)
           }
         }
@@ -269,10 +275,10 @@ Item {
 
       Rectangle {
         id: kindBadge
-        visible: root.kind.length > 0
+        visible: root.kind.length > 0 || root.isLoading
         anchors.verticalCenter: parent.verticalCenter
         height: 20
-        radius: 4
+        radius: Theme.badgeRadius
         color: Qt.rgba(Theme.accent.r, Theme.accent.g, Theme.accent.b, 0.18)
         border.color: Qt.rgba(Theme.accent.r, Theme.accent.g, Theme.accent.b, 0.45)
         border.width: 1
@@ -281,7 +287,7 @@ Item {
         Text {
           id: kindLabel
           anchors.centerIn: parent
-          text: root.kind
+          text: root.isLoading && !root.kind.length ? "…" : root.kind
           font.family: Theme.fontFamily
           font.pixelSize: Theme.fontCaption
           color: Theme.accent
@@ -411,7 +417,7 @@ Item {
           delegate: Rectangle {
             width: dirCol.width
             height: 30
-            radius: 4
+            radius: Theme.itemRadius
             color: dirMa.containsMouse ? Theme.itemHoverBackground : "transparent"
 
             Row {
@@ -479,9 +485,9 @@ Item {
         width: textScroll.width
         height: Math.max(textScroll.height, previewBody.implicitHeight + pagePad * 2)
         radius: Theme.itemRadius
-        color: Theme.itemHoverBackground
+        color: root.compactChrome ? "transparent" : Theme.itemHoverBackground
         border.color: Theme.subtleBorder
-        border.width: 1
+        border.width: root.compactChrome ? 0 : 1
 
         readonly property int pagePad: root.isProse ? 18 : 14
         readonly property int proseMax: 560
@@ -527,7 +533,7 @@ Item {
                && root.imageSource.length === 0 && root.previewText.length === 0
                && !(root.kind === "dir" && root.dirEntries.length)
                && root.filePath.length > 0
-      text: "No inline preview"
+      text: "No preview · Enter to open"
       font.family: Theme.fontFamily
       font.pixelSize: Theme.fontBody
       color: Theme.darkForeground
@@ -536,7 +542,7 @@ Item {
     Text {
       anchors.fill: parent
       visible: !root.filePath || !root.filePath.length
-      text: "Select a file to preview"
+      text: "Select a file · Enter opens"
       font.family: Theme.fontFamily
       font.pixelSize: Theme.fontBody
       color: Theme.darkForeground

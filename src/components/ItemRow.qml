@@ -18,7 +18,7 @@ Rectangle {
   signal doubleClicked()
 
   height: isSectionHeader ? Theme.sectionHeight : Theme.rowHeight
-  radius: Math.max(Theme.itemRadius, 4)
+  radius: Theme.itemRadius
   color: {
     if (isSectionHeader)
       return "transparent"
@@ -118,11 +118,23 @@ Rectangle {
       id: trail
       anchors.right: parent.right
       anchors.verticalCenter: parent.verticalCenter
-      text: root.shortcutHint.length ? root.shortcutHint : (root.badgeText === "Omnicast" ? "·" : (root.badgeText === "Content" ? "∋" : ""))
+      text: {
+        if (root.shortcutHint.length)
+          return root.shortcutHint
+        if (root.badgeText === "Content")
+          return "∋"
+        if (root.badgeText === "Dir")
+          return "󰉋"
+        if (root.badgeText === "File")
+          return "󰈔"
+        if (root.badgeText === "Omnicast")
+          return "·"
+        return ""
+      }
       font.family: Theme.fontFamily
       font.pixelSize: Theme.fontCaption
       color: root.badgeText === "Content" ? Theme.accent : Theme.foreground
-      opacity: root.badgeText === "Content" ? 0.7 : 0.28
+      opacity: root.badgeText === "Content" ? 0.75 : 0.38
     }
   }
 

@@ -7,6 +7,7 @@ Item {
 
   property string primaryActionText: "Open"
   property string subtitleText: "Omnicast"
+  property string hintText: "Enter · Ctrl+K · Esc"
   property bool showActionPaletteHint: true
   property bool canPop: false
 
@@ -19,27 +20,35 @@ Item {
   Text {
     anchors.left: parent.left
     anchors.verticalCenter: parent.verticalCenter
+    width: Math.min(implicitWidth, parent.width * 0.42)
     text: root.subtitleText
     font.family: Theme.fontFamily
     font.pixelSize: Theme.fontBodySmall
     color: Theme.foreground
-    opacity: 0.40
+    opacity: 0.45
+    elide: Text.ElideRight
   }
 
   Text {
     anchors.right: parent.right
     anchors.verticalCenter: parent.verticalCenter
-    text: "↵ " + root.primaryActionText + "   ⌃K Actions   Esc " + (root.canPop ? "Back" : "Close")
+    text: {
+      var close = root.canPop ? "Esc Back" : "Esc"
+      var primary = root.primaryActionText.length ? ("Enter " + root.primaryActionText) : "Enter"
+      var base = primary + " · Ctrl+K · " + close
+      if (root.hintText.length && root.hintText.indexOf("Files") === 0)
+        return root.hintText + " · " + close
+      return base
+    }
     font.family: Theme.fontFamily
     font.pixelSize: Theme.fontBodySmall
     color: Theme.foreground
-    opacity: 0.40
+    opacity: 0.48
 
     MouseArea {
       anchors.fill: parent
       acceptedButtons: Qt.LeftButton
       onClicked: {
-        // Click left third → primary; middle → actions (rough)
         var x = mouse.x / width
         if (x < 0.4) root.primaryActionClicked()
         else if (x < 0.7) root.actionPaletteClicked()

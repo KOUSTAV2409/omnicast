@@ -4,8 +4,8 @@ import "../services"
 Item {
   id: root
 
-  property string title: "No Results Found"
-  property string subtitle: "Try searching for a different keyword or app"
+  property string title: "Nothing matched"
+  property string subtitle: "Try a name, content:phrase, or in:projects …"
   property string iconText: ""
 
   anchors.centerIn: parent
