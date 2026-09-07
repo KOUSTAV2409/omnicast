@@ -34,6 +34,15 @@ QtObject {
     var home = Quickshell.env("HOME") || ""
     var xdg = Quickshell.env("XDG_CACHE_HOME") || ""
     var base = xdg.length ? xdg : (home + "/.cache")
-    return base + "/omnicast/" + name
+    // Basename only — never allow path separators / traversal into cacheFile()
+    var raw = String(name || "cache.json")
+    var parts = raw.replace(/\\/g, "/").split("/")
+    var safe = parts[parts.length - 1] || "cache.json"
+    safe = safe.replace(/\.\./g, "")
+    if (!safe.length || safe === "." || safe === "..")
+      safe = "cache.json"
+    if (!/^[A-Za-z0-9._-]+$/.test(safe))
+      safe = "cache.json"
+    return base + "/omnicast/" + safe
   }
 }

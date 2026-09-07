@@ -184,11 +184,14 @@ Item {
       }
       if (meta && meta.ok === false) {
         errorText = meta.error || "Preview failed"
+        contentOpacity = 1
         return
       }
       errorText = "Preview failed (no cache)"
+      contentOpacity = 1
     } catch (e) {
       errorText = "Failed to parse preview"
+      contentOpacity = 1
       console.error("[Omnicast] preview parse failed:", e, raw)
     }
   }
@@ -505,6 +508,8 @@ Item {
               return Text.MarkdownText
             return Text.PlainText
           }
+          // Never follow links from preview HTML (local-only surface)
+          onLinkActivated: function(link) { }
           font.family: root.previewHtml.length && root.kind === "code"
                        ? Theme.monoFontFamily
                        : (root.isProse ? Theme.proseFontFamily : Theme.monoFontFamily)

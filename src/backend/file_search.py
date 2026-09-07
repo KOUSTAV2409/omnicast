@@ -8,6 +8,9 @@ Usage:
 Query prefixes:
   in:projects foo   → scope projects, query foo
   content:bar       → force content search for bar
+
+Security: results are limited to the active scope under $HOME; credential and
+session paths are denied (see path_safety.py).
 """
 from __future__ import annotations
 
@@ -20,6 +23,16 @@ import shutil
 import subprocess
 import sys
 from pathlib import Path
+
+from path_safety import (
+    SECRET_RG_GLOBS,
+    allowed_path,
+    cache_dir,
+    home,
+    is_secret_path,
+    is_under,
+    write_secure_json,
+)
 
 
 EXCLUDE_GLOBS = [
@@ -50,6 +63,27 @@ EXCLUDE_GLOBS = [
     ".tox",
     ".mypy_cache",
     ".pytest_cache",
+    # Credential / session trees (fd exclude)
+    ".ssh",
+    ".gnupg",
+    ".password-store",
+    ".aws",
+    ".azure",
+    ".kube",
+    ".docker",
+    ".mozilla",
+    ".thunderbird",
+    ".config/gcloud",
+    ".config/gh",
+    ".config/chromium",
+    ".config/google-chrome",
+    ".config/BraveSoftware",
+    ".config/keepassxc",
+    ".config/Bitwarden",
+    ".config/1Password",
+    ".config/Signal",
+    ".config/Element",
+    ".local/share/keyrings",
 ]
 
 NOISE_SUFFIXES = (
@@ -82,10 +116,6 @@ SCOPE_DIRS = {
 }
 
 
-def home() -> Path:
-    return Path.home().resolve()
-
-
 def scope_root(name: str) -> Path:
     key = (name or "home").strip().lower()
     factory = SCOPE_DIRS.get(key, SCOPE_DIRS["home"])
@@ -94,7 +124,7 @@ def scope_root(name: str) -> Path:
         root = root.resolve()
     except Exception:
         root = Path(root)
-    if not root.exists():
+    if not root.exists() or not is_under(root, home()):
         return home()
     return root
 
@@ -110,7 +140,7 @@ def icon_for(path: Path, is_dir: bool) -> str:
     if is_dir:
         return "󰉋"
     name = path.name.lower()
-    if name.endswith((".png", ".jpg", ".jpeg", ".gif", ".webp", ".svg")):
+    if name.endswith((".png", ".jpg", ".jpeg", ".gif", ".webp", ".bmp", ".ico")):
         return "󰈟"
     if name.endswith((".mp4", ".mkv", ".webm", ".mov")):
         return "󰈫"
@@ -194,6 +224,16 @@ def is_noise_path(path: Path) -> bool:
     return False
 
 
+def accept_hit(path: Path, root: Path) -> bool:
+    if not path.exists():
+        return False
+    if is_noise_path(path):
+        return False
+    if is_secret_path(path):
+        return False
+    return allowed_path(path, root)
+
+
 def search_fd(query: str, limit: int, root: Path) -> list[Path] | None:
     fd = shutil.which("fd") or shutil.which("fdfind")
     if not fd:
@@ -206,16 +246,17 @@ def search_fd(query: str, limit: int, root: Path) -> list[Path] | None:
         str(max(limit * 3, limit)),
         "--exclude",
         "{" + ",".join(EXCLUDE_GLOBS) + "}",
+        "--",
         query,
         str(root),
     ]
     try:
         out = subprocess.check_output(cmd, text=True, stderr=subprocess.DEVNULL, timeout=2.5)
     except Exception:
-        cmd = [fd, "-i", "--color=never", "--max-results", str(max(limit * 3, limit))]
+        cmd = [fd, "-i", "--color=never", "--max-results", str(max(limit * 3, 40))]
         for g in EXCLUDE_GLOBS:
             cmd.extend(["--exclude", g])
-        cmd.extend([query, str(root)])
+        cmd.extend(["--", query, str(root)])
         try:
             out = subprocess.check_output(cmd, text=True, stderr=subprocess.DEVNULL, timeout=2.5)
         except Exception:
@@ -226,7 +267,7 @@ def search_fd(query: str, limit: int, root: Path) -> list[Path] | None:
         if not line:
             continue
         p = Path(line)
-        if p.exists() and not is_noise_path(p):
+        if accept_hit(p, root):
             paths.append(p)
     return paths
 
@@ -235,45 +276,39 @@ def search_plocate(query: str, limit: int, root: Path) -> list[Path]:
     loc = shutil.which("plocate") or shutil.which("locate")
     if not loc:
         return []
-    root_s = str(root)
     try:
         out = subprocess.check_output(
-            [loc, "-i", "-l", str(max(limit * 5, 50)), query],
+            [loc, "-i", "-l", str(max(limit * 5, 50)), "--", query],
             text=True,
             stderr=subprocess.DEVNULL,
             timeout=2.5,
         )
     except Exception:
-        return []
+        # Older locate may lack --
+        try:
+            out = subprocess.check_output(
+                [loc, "-i", "-l", str(max(limit * 5, 50)), query],
+                text=True,
+                stderr=subprocess.DEVNULL,
+                timeout=2.5,
+            )
+        except Exception:
+            return []
     paths = []
     for line in out.splitlines():
         line = line.strip()
-        if not line.startswith(root_s):
-            continue
-        low = line.lower()
-        if any(
-            x in low
-            for x in (
-                "/.cache/",
-                "/node_modules/",
-                "/.git/",
-                "/trash/",
-                "/site-packages/",
-                "/dist-packages/",
-                "/.venv/",
-                "/venv/",
-                "/myenv/",
-            )
-        ):
+        if not line:
             continue
         p = Path(line)
-        if p.exists() and not is_noise_path(p):
+        if accept_hit(p, root):
             paths.append(p)
+        if len(paths) >= limit * 3:
+            break
     return paths
 
 
 def search_content(query: str, limit: int, root: Path) -> list[Path]:
-    """Find files whose contents match query (rg)."""
+    """Find files whose contents match query (rg). Never scans secret trees."""
     rg = shutil.which("rg")
     if not rg or len(query) < 2:
         return []
@@ -282,7 +317,7 @@ def search_content(query: str, limit: int, root: Path) -> list[Path]:
         "-l",
         "-i",
         "--color=never",
-        "--hidden",
+        # Do NOT use --hidden: avoids crawling .ssh / .env by default.
         "--glob",
         "!.git/**",
         "--glob",
@@ -305,14 +340,20 @@ def search_content(query: str, limit: int, root: Path) -> list[Path]:
         "!*.pyc",
         "--glob",
         "!*.pyo",
-        "--max-count",
-        "1",
-        "-m",
-        str(max(limit * 2, 24)),
-        "--",
-        query,
-        str(root),
     ]
+    for g in SECRET_RG_GLOBS:
+        cmd.extend(["--glob", g])
+    cmd.extend(
+        [
+            "--max-count",
+            "1",
+            "-m",
+            str(max(limit * 2, 24)),
+            "--",
+            query,
+            str(root),
+        ]
+    )
     try:
         out = subprocess.check_output(cmd, text=True, stderr=subprocess.DEVNULL, timeout=3.0)
     except Exception:
@@ -323,19 +364,25 @@ def search_content(query: str, limit: int, root: Path) -> list[Path]:
         if not line:
             continue
         p = Path(line)
-        if p.is_file() and not is_noise_path(p):
+        if p.is_file() and accept_hit(p, root):
             paths.append(p)
         if len(paths) >= limit:
             break
     return paths
 
 
-def path_query_hits(query: str) -> list[Path]:
+def path_query_hits(query: str, root: Path) -> list[Path]:
+    """Exact path / ~ expansion — only if inside scope and not secret."""
     q = query.strip()
     if not q:
         return []
+    # Require path-like input so random strings don't hit exists()
+    if not (q.startswith("/") or q.startswith("~") or "/" in q):
+        return []
     expanded = Path(os.path.expanduser(q))
-    if expanded.exists():
+    if not expanded.exists():
+        return []
+    if accept_hit(expanded, root):
         return [expanded]
     return []
 
@@ -380,7 +427,7 @@ def search(
     content_limit = limit if force_content else max(6, limit // 2)
 
     paths: list[tuple[Path, bool]] = []  # path, is_content
-    for p in path_query_hits(q):
+    for p in path_query_hits(q, root):
         paths.append((p, False))
 
     if not force_content:
@@ -391,7 +438,6 @@ def search(
             paths.append((p, False))
 
     # Content search is opt-in only (content:query or --content).
-    # Auto-rg over $HOME made every keystroke ~3s; name search is ~80ms.
     do_content = force_content or content
     if do_content:
         for p in search_content(q, content_limit, root):
@@ -400,13 +446,13 @@ def search(
     seen: set[str] = set()
     uniq: list[tuple[Path, bool]] = []
     for p, is_c in paths:
+        if not accept_hit(p, root):
+            continue
         try:
             key = str(p.resolve())
         except Exception:
             key = str(p)
         if key in seen:
-            continue
-        if is_noise_path(p):
             continue
         seen.add(key)
         uniq.append((p, is_c))
@@ -430,16 +476,14 @@ def main() -> int:
     hits, parsed_q, scope_name = search(
         args.query, args.limit, scope=args.scope, content=args.content
     )
-    cache_dir = Path(os.environ.get("XDG_CACHE_HOME", Path.home() / ".cache")) / "omnicast"
-    cache_dir.mkdir(parents=True, exist_ok=True)
-    cache_file = cache_dir / "file-search.json"
+    cache_file = cache_dir() / "file-search.json"
     payload = {
         "query": args.query.strip(),
         "parsed_query": parsed_q,
         "scope": scope_name,
         "hits": hits,
     }
-    cache_file.write_text(json.dumps(payload, ensure_ascii=False), encoding="utf-8")
+    write_secure_json(cache_file, payload)
     print(
         json.dumps(
             {

@@ -102,9 +102,10 @@ def get_omarchy_commands():
 
 
 def write_cache(cmds):
-    CACHE_DIR.mkdir(parents=True, exist_ok=True)
-    CACHE_FILE.write_text(json.dumps(cmds, ensure_ascii=False), encoding="utf-8")
-    return CACHE_FILE
+    from path_safety import write_secure_json, cache_dir
+    path = cache_dir() / "omarchy-commands.json"
+    write_secure_json(path, cmds)
+    return path
 
 
 if __name__ == "__main__":

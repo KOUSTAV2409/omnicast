@@ -126,10 +126,9 @@ def index_desktop_apps():
 
 if __name__ == "__main__":
     import os
+    from path_safety import write_secure_json, cache_dir
     apps = index_desktop_apps()
-    cache_dir = Path(os.environ.get("XDG_CACHE_HOME", Path.home() / ".cache")) / "omnicast"
-    cache_dir.mkdir(parents=True, exist_ok=True)
-    cache_file = cache_dir / "desktop-apps.json"
-    cache_file.write_text(json.dumps(apps, ensure_ascii=False), encoding="utf-8")
+    cache_file = cache_dir() / "desktop-apps.json"
+    write_secure_json(cache_file, apps)
     # Tiny status only: large stdout is dropped by Quickshell StdioCollector
     print(json.dumps({"ok": True, "count": len(apps), "path": str(cache_file)}))

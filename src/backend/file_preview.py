@@ -18,16 +18,27 @@ from datetime import datetime
 from pathlib import Path
 from xml.etree import ElementTree as ET
 
+from path_safety import (
+    allowed_path,
+    cache_dir,
+    deny_reason,
+    home,
+    is_secret_path,
+    safe_cache_name,
+    write_secure_json,
+)
+
 TEXT_EXT = {
     ".txt", ".md", ".markdown", ".rst", ".log", ".csv", ".tsv", ".json", ".jsonc",
-    ".yaml", ".yml", ".toml", ".ini", ".cfg", ".conf", ".env", ".xml", ".html",
+    ".yaml", ".yml", ".toml", ".ini", ".cfg", ".conf", ".xml", ".html",
     ".htm", ".css", ".scss", ".less", ".js", ".jsx", ".ts", ".tsx", ".mjs", ".cjs",
     ".py", ".pyi", ".rb", ".go", ".rs", ".c", ".h", ".cpp", ".hpp", ".cc", ".java",
     ".kt", ".swift", ".m", ".mm", ".sh", ".bash", ".zsh", ".fish", ".ps1", ".bat",
     ".qml", ".lua", ".sql", ".r", ".jl", ".php", ".pl", ".pm", ".vim", ".diff",
     ".patch", ".gitignore", ".dockerfile", ".makefile", ".cmake", ".nix",
 }
-IMAGE_EXT = {".png", ".jpg", ".jpeg", ".gif", ".webp", ".bmp", ".svg", ".ico"}
+# SVG intentionally excluded from Image{} — Qt SVG can follow external refs.
+IMAGE_EXT = {".png", ".jpg", ".jpeg", ".gif", ".webp", ".bmp", ".ico"}
 OFFICE_EXT = {
     ".doc", ".docx", ".odt", ".rtf",
     ".xls", ".xlsx", ".ods", ".csv",
@@ -250,15 +261,14 @@ def pdf_page_image(path: Path) -> str:
     pdftoppm = shutil.which("pdftoppm")
     if not pdftoppm:
         return ""
-    cache_dir = Path(os.environ.get("XDG_CACHE_HOME", Path.home() / ".cache")) / "omnicast"
-    cache_dir.mkdir(parents=True, exist_ok=True)
-    out_base = cache_dir / "pdf-preview"
-    # Clean previous render
-    for suffix in (".png", "-1.png"):
-        p = Path(str(out_base) + suffix) if suffix.startswith("-") else out_base.with_suffix(suffix)
+    cdir = cache_dir()
+    # Per-file name so rapid sibling switches don't race a shared png
+    digest = abs(hash(str(path))) % (10**10)
+    out_base = cdir / f"pdf-preview-{digest}"
+    for candidate in (out_base.with_suffix(".png"), Path(str(out_base) + "-1.png")):
         try:
-            if p.exists():
-                p.unlink()
+            if candidate.exists():
+                candidate.unlink()
         except Exception:
             pass
     try:
@@ -272,6 +282,10 @@ def pdf_page_image(path: Path) -> str:
         return ""
     png = out_base.with_suffix(".png")
     if png.exists():
+        try:
+            os.chmod(png, 0o600)
+        except Exception:
+            pass
         return png.resolve().as_uri()
     return ""
 
@@ -283,6 +297,18 @@ def html_escape(s: str) -> str:
         .replace(">", "&gt;")
         .replace('"', "&quot;")
     )
+
+
+def safe_link_href(url: str) -> str | None:
+    """Allow only http(s)/mailto for RichText anchors."""
+    u = (url or "").strip()
+    low = u.lower()
+    if low.startswith("https://") or low.startswith("http://") or low.startswith("mailto:"):
+        # Block javascript:/data:/file: smuggled after whitespace
+        if re.search(r"[\s\"'<>]", u):
+            return None
+        return html_escape(u)
+    return None
 
 
 def _span(color: str, text: str) -> str:
@@ -513,6 +539,15 @@ def render_markdown_html(text: str) -> str:
                 f'color:{C_STR};">{m.group(1)}</span>'
             )
 
+        def link_repl(m: re.Match) -> str:
+            label = m.group(1)
+            href = safe_link_href(m.group(2))
+            if href:
+                return (
+                    f'<a href="{href}" style="color:{C_TYPE}; text-decoration:none;">{label}</a>'
+                )
+            return f'<span style="color:{C_TYPE};">{label}</span>'
+
         s = re.sub(r"`([^`]+)`", code_repl, s)
         s = re.sub(
             r"\*\*([^*]+)\*\*",
@@ -524,11 +559,7 @@ def render_markdown_html(text: str) -> str:
             rf'<span style="font-style:italic; color:{C_PUNCT};">\1</span>',
             s,
         )
-        s = re.sub(
-            r"\[([^\]]+)\]\(([^)]+)\)",
-            rf'<a href="\2" style="color:{C_TYPE}; text-decoration:none;">\1</a>',
-            s,
-        )
+        s = re.sub(r"\[([^\]]+)\]\(([^)]+)\)", link_repl, s)
         return s
 
     while i < len(lines):
@@ -653,6 +684,8 @@ def list_dir(path: Path) -> list[dict]:
         return []
     for child in children[:MAX_DIR_ENTRIES]:
         try:
+            if not allowed_path(child):
+                continue
             st = child.stat()
             entries.append(
                 {
@@ -683,11 +716,43 @@ def preferred_opener(path: Path, mime: str, ext: str) -> dict:
     return {"id": "xdg", "title": "Open with system app", "argv": ["xdg-open", str(path)]}
 
 
+def blocked_payload(path: Path, reason: str) -> dict:
+    return {
+        "ok": False,
+        "error": reason,
+        "path": str(path),
+        "name": path.name,
+        "subtitle": "",
+        "is_dir": False,
+        "size": 0,
+        "size_label": "",
+        "modified": "",
+        "mime": "",
+        "ext": path.suffix.lower(),
+        "text": reason,
+        "html": "",
+        "text_format": "plain",
+        "image": "",
+        "entries": [],
+        "kind": "blocked",
+        "opener": {"id": "none", "title": "Blocked", "argv": []},
+    }
+
+
 def preview(path_str: str) -> dict:
     raw = (path_str or "").strip()
     if not raw:
         return {"ok": False, "error": "No path provided"}
-    path = Path(os.path.expanduser(raw)).resolve()
+    path = Path(os.path.expanduser(raw))
+    try:
+        path = path.resolve()
+    except Exception:
+        return {"ok": False, "error": "Invalid path"}
+
+    reason = deny_reason(path)
+    if reason:
+        return blocked_payload(path, reason)
+
     if not path.exists():
         return {"ok": False, "error": f"Not found: {path}"}
 
@@ -696,7 +761,7 @@ def preview(path_str: str) -> dict:
         "ok": True,
         "path": str(path),
         "name": path.name,
-        "subtitle": str(path).replace(str(Path.home()), "~", 1),
+        "subtitle": str(path).replace(str(home()), "~", 1),
         "is_dir": path.is_dir(),
         "size": st.st_size,
         "size_label": "directory" if path.is_dir() else human_size(st.st_size),
@@ -726,7 +791,14 @@ def preview(path_str: str) -> dict:
     mime = base["mime"]
     base["opener"] = preferred_opener(path, mime, ext)
 
-    if ext in IMAGE_EXT or mime.startswith("image/"):
+    # SVG: show as source text only (never Image / file URI)
+    if ext == ".svg" or mime == "image/svg+xml":
+        text = read_text_file(path)
+        base["kind"] = "text"
+        base["text"] = text or "(SVG preview as text only.)"
+        return base
+
+    if ext in IMAGE_EXT or (mime.startswith("image/") and "svg" not in mime):
         base["kind"] = "image"
         base["image"] = path.as_uri()
         return base
@@ -768,6 +840,9 @@ def preview(path_str: str) -> dict:
         "application/x-sh",
         "application/toml",
     ):
+        # Double-check secret names even if extension looks safe
+        if is_secret_path(path):
+            return blocked_payload(path, "Blocked: sensitive credentials or session data")
         text = read_text_file(path)
         if text:
             if ext in CODE_EXT or ext in {".json", ".jsonc"}:
@@ -780,8 +855,8 @@ def preview(path_str: str) -> dict:
                 base["text"] = text
             return base
 
-    # Sniff unknown small files as text
-    if st.st_size <= MAX_TEXT_BYTES:
+    # Sniff unknown small files as text — never for secrets
+    if st.st_size <= MAX_TEXT_BYTES and not is_secret_path(path):
         text = read_text_file(path)
         if text:
             base["kind"] = "text"
@@ -804,12 +879,28 @@ def main() -> int:
         cache_name = sys.argv[3]
     elif len(sys.argv) >= 3 and sys.argv[2].startswith("--cache="):
         cache_name = sys.argv[2].split("=", 1)[1]
+    cache_name = safe_cache_name(cache_name, "file-preview.json")
 
     payload = preview(path_arg)
-    cache_dir = Path(os.environ.get("XDG_CACHE_HOME", Path.home() / ".cache")) / "omnicast"
-    cache_dir.mkdir(parents=True, exist_ok=True)
-    cache_file = cache_dir / cache_name
-    cache_file.write_text(json.dumps(payload, ensure_ascii=False), encoding="utf-8")
+    # Never persist full secret bodies; blocked payloads already omit content
+    if payload.get("kind") == "blocked" or not payload.get("ok"):
+        safe_payload = {
+            "ok": False,
+            "error": payload.get("error", "Blocked"),
+            "kind": "blocked",
+            "path": payload.get("path", ""),
+            "name": payload.get("name", ""),
+            "text": payload.get("error", "Blocked"),
+            "html": "",
+            "text_format": "plain",
+            "image": "",
+            "entries": [],
+            "opener": {"id": "none", "title": "Blocked", "argv": []},
+        }
+        payload = safe_payload
+
+    cache_file = cache_dir() / cache_name
+    write_secure_json(cache_file, payload)
 
     print(
         json.dumps(

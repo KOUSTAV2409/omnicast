@@ -86,6 +86,10 @@ Item {
   }
 
   function openExternal() {
+    if (pane.kind === "blocked" || (pane.opener && pane.opener.id === "none")) {
+      Hud.error(pane.errorText || "Blocked: sensitive path")
+      return
+    }
     Ranking.bump("file-open-external")
     root.requestDismiss()
     var argv = (pane.opener && pane.opener.argv) ? pane.opener.argv : null
