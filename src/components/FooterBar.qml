@@ -36,8 +36,11 @@ Item {
       var close = root.canPop ? "Esc Back" : "Esc"
       var primary = root.primaryActionText.length ? ("Enter " + root.primaryActionText) : "Enter"
       var base = primary + " · Ctrl+K · " + close
+      // Append Files scope context — never replace Enter/Ctrl+K
       if (root.hintText.length && root.hintText.indexOf("Files") === 0)
-        return root.hintText + " · " + close
+        return base.replace(" · " + close, "") + " · " + root.hintText + " · " + close
+      if (root.hintText.length && root.hintText !== "Enter · Ctrl+K · Esc")
+        return root.hintText
       return base
     }
     font.family: Theme.fontFamily
@@ -50,8 +53,8 @@ Item {
       acceptedButtons: Qt.LeftButton
       onClicked: {
         var x = mouse.x / width
-        if (x < 0.4) root.primaryActionClicked()
-        else if (x < 0.7) root.actionPaletteClicked()
+        if (x < 0.35) root.primaryActionClicked()
+        else if (x < 0.55) root.actionPaletteClicked()
       }
     }
   }

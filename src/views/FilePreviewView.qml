@@ -77,8 +77,7 @@ Item {
         icon: "󰏌",
         callback: function() {
           Ranking.bump("file-open-xdg")
-          root.requestDismiss()
-          Exec.openPath(root.filePath)
+          root.openExternal()
         }
       })
     }
@@ -88,6 +87,14 @@ Item {
   function openExternal() {
     if (pane.kind === "blocked" || (pane.opener && pane.opener.id === "none")) {
       Hud.error(pane.errorText || "Blocked: sensitive path")
+      return
+    }
+    var p = String(root.filePath || "")
+    var low = p.toLowerCase()
+    // Match RootSearchView.openFileSmart: never xdg-open scripts/binaries
+    if (/\.(sh|bash|zsh|fish|py|rb|pl|js|mjs|cjs|exe|bin|run|appimage)$/.test(low)) {
+      Exec.copyText(p)
+      Hud.error("Script/binary not launched — path copied")
       return
     }
     if (pane.opener && pane.opener.argv && pane.opener.argv.length) {
@@ -150,8 +157,8 @@ Item {
   }
 
   function moveSelection(delta) {
-    // Left/right style: treat as sibling browse when available
-    if (siblingPaths && siblingPaths.length > 1)
+    // Only sibling-browse when we have a real position in the set
+    if (siblingPaths && siblingPaths.length > 1 && siblingIndex >= 0)
       goSibling(delta)
   }
 

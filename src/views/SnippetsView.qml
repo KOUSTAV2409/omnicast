@@ -9,6 +9,7 @@ Item {
 
   property var navStack: null
   property string filterText: ""
+  property bool wideLayout: true
 
   signal requestActionPalette(var actions)
   signal requestDismiss()

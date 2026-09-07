@@ -13,6 +13,7 @@ Item {
   property var scriptArgs: []
   property string outputMarkdown: "Running script..."
   property bool isRunning: false
+  readonly property bool isBusy: isRunning
   property string lastError: ""
 
   signal requestActionPalette(var actions)

@@ -57,6 +57,7 @@ Item {
 
   property Process previewLoader: Process {
     property string pendingPath: ""
+    property int token: 0
     command: ["python3", Paths.py("file_preview.py"), pendingPath, "--cache", root.cacheName]
     running: false
     stdout: StdioCollector {
@@ -101,10 +102,15 @@ Item {
     debounce.restart()
   }
 
+  property int loadToken: 0
+
   function clearPreview() {
     isLoading = false
     errorText = ""
     kind = ""
+    mime = ""
+    sizeLabel = ""
+    modified = ""
     previewText = ""
     previewHtml = ""
     imageSource = ""
@@ -118,6 +124,7 @@ Item {
       clearPreview()
       return
     }
+    loadToken++
     isLoading = true
     errorText = ""
     previewText = ""
@@ -125,9 +132,14 @@ Item {
     imageSource = ""
     dirEntries = []
     kind = ""
+    mime = ""
+    sizeLabel = ""
+    modified = ""
+    subtitle = ""
     textFormat = "plain"
     previewLoader.running = false
     previewLoader.pendingPath = filePath
+    previewLoader.token = loadToken
     startTimer.restart()
   }
 
@@ -202,7 +214,10 @@ Item {
     property string wantPath: ""
     property string metaPath: ""
     property string cacheHint: ""
+    property int token: 0
     onTriggered: {
+      if (token !== root.loadToken)
+        return
       if (previewLoader.pendingPath !== root.filePath)
         return
       if (root.tryApplyCache(wantPath, metaPath, cacheHint))
@@ -213,7 +228,9 @@ Item {
   }
 
   function handlePreviewMeta(raw) {
-    // Ignore stale responses
+    // Ignore stale responses (token stamped at load start)
+    if (previewLoader.token !== loadToken)
+      return
     if (previewLoader.pendingPath !== filePath)
       return
     isLoading = false
@@ -227,6 +244,10 @@ Item {
     var want = String(filePath || "")
     var metaPath = meta.path ? String(meta.path) : ""
     var cachePathHint = meta.cache ? String(meta.cache) : ""
+
+    // Reject payload that names a different file
+    if (metaPath.length && !pathsEqual(metaPath, want))
+      return
 
     if (meta && meta.ok === false) {
       errorText = meta.error || "Preview failed"
@@ -242,6 +263,7 @@ Item {
       cacheRetryTimer.wantPath = want
       cacheRetryTimer.metaPath = metaPath
       cacheRetryTimer.cacheHint = cachePathHint
+      cacheRetryTimer.token = previewLoader.token
       cacheRetryTimer.restart()
       return
     }
@@ -313,7 +335,9 @@ Item {
         }
         Text {
           anchors.verticalCenter: parent.verticalCenter
-          text: (Math.max(0, root.siblingIndex) + 1) + "/" + root.siblingPaths.length
+          text: root.siblingIndex < 0
+                ? ("—/" + root.siblingPaths.length)
+                : ((root.siblingIndex + 1) + "/" + root.siblingPaths.length)
           font.family: Theme.fontFamily
           font.pixelSize: Theme.fontCaption
           color: Theme.muted
@@ -603,17 +627,6 @@ Item {
       font.family: Theme.fontFamily
       font.pixelSize: Theme.fontBody
       color: Theme.darkForeground
-    }
-
-    Text {
-      anchors.fill: parent
-      visible: !root.filePath || !root.filePath.length
-      text: "Select a file · Enter opens"
-      font.family: Theme.fontFamily
-      font.pixelSize: Theme.fontBody
-      color: Theme.darkForeground
-      horizontalAlignment: Text.AlignHCenter
-      verticalAlignment: Text.AlignVCenter
     }
   }
 }

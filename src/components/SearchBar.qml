@@ -38,7 +38,8 @@ Item {
   Text {
     id: placeholder
     anchors.left: breadcrumb.visible ? breadcrumb.right : parent.left
-    anchors.right: parent.right
+    anchors.right: busyGlyph.visible ? busyGlyph.left : parent.right
+    anchors.rightMargin: busyGlyph.visible ? 8 : 0
     anchors.verticalCenter: parent.verticalCenter
     text: root.placeholderText.length ? root.placeholderText : "Apps, commands, files…"
     font.family: Theme.fontFamily
@@ -62,10 +63,30 @@ Item {
     opacity: 0.45
   }
 
+  Text {
+    id: busyGlyph
+    anchors.right: parent.right
+    anchors.verticalCenter: parent.verticalCenter
+    visible: root.busy && input.text.length > 0
+    text: "···"
+    font.family: Theme.fontFamily
+    font.pixelSize: Theme.fontBody
+    color: Theme.accent
+    opacity: 0.55
+
+    SequentialAnimation on opacity {
+      running: busyGlyph.visible
+      loops: Animation.Infinite
+      NumberAnimation { to: 0.9; duration: 420; easing.type: Easing.InOutSine }
+      NumberAnimation { to: 0.3; duration: 420; easing.type: Easing.InOutSine }
+    }
+  }
+
   TextInput {
     id: input
     anchors.left: breadcrumb.visible ? breadcrumb.right : parent.left
-    anchors.right: parent.right
+    anchors.right: busyGlyph.visible ? busyGlyph.left : parent.right
+    anchors.rightMargin: busyGlyph.visible ? 8 : 0
     anchors.verticalCenter: parent.verticalCenter
     height: parent.height
     font.family: Theme.fontFamily

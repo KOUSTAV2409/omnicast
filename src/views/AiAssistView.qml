@@ -12,6 +12,7 @@ Item {
   property string queryPrompt: ""
   property string responseMarkdown: ""
   property bool isGenerating: false
+  readonly property bool isBusy: isGenerating
 
   signal requestActionPalette(var actions)
   signal requestDismiss()

@@ -105,7 +105,7 @@ Rectangle {
         width: parent.width
         text: root.markdownContent
         textFormat: root.contentFormat === "plain" ? Text.PlainText : Text.MarkdownText
-        font.family: Theme.fontFamily
+        font.family: Theme.proseFontFamily
         font.pixelSize: 13
         lineHeight: 1.4
         color: Theme.lightForeground

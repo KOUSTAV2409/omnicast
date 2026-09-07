@@ -100,7 +100,7 @@ Item {
       }
 
       EmptyState {
-        visible: false
+        visible: root.filteredItems.length === 0
         title: "No Matching Items"
         subtitle: "No items match your search filter"
       }

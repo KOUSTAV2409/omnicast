@@ -55,7 +55,7 @@ Rectangle {
       Rectangle {
         width: parent.width
         height: 36
-        radius: 6
+        radius: Theme.itemRadius
         color: Theme.itemHoverBackground
         border.color: Theme.subtleBorder
         border.width: 1
@@ -159,7 +159,7 @@ Rectangle {
               visible: (modelData.shortcut || "").length > 0
               anchors.verticalCenter: parent.verticalCenter
               height: 20
-              radius: 4
+              radius: Theme.badgeRadius
               color: Theme.itemHoverBackground
               border.color: Theme.border
               border.width: 1

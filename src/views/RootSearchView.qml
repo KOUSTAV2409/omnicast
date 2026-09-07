@@ -41,14 +41,15 @@ Item {
   readonly property bool isBusy: isLoading || filesSearching
   property string sidePreviewPath: ""
   property string sidePreviewTitle: ""
-  // Footer / chrome hints for OmnicastWindow
+  // Footer / chrome hints for OmnicastWindow (FooterBar keeps Enter/Ctrl+K)
+  readonly property bool queryLocksScope: /^in:\w+\s+/i.test((filterText || "").trim())
   readonly property string statusHint: {
     var q = (filterText || "").trim()
-    if (fileSelected)
-      return "Files · " + activeFileScope + " · Ctrl+Shift+P scope"
-    if (q.length >= 2 && (fileHits.length || filesSearching || fileQuery === q))
-      return "Files · " + activeFileScope + " · Ctrl+Shift+P · content: · in:"
-    return "Enter · Ctrl+K · Esc"
+    if (!(q.length >= 2 && (fileHits.length || filesSearching || fileQuery === q || fileSelected)))
+      return ""
+    if (queryLocksScope)
+      return "Files · " + activeFileScope + " · in: locked"
+    return "Files · " + activeFileScope + " · Ctrl+Shift+P scope"
   }
   readonly property string searchPlaceholder: {
     var q = (filterText || "").trim()
@@ -115,12 +116,15 @@ Item {
     id: fileScanner
     property string pendingQuery: ""
     property string pendingScope: "home"
+    // Captured at process start so completions aren't attributed to a newer keystroke
+    property string activeQuery: ""
+    property string activeScope: "home"
     // Bind query + scope into argv
     command: ["python3", Paths.py("file_search.py"), pendingQuery, "--limit", "18", "--scope", pendingScope]
     running: false
     stdout: StdioCollector {
       waitForEnd: true
-      onStreamFinished: text => root.handleFileScanMeta(fileScanner.pendingQuery, text)
+      onStreamFinished: text => root.handleFileScanMeta(fileScanner.activeQuery, fileScanner.activeScope, text)
     }
   }
 
@@ -144,6 +148,8 @@ Item {
     repeat: false
     onTriggered: {
       if (fileScanner.pendingQuery.length >= 2) {
+        fileScanner.activeQuery = fileScanner.pendingQuery
+        fileScanner.activeScope = fileScanner.pendingScope
         fileScanner.command = [
           "python3", Paths.py("file_search.py"),
           fileScanner.pendingQuery, "--limit", "18",
@@ -161,8 +167,34 @@ Item {
     onTriggered: root.syncSidePreview()
   }
 
-  onSelectedIndexChanged: sidePreviewDebounce.restart()
-  onFilteredItemsChanged: sidePreviewDebounce.restart()
+  function isFileStatusId(id) {
+    return id === "loading-files" || id === "empty-files" || id === "loading-catalog"
+  }
+
+  function selectionIsRealFile() {
+    var item = root.selectedItem
+    return !!(item && item.path && item.category === "Files" && !root.isFileStatusId(item.id))
+  }
+
+  onSelectedIndexChanged: {
+    // Drop stale preview immediately when leaving Files; debounce only file→file
+    if (!root.selectionIsRealFile()) {
+      sidePreviewDebounce.stop()
+      sidePreviewPath = ""
+      sidePreviewTitle = ""
+    } else {
+      sidePreviewDebounce.restart()
+    }
+  }
+  onFilteredItemsChanged: {
+    if (!root.selectionIsRealFile()) {
+      sidePreviewDebounce.stop()
+      sidePreviewPath = ""
+      sidePreviewTitle = ""
+    } else {
+      sidePreviewDebounce.restart()
+    }
+  }
 
   FileView {
     id: scriptsCacheFile
@@ -387,9 +419,10 @@ Item {
     }
     item.action = function() {
       Ranking.bump(item.id)
-      root.requestDismiss()
-      root.openFileSmart(item.path)
-      Hud.success("Opening " + item.title)
+      if (root.openFileSmart(item.path)) {
+        root.requestDismiss()
+        Hud.success("Opening " + item.title)
+      }
     }
     item.actions = withMetaActions(item, [
       { title: item.primaryActionTitle, icon: "󰏌", shortcut: "↵", callback: item.action },
@@ -452,20 +485,21 @@ Item {
     var p = String(path || "")
     if (root.isSensitivePath(p)) {
       Hud.error("Blocked: sensitive credentials or session data")
-      return
+      return false
     }
     var low = p.toLowerCase()
     // Never hand scripts/binaries to xdg-open (often executes them)
     if (/\.(sh|bash|zsh|fish|py|rb|pl|js|mjs|cjs|exe|bin|run|appimage)$/.test(low)) {
       Exec.copyText(p)
       Hud.error("Script/binary not launched from Files — path copied")
-      return
+      return false
     }
     if (/\.(docx?|odt|rtf|xlsx?|ods|pptx?|odp)$/.test(low)) {
       Exec.detached(["onlyoffice-desktopeditors", "--view=" + p])
-      return
+      return true
     }
     Exec.openPath(p)
+    return true
   }
 
   function fileSiblingPaths() {
@@ -490,13 +524,23 @@ Item {
   }
 
   function cycleCategory(direction) {
+    var q = (filterText || "").trim()
+    if (root.queryLocksScope) {
+      Hud.info("Scope locked by in: · remove prefix to cycle")
+      return
+    }
     var dir = direction || 1
     fileScopeIndex = (fileScopeIndex + dir + fileScopes.length) % fileScopes.length
     activeFileScope = fileScope
     Hud.info("Files scope · " + fileScope + " · also in:" + fileScope)
     fileQuery = ""
-    if ((filterText || "").trim().length >= 2)
-      scheduleFileSearch(filterText)
+    if (q.length >= 2) {
+      // Force a new search for the new scope (scheduleFileSearch may early-return)
+      fileScanner.running = false
+      fileSearchDebounce.stop()
+      runFileSearch(q)
+      root.filter(root.filterText)
+    }
   }
 
   function scopeFromQuery(query) {
@@ -548,22 +592,28 @@ Item {
       fileHits = []
       fileQuery = ""
       fileScanner.pendingQuery = ""
+      fileScanner.activeQuery = ""
       fileScanner.running = false
       return
     }
-    // Already have results for this query, or search already queued/running
-    if (fileQuery === q)
+    var scope = scopeFromQuery(q)
+    // Already have results for this query+scope, or search already queued/running
+    if (fileQuery === q && activeFileScope === scope && !filesSearching)
       return
-    if (fileScanner.pendingQuery === q && (fileScanner.running || fileSearchDebounce.running || fileSearchStartTimer.running))
+    if (fileScanner.pendingQuery === q && fileScanner.pendingScope === scope
+        && (fileScanner.running || fileSearchDebounce.running || fileSearchStartTimer.running))
       return
     fileSearchDebounce.restart()
   }
 
-  function handleFileScanMeta(query, raw) {
+  function handleFileScanMeta(query, scope, raw) {
     var q = (query || "").trim()
-    console.log("[Omnicast] file search meta:", q, (raw || "").trim().slice(0, 120))
-    // Ignore stale responses when the user kept typing
+    var sc = (scope || "").toLowerCase()
+    console.log("[Omnicast] file search meta:", q, sc, (raw || "").trim().slice(0, 120))
+    // Ignore stale responses when the user kept typing or changed scope
     if (q !== (root.filterText || "").trim())
+      return
+    if (sc.length && sc !== scopeFromQuery(root.filterText))
       return
 
     var hits = []
@@ -576,14 +626,16 @@ Item {
       var payload = null
       if (cached.length) {
         payload = JSON.parse(cached)
-        if (payload && payload.query === q && payload.hits)
+        if (payload && payload.query === q
+            && (!sc.length || !payload.scope || payload.scope === sc)
+            && payload.hits)
           data = payload.hits
-        if (payload && payload.scope)
+        if (payload && payload.scope && (!sc.length || payload.scope === sc))
           syncScopeFromName(payload.scope)
       }
       if (!data) {
         var meta = JSON.parse((raw || "").trim() || "{}")
-        if (meta && meta.scope)
+        if (meta && meta.scope && (!sc.length || meta.scope === sc))
           syncScopeFromName(meta.scope)
         if (meta && meta.hits)
           data = meta.hits
@@ -1126,8 +1178,11 @@ Item {
 
     if (!q.length) {
       fileSearchDebounce.stop()
+      fileSearchStartTimer.stop()
       fileHits = []
       fileQuery = ""
+      fileScanner.pendingQuery = ""
+      fileScanner.activeQuery = ""
       fileScanner.running = false
       filteredItems = results.length ? results.concat(allItems) : allItems
       restoreSelection(prevId, prevQuery, q)
@@ -1247,7 +1302,8 @@ Item {
   function moveSelection(delta) {
     if (!filteredItems.length) return
     var next = selectedIndex + delta
-    while (next >= 0 && next < filteredItems.length && filteredItems[next].isHeader)
+    while (next >= 0 && next < filteredItems.length
+           && (filteredItems[next].isHeader || root.isFileStatusId(filteredItems[next].id)))
       next += delta
     if (next >= 0 && next < filteredItems.length) {
       selectedIndex = next
@@ -1258,8 +1314,7 @@ Item {
   function executeCurrent() {
     if (!selectedItem || selectedItem.isHeader)
       return
-    if (selectedItem.id === "loading-files" || selectedItem.id === "empty-files"
-        || selectedItem.id === "loading-catalog")
+    if (root.isFileStatusId(selectedItem.id))
       return
     if (typeof selectedItem.action === "function")
       selectedItem.action()
@@ -1267,6 +1322,7 @@ Item {
 
   function openActionPalette() {
     if (!selectedItem || selectedItem.isHeader) return
+    if (root.isFileStatusId(selectedItem.id)) return
     var acts = selectedItem.actions
     if (!acts || !acts.length) {
       acts = withMetaActions(selectedItem, [
@@ -1353,11 +1409,17 @@ Item {
 
       onEntryActivated: (path, title) => {
         Ranking.bump("file-side-drill")
+        var sibs = []
+        var entries = sidePreview.dirEntries || []
+        for (var i = 0; i < entries.length; i++) {
+          if (entries[i] && entries[i].path)
+            sibs.push(entries[i].path)
+        }
         root.requestPushViewWithProps(title, root.filePreviewComp, {
           filePath: path,
           fileTitle: title,
-          siblingPaths: root.fileSiblingPaths(),
-          siblingIndex: -1
+          siblingPaths: sibs,
+          siblingIndex: sibs.indexOf(path)
         })
       }
 
@@ -1374,8 +1436,7 @@ Item {
             return
           }
         }
-        sidePreviewPath = sibs[next]
-        sidePreviewTitle = sibs[next].split("/").pop()
+        // Don't orphan preview from list selection
       }
     }
   }

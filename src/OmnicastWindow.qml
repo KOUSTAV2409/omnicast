@@ -76,8 +76,8 @@ PanelWindow {
 
     Rectangle {
       anchors.fill: parent
-      anchors.margins: windowCard.border.width > 0 ? 0 : 0
-      radius: parent.radius
+      anchors.margins: windowCard.border.width
+      radius: Math.max(0, parent.radius - windowCard.border.width)
       color: Theme.cardBackground
     }
 
@@ -205,7 +205,7 @@ PanelWindow {
         subtitleText: {
           var item = navStack.currentViewItem ? navStack.currentViewItem.selectedItem : null
           if (item && item.category === "Files" && item.path)
-            return "↵ Open · click selects"
+            return "↵ Open · click previews"
           if (item && item.badge) return item.badge
           if (navStack.views.length > 0) return navStack.views[navStack.views.length - 1].title
           return "Omnicast"
@@ -278,11 +278,6 @@ PanelWindow {
     if ("requestPushViewWithProps" in view) {
       view.requestPushViewWithProps.connect(function(title, comp, props) {
         root.pushSubViewWithProps(title, comp, props)
-      })
-    }
-    if ("isLoadingChanged" in view) {
-      view.isLoadingChanged.connect(function() {
-        searchBar.busy = !!view.isLoading
       })
     }
   }
