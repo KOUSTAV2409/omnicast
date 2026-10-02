@@ -18,7 +18,7 @@ Rectangle {
   visible: opacity > 0
   opacity: active ? 1 : 0
   height: 40
-  radius: 8
+  radius: Theme.itemRadius
   width: Math.min(parent.width - 24, toastRow.implicitWidth + 20)
   color: Qt.rgba(0.15, 0.08, 0.08, 0.95)
   border.color: Qt.rgba(0.9, 0.35, 0.3, 0.7)

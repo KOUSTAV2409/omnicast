@@ -1,0 +1,632 @@
+import QtQuick
+import Quickshell
+import Quickshell.Io
+import "../services"
+import "../components"
+
+// Reusable file preview surface (side pane + full FilePreviewView).
+Item {
+  id: root
+
+  property string filePath: ""
+  property string fileTitle: ""
+  property string cacheName: "file-preview.json"
+  property bool compactChrome: false
+  property bool interactiveDirs: true
+  property var siblingPaths: []
+  property int siblingIndex: -1
+
+  property bool isLoading: false
+  property string kind: ""
+  property string mime: ""
+  property string sizeLabel: ""
+  property string modified: ""
+  property string subtitle: ""
+  property string previewText: ""
+  property string previewHtml: ""
+  property string textFormat: "plain"
+  property string imageSource: ""
+  property var dirEntries: []
+  property var opener: ({})
+  property string errorText: ""
+
+  readonly property bool isProse: kind === "docx" || kind === "pdf" || kind === "office"
+                                  || kind === "markdown" || kind === "text"
+  readonly property int previewFontSize: isProse ? (compactChrome ? 15 : 16) : (compactChrome ? 12 : 14)
+  readonly property real previewLineHeight: isProse ? 1.65 : 1.4
+  readonly property string previewFontFamily: kind === "code"
+                                              ? Theme.monoFontFamily
+                                              : (isProse ? Theme.proseFontFamily : Theme.monoFontFamily)
+
+  // Soft fade when content swaps (selection-follow)
+  property real contentOpacity: 1.0
+  Behavior on contentOpacity {
+    NumberAnimation { duration: 140; easing.type: Easing.OutCubic }
+  }
+
+  signal entryActivated(string path, string title)
+  signal requestOpenExternal()
+  signal siblingRequested(int delta)
+
+  FileView {
+    id: previewCacheFile
+    path: Paths.cacheFile(root.cacheName)
+    blockLoading: true
+    printErrors: false
+  }
+
+  property Process previewLoader: Process {
+    property string pendingPath: ""
+    property int token: 0
+    command: ["python3", Paths.py("file_preview.py"), pendingPath, "--cache", root.cacheName]
+    running: false
+    stdout: StdioCollector {
+      waitForEnd: true
+      onStreamFinished: text => root.handlePreviewMeta(text)
+    }
+  }
+
+  Timer {
+    id: startTimer
+    interval: 1
+    repeat: false
+    onTriggered: {
+      if (!previewLoader.pendingPath.length)
+        return
+      previewLoader.command = [
+        "python3", Paths.py("file_preview.py"),
+        previewLoader.pendingPath, "--cache", root.cacheName
+      ]
+      previewLoader.running = true
+    }
+  }
+
+  Timer {
+    id: debounce
+    interval: compactChrome ? 90 : 1
+    repeat: false
+    onTriggered: root.loadPreviewNow()
+  }
+
+  onFilePathChanged: {
+    if (!filePath || !filePath.length) {
+      clearPreview()
+      contentOpacity = 1
+      return
+    }
+    // Compact side pane: keep opacity steady to avoid flicker while arrowing
+    if (!compactChrome)
+      contentOpacity = 0.25
+    isLoading = true
+    errorText = ""
+    debounce.restart()
+  }
+
+  property int loadToken: 0
+
+  function clearPreview() {
+    isLoading = false
+    errorText = ""
+    kind = ""
+    mime = ""
+    sizeLabel = ""
+    modified = ""
+    previewText = ""
+    previewHtml = ""
+    imageSource = ""
+    dirEntries = []
+    opener = ({})
+    subtitle = ""
+  }
+
+  function loadPreviewNow() {
+    if (!filePath || !filePath.length) {
+      clearPreview()
+      return
+    }
+    loadToken++
+    isLoading = true
+    errorText = ""
+    previewText = ""
+    previewHtml = ""
+    imageSource = ""
+    dirEntries = []
+    kind = ""
+    mime = ""
+    sizeLabel = ""
+    modified = ""
+    subtitle = ""
+    textFormat = "plain"
+    previewLoader.running = false
+    previewLoader.pendingPath = filePath
+    previewLoader.token = loadToken
+    startTimer.restart()
+  }
+
+  function pathsEqual(a, b) {
+    var x = String(a || "").replace(/\/$/, "")
+    var y = String(b || "").replace(/\/$/, "")
+    return x.length > 0 && x === y
+  }
+
+  function applyPayload(data) {
+    if (!data || !data.ok) {
+      errorText = (data && data.error) ? data.error : "Preview failed"
+      contentOpacity = 1
+      return
+    }
+    kind = data.kind || "binary"
+    mime = data.mime || ""
+    sizeLabel = data.size_label || ""
+    modified = data.modified || ""
+    subtitle = data.subtitle || data.path || filePath
+    previewText = data.text || ""
+    previewHtml = data.html || ""
+    textFormat = data.text_format || "plain"
+    imageSource = data.image || ""
+    dirEntries = data.entries || []
+    opener = data.opener || {}
+    if (!fileTitle || !fileTitle.length)
+      fileTitle = data.name || filePath
+    errorText = ""
+    contentOpacity = 1
+  }
+
+  function readPreviewCache(preferredPath) {
+    var cached = ""
+    try {
+      previewCacheFile.path = ""
+      previewCacheFile.path = preferredPath && preferredPath.length
+                            ? preferredPath
+                            : Paths.cacheFile(root.cacheName)
+      cached = previewCacheFile.text() || ""
+    } catch (e1) {
+      console.error("[Omnicast] preview cache read failed:", e1)
+    }
+    return cached
+  }
+
+  function tryApplyCache(want, metaPath, cacheFilePath) {
+    var cached = readPreviewCache(cacheFilePath || "")
+    if (!cached.length)
+      return false
+    try {
+      var data = JSON.parse(cached)
+      if (!data || !data.ok)
+        return false
+      var cachePath = data.path ? String(data.path) : ""
+      // Accept only payloads for the file we asked to preview
+      if (pathsEqual(cachePath, want)
+          || (pathsEqual(cachePath, metaPath) && pathsEqual(metaPath, want))) {
+        applyPayload(data)
+        return true
+      }
+    } catch (e) {
+      console.error("[Omnicast] preview cache parse failed:", e)
+    }
+    return false
+  }
+
+  Timer {
+    id: cacheRetryTimer
+    interval: 40
+    repeat: false
+    property string wantPath: ""
+    property string metaPath: ""
+    property string cacheHint: ""
+    property int token: 0
+    onTriggered: {
+      if (token !== root.loadToken)
+        return
+      if (previewLoader.pendingPath !== root.filePath)
+        return
+      if (root.tryApplyCache(wantPath, metaPath, cacheHint))
+        return
+      root.errorText = "Preview failed (no cache)"
+      root.contentOpacity = 1
+    }
+  }
+
+  function handlePreviewMeta(raw) {
+    // Ignore stale responses (token stamped at load start)
+    if (previewLoader.token !== loadToken)
+      return
+    if (previewLoader.pendingPath !== filePath)
+      return
+    isLoading = false
+    var meta = {}
+    try {
+      meta = JSON.parse((raw || "").trim() || "{}")
+    } catch (e0) {
+      console.error("[Omnicast] preview meta parse failed:", e0, raw)
+    }
+
+    var want = String(filePath || "")
+    var metaPath = meta.path ? String(meta.path) : ""
+    var cachePathHint = meta.cache ? String(meta.cache) : ""
+
+    // Reject payload that names a different file
+    if (metaPath.length && !pathsEqual(metaPath, want))
+      return
+
+    if (meta && meta.ok === false) {
+      errorText = meta.error || "Preview failed"
+      contentOpacity = 1
+      return
+    }
+
+    if (tryApplyCache(want, metaPath, cachePathHint))
+      return
+
+    // FileView can briefly miss a just-written cache — one deferred retry
+    if (meta && meta.ok && (pathsEqual(metaPath, want) || !metaPath.length)) {
+      cacheRetryTimer.wantPath = want
+      cacheRetryTimer.metaPath = metaPath
+      cacheRetryTimer.cacheHint = cachePathHint
+      cacheRetryTimer.token = previewLoader.token
+      cacheRetryTimer.restart()
+      return
+    }
+
+    errorText = "Preview failed (no cache)"
+    contentOpacity = 1
+  }
+
+  function goSibling(delta) {
+    root.siblingRequested(delta)
+  }
+
+  // Idle shell while wide layout is open but no file row is selected
+  EmptyState {
+    visible: !root.filePath.length && !root.isLoading
+    anchors.centerIn: parent
+    title: "Select a file"
+    subtitle: "Arrow to a Files row for preview"
+    iconText: ""
+  }
+
+  Column {
+    id: chrome
+    visible: root.filePath.length > 0 || root.isLoading
+    anchors.left: parent.left
+    anchors.right: parent.right
+    anchors.top: parent.top
+    spacing: compactChrome ? 4 : 6
+
+    Row {
+      width: parent.width
+      spacing: 8
+
+      Text {
+        width: parent.width
+               - (kindBadge.visible ? kindBadge.width + 8 : 0)
+               - (sibRow.visible ? sibRow.width + 8 : 0)
+        text: root.fileTitle || root.filePath || "Preview"
+        font.family: Theme.fontFamily
+        font.pixelSize: compactChrome ? Theme.fontBody : Theme.fontHeading
+        font.weight: Font.DemiBold
+        color: Theme.brightForeground
+        elide: Text.ElideMiddle
+      }
+
+      Row {
+        id: sibRow
+        visible: root.siblingPaths && root.siblingPaths.length > 1
+        spacing: 4
+        anchors.verticalCenter: parent.verticalCenter
+
+        Rectangle {
+          width: 22; height: 22; radius: Theme.itemRadius
+          color: "transparent"
+          border.color: Theme.subtleBorder; border.width: 1
+          Text {
+            anchors.centerIn: parent
+            text: "‹"
+            color: Theme.foreground
+            font.pixelSize: 14
+          }
+          MouseArea {
+            anchors.fill: parent
+            hoverEnabled: true
+            onEntered: parent.color = Theme.itemHoverBackground
+            onExited: parent.color = "transparent"
+            onClicked: root.goSibling(-1)
+          }
+        }
+        Text {
+          anchors.verticalCenter: parent.verticalCenter
+          text: root.siblingIndex < 0
+                ? ("—/" + root.siblingPaths.length)
+                : ((root.siblingIndex + 1) + "/" + root.siblingPaths.length)
+          font.family: Theme.fontFamily
+          font.pixelSize: Theme.fontCaption
+          color: Theme.muted
+        }
+        Rectangle {
+          width: 22; height: 22; radius: Theme.itemRadius
+          color: "transparent"
+          border.color: Theme.subtleBorder; border.width: 1
+          Text {
+            anchors.centerIn: parent
+            text: "›"
+            color: Theme.foreground
+            font.pixelSize: 14
+          }
+          MouseArea {
+            anchors.fill: parent
+            hoverEnabled: true
+            onEntered: parent.color = Theme.itemHoverBackground
+            onExited: parent.color = "transparent"
+            onClicked: root.goSibling(1)
+          }
+        }
+      }
+
+      Rectangle {
+        id: kindBadge
+        visible: root.kind.length > 0 || root.isLoading
+        anchors.verticalCenter: parent.verticalCenter
+        height: 20
+        radius: Theme.badgeRadius
+        color: Qt.rgba(Theme.accent.r, Theme.accent.g, Theme.accent.b, 0.18)
+        border.color: Qt.rgba(Theme.accent.r, Theme.accent.g, Theme.accent.b, 0.45)
+        border.width: 1
+        width: kindLabel.implicitWidth + 10
+
+        Text {
+          id: kindLabel
+          anchors.centerIn: parent
+          text: root.isLoading && !root.kind.length ? "…" : root.kind
+          font.family: Theme.fontFamily
+          font.pixelSize: Theme.fontCaption
+          color: Theme.accent
+        }
+      }
+    }
+
+    Text {
+      width: parent.width
+      visible: !compactChrome || root.subtitle.length > 0
+      text: {
+        var bits = []
+        if (root.subtitle.length) bits.push(root.subtitle)
+        if (root.sizeLabel.length) bits.push(root.sizeLabel)
+        if (root.modified.length) bits.push(root.modified)
+        return bits.join("  ·  ")
+      }
+      font.family: Theme.fontFamily
+      font.pixelSize: Theme.fontCaption
+      color: Theme.darkForeground
+      elide: Text.ElideMiddle
+    }
+  }
+
+  Item {
+    id: readingPane
+    visible: root.filePath.length > 0 || root.isLoading || root.errorText.length > 0
+    anchors.left: parent.left
+    anchors.right: parent.right
+    anchors.top: chrome.bottom
+    anchors.bottom: parent.bottom
+    anchors.topMargin: compactChrome ? 8 : 10
+    opacity: root.contentOpacity
+
+      Text {
+        id: loadingDots
+        visible: root.isLoading
+        anchors.horizontalCenter: parent.horizontalCenter
+        anchors.top: parent.top
+        anchors.topMargin: 28
+        text: "···"
+        font.family: Theme.fontFamily
+        font.pixelSize: Theme.fontHeading
+        color: Theme.accent
+        opacity: 0.35
+
+        SequentialAnimation on opacity {
+          running: root.isLoading
+          loops: Animation.Infinite
+          NumberAnimation { to: 0.9; duration: 420; easing.type: Easing.InOutSine }
+          NumberAnimation { to: 0.3; duration: 420; easing.type: Easing.InOutSine }
+        }
+      }
+
+    Text {
+      anchors.fill: parent
+      visible: !root.isLoading && root.errorText.length > 0
+      text: root.errorText
+      font.family: Theme.fontFamily
+      font.pixelSize: Theme.fontBody
+      color: Theme.urgent
+      wrapMode: Text.Wrap
+    }
+
+    // Image / PDF page
+    Flickable {
+      anchors.fill: parent
+      visible: !root.isLoading && root.imageSource.length > 0
+      contentWidth: width
+      contentHeight: Math.max(height, imgCol.implicitHeight)
+      clip: true
+      boundsBehavior: Flickable.StopAtBounds
+
+      Column {
+        id: imgCol
+        width: parent.width
+        spacing: 10
+
+        Rectangle {
+          width: parent.width
+          height: Math.min(root.height * 0.55, Math.max(180, parent.width * 0.7))
+          radius: Theme.itemRadius
+          color: Theme.itemHoverBackground
+          border.color: Theme.subtleBorder
+          border.width: 1
+          clip: true
+
+          Image {
+            anchors.fill: parent
+            anchors.margins: 6
+            source: root.imageSource
+            fillMode: Image.PreserveAspectFit
+            asynchronous: true
+            smooth: true
+          }
+        }
+
+        Text {
+          width: parent.width
+          visible: root.previewText.length > 0
+          text: root.previewText
+          font.family: root.previewFontFamily
+          font.pixelSize: root.previewFontSize - 1
+          lineHeight: root.previewLineHeight
+          lineHeightMode: Text.ProportionalHeight
+          color: Theme.foreground
+          wrapMode: Text.Wrap
+        }
+      }
+    }
+
+    // Directory listing
+    Flickable {
+      anchors.fill: parent
+      visible: !root.isLoading && root.kind === "dir" && root.dirEntries.length > 0
+      contentWidth: width
+      contentHeight: dirCol.implicitHeight
+      clip: true
+      boundsBehavior: Flickable.StopAtBounds
+
+      Column {
+        id: dirCol
+        width: parent.width
+        spacing: 1
+
+        Repeater {
+          model: root.dirEntries
+          delegate: Rectangle {
+            width: dirCol.width
+            height: 30
+            radius: Theme.itemRadius
+            color: dirMa.containsMouse ? Theme.itemHoverBackground : "transparent"
+
+            Row {
+              anchors.fill: parent
+              anchors.leftMargin: 4
+              anchors.rightMargin: 4
+              spacing: 8
+
+              Text {
+                anchors.verticalCenter: parent.verticalCenter
+                text: modelData.is_dir ? "󰉋" : "󰈔"
+                font.pixelSize: Theme.fontBody
+                color: Theme.accent
+              }
+              Text {
+                width: parent.width - 100
+                anchors.verticalCenter: parent.verticalCenter
+                text: modelData.name
+                font.family: Theme.fontFamily
+                font.pixelSize: Theme.fontBody
+                color: Theme.foreground
+                elide: Text.ElideMiddle
+              }
+              Text {
+                anchors.verticalCenter: parent.verticalCenter
+                text: modelData.size_label || ""
+                font.family: Theme.fontFamily
+                font.pixelSize: Theme.fontCaption
+                color: Theme.muted
+              }
+            }
+
+            MouseArea {
+              id: dirMa
+              anchors.fill: parent
+              hoverEnabled: true
+              enabled: root.interactiveDirs
+              onClicked: {
+                var name = modelData.name || ""
+                if (name.endsWith("/"))
+                  name = name.slice(0, -1)
+                root.entryActivated(modelData.path, name)
+              }
+            }
+          }
+        }
+      }
+    }
+
+    // Text / markdown / code — document reading surface
+    Flickable {
+      id: textScroll
+      anchors.fill: parent
+      visible: !root.isLoading && root.previewText.length > 0 && root.imageSource.length === 0
+               && root.kind !== "dir"
+      contentWidth: width
+      contentHeight: page.y + page.height + 8
+      clip: true
+      boundsBehavior: Flickable.StopAtBounds
+
+      Rectangle {
+        id: page
+        x: 0
+        y: 0
+        width: textScroll.width
+        height: Math.max(textScroll.height, previewBody.implicitHeight + pagePad * 2)
+        radius: Theme.itemRadius
+        color: root.compactChrome ? "transparent" : Theme.itemHoverBackground
+        border.color: Theme.subtleBorder
+        border.width: root.compactChrome ? 0 : 1
+
+        readonly property int pagePad: root.isProse ? 18 : 14
+        readonly property int proseMax: 560
+
+        Text {
+          id: previewBody
+          anchors.top: parent.top
+          anchors.left: parent.left
+          anchors.topMargin: page.pagePad
+          anchors.leftMargin: page.pagePad
+          width: root.isProse
+                 ? Math.min(page.proseMax, parent.width - page.pagePad * 2)
+                 : (parent.width - page.pagePad * 2)
+          text: {
+            if (root.previewHtml.length)
+              return root.previewHtml
+            return root.previewText
+          }
+          textFormat: {
+            if (root.previewHtml.length)
+              return Text.RichText
+            if (root.textFormat === "markdown")
+              return Text.MarkdownText
+            return Text.PlainText
+          }
+          // Never follow links from preview HTML (local-only surface)
+          onLinkActivated: function(link) { }
+          font.family: root.previewHtml.length && root.kind === "code"
+                       ? Theme.monoFontFamily
+                       : (root.isProse ? Theme.proseFontFamily : Theme.monoFontFamily)
+          font.pixelSize: root.previewFontSize
+          lineHeight: root.previewLineHeight
+          lineHeightMode: Text.ProportionalHeight
+          color: Theme.brightForeground
+          wrapMode: Text.Wrap
+        }
+      }
+    }
+
+    Text {
+      anchors.fill: parent
+      visible: !root.isLoading && !root.errorText.length
+               && root.imageSource.length === 0 && root.previewText.length === 0
+               && !(root.kind === "dir" && root.dirEntries.length)
+               && root.filePath.length > 0
+      text: "No preview · Enter to open"
+      font.family: Theme.fontFamily
+      font.pixelSize: Theme.fontBody
+      color: Theme.darkForeground
+    }
+  }
+}

@@ -16,3 +16,24 @@ __pycache__/
 # Local agent / Cursor session links (never commit)
 omnicastagentlink.md
 *.agentlink.md
+
+# Secrets / credentials (never commit)
+.env
+.env.*
+!.env.example
+.envrc
+*.pem
+*.p12
+*.pfx
+*.key
+id_rsa
+id_ed25519
+id_ecdsa
+id_dsa
+*.kdbx
+credentials.json
+service_account.json
+secrets.json
+secrets.toml
+.netrc
+.git-credentials

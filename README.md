@@ -85,6 +85,10 @@ Omnicast dismisses and opens the native surface:
 ### Own (Omnicast fills the gap)
 - **Apps & commands**: `.desktop` apps + Omarchy CLI catalog  
   - Try: `foot`, `screenshot`, `nightlight` (→ Omarchy: Toggle Nightlight)
+- **File search**: type a name → Files section (`fd` + content via `rg`) under a scope (`home` / `projects` / …)  
+  - Try: a folder/file name · Enter opens · **Ctrl+K → Full Preview** to peek
+  - `content:phrase` finds inside files (slower) · `in:projects foo` scopes · **Ctrl+Shift+P** cycles scope
+  - Ctrl+K: Full Preview · Copy Path · Reveal
 - **Calculator**: math, `#hex` colors, units, rough FX (verify on Google), dates  
   - Try: `12*7+3` · `#ff8800` · `10 km to mi` · `10 usd to inr` (shows ≈ guess + Google live rate) · `days until 2026-12-25`
 - **Quicklinks**: bookmarks with `{argument}` / `{clipboard}` placeholders  
@@ -142,6 +146,16 @@ Full Raycast ↔ Omarchy map: [`docs/raycast-vs-omarchy.md`](docs/raycast-vs-oma
 **Next:** non-AI dogfood + gap close. AI gateway and Omarchy-LLM are out of band. Public site: [omnicast.best](https://omnicast.best).
 
 Full leftover backlog: [`roadmap.md`](roadmap.md) → **What’s left to build**.
+
+---
+
+## Security (local desktop)
+
+Omnicast is a **local** Alt+Space launcher. Cloning it from GitHub does **not** give anyone remote access to your machine. It runs as your user, like a browser or editor.
+
+Hardening includes: secrets/session paths blocked from search & preview, owner-only cache (`0600`), no shell launch of desktop `Exec=` lines, script commands only from allowlisted folders, and no executing `.sh`/binaries from Files search.
+
+Optional **`omnicast-snippetd`** uses the `input` group (keystroke expansion). Only enable it if you understand that; it is not required for the launcher.
 
 ---
 

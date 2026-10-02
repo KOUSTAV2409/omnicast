@@ -16,10 +16,41 @@ Item {
   property var omarchyCommands: []
   property var desktopApps: []
   property var quickLinkItems: []
+  property var fileHits: []
+  property string fileQuery: ""
   property var itemById: ({})
+  property var fileScopes: ["home", "projects", "documents", "downloads", "desktop"]
+  property int fileScopeIndex: 0
+  readonly property string fileScope: fileScopes[fileScopeIndex] || "home"
+  // Scope actually used by the last completed search (honors in:)
+  property string activeFileScope: "home"
+  readonly property bool fileSelected: !!(selectedItem && selectedItem.path && selectedItem.category === "Files"
+                                          && selectedItem.id !== "loading-files"
+                                          && selectedItem.id !== "empty-files")
+  // Root search stays list-only — no split filesystem pane while browsing hits.
+  // Full preview is an explicit push (Ctrl+K → Full Preview).
+  property bool wideLayout: false
 
   property bool isLoading: scriptScanner.running || omarchyScanner.running
                               || appScanner.running || quicklinkScanner.running
+  property bool filesSearching: fileScanner.running || fileSearchDebounce.running || fileSearchStartTimer.running
+  readonly property bool isBusy: isLoading || filesSearching
+  // Footer / chrome hints for OmnicastWindow (FooterBar keeps Enter/Ctrl+K)
+  readonly property bool queryLocksScope: /^in:\w+\s+/i.test((filterText || "").trim())
+  readonly property string statusHint: {
+    var q = (filterText || "").trim()
+    if (!(q.length >= 2 && (fileHits.length || filesSearching || fileQuery === q || fileSelected)))
+      return ""
+    if (queryLocksScope)
+      return "Files · " + activeFileScope + " · in: locked"
+    return "Files · " + activeFileScope + " · Ctrl+Shift+P scope"
+  }
+  readonly property string searchPlaceholder: {
+    var q = (filterText || "").trim()
+    if (q.length >= 2)
+      return "name · content:phrase · in:projects foo"
+    return "Apps, commands, files…"
+  }
 
   signal requestActionPalette(var actions)
   signal requestPushView(string title, var component)
@@ -34,6 +65,7 @@ Item {
   property Component aiAssistComp: Component { AiAssistView {} }
   property Component scriptResultComp: Component { ScriptResultView {} }
   property Component formViewComp: Component { FormView {} }
+  property Component filePreviewComp: Component { FilePreviewView {} }
 
   Process {
     id: scriptScanner
@@ -72,6 +104,71 @@ Item {
     command: ["python3", Paths.py("quicklinks.py"), "list"]
     running: false
     stdout: StdioCollector { waitForEnd: true; onStreamFinished: text => root.handleQuicklinkScanMeta(text) }
+  }
+
+  Process {
+    id: fileScanner
+    property string pendingQuery: ""
+    property string pendingScope: "home"
+    // Captured at process start so completions aren't attributed to a newer keystroke
+    property string activeQuery: ""
+    property string activeScope: "home"
+    // Bind query + scope into argv
+    command: ["python3", Paths.py("file_search.py"), pendingQuery, "--limit", "18", "--scope", pendingScope]
+    running: false
+    stdout: StdioCollector {
+      waitForEnd: true
+      onStreamFinished: text => root.handleFileScanMeta(fileScanner.activeQuery, fileScanner.activeScope, text)
+    }
+  }
+
+  FileView {
+    id: fileSearchCacheFile
+    path: Paths.cacheFile("file-search.json")
+    blockLoading: true
+    printErrors: false
+  }
+
+  // Silent/compact script runs: collect real result so HUD never lies.
+  // HudPanel is shell-level, so feedback survives the dismiss below.
+  Process {
+    id: silentRunner
+    property string pendingTitle: ""
+    property string pendingMode: ""
+    running: false
+    stdout: StdioCollector {
+      waitForEnd: true
+      onStreamFinished: text => root.handleSilentOutput(text)
+    }
+  }
+
+  Timer {
+    id: fileSearchDebounce
+    interval: 70
+    repeat: false
+    onTriggered: root.runFileSearch(root.filterText)
+  }
+
+  Timer {
+    id: fileSearchStartTimer
+    interval: 1
+    repeat: false
+    onTriggered: {
+      if (fileScanner.pendingQuery.length >= 2) {
+        fileScanner.activeQuery = fileScanner.pendingQuery
+        fileScanner.activeScope = fileScanner.pendingScope
+        fileScanner.command = [
+          "python3", Paths.py("file_search.py"),
+          fileScanner.pendingQuery, "--limit", "18",
+          "--scope", fileScanner.pendingScope
+        ]
+        fileScanner.running = true
+      }
+    }
+  }
+
+  function isFileStatusId(id) {
+    return id === "loading-files" || id === "empty-files" || id === "loading-catalog"
   }
 
   FileView {
@@ -165,7 +262,7 @@ Item {
       handoffTool("images", "Images", "Browse Pictures",
                   "󰋫", "Omarchy", "Omarchy", "Open Images",
                   function() { Exec.omarchyImages() }),
-      handoffTool("files", "Find Files", "Portal file picker · open",
+      handoffTool("files", "Find Files", "Type a name here · in:projects · Ctrl+Shift+P",
                   "󰈔", "Omarchy", "Omarchy", "Open Files",
                   function() { Exec.omarchyFileOpen() }),
       handoffTool("keybindings", "Keybindings", "Super+K",
@@ -212,7 +309,7 @@ Item {
     }
     item.action = function() {
       Ranking.bump(item.id)
-      Exec.detached(["sh", "-c", item.route + " &"])
+      Exec.omarchyRoute(item.route)
       Hud.success("Ran " + item.title)
       root.requestDismiss()
     }
@@ -232,11 +329,14 @@ Item {
     var item = {
       id: a.id, title: a.title, subtitle: a.subtitle || "Application",
       icon: a.icon || "", category: "Applications", badge: "App",
-      exec: a.exec, desktopPath: a.desktop_path, primaryActionTitle: "Open", actions: []
+      exec: a.exec, argv: a.argv || [], terminal: !!a.terminal,
+      desktopPath: a.desktop_path || a.desktopPath || "",
+      desktopId: a.desktop_id || a.desktopId || "",
+      primaryActionTitle: "Open", actions: []
     }
     item.action = function() {
       Ranking.bump(item.id)
-      Exec.launchApp(item.exec)
+      Exec.launchDesktop(item.desktopId, item.desktopPath, item.argv, item.terminal)
       Hud.success("Launched " + item.title)
       root.requestDismiss()
     }
@@ -244,7 +344,10 @@ Item {
       { title: "Launch Application", icon: "🚀", shortcut: "↵", callback: item.action },
       { title: "Launch in Terminal", icon: "", callback: function() {
         Ranking.bump(item.id)
-        Exec.launchInTerminal(item.exec || "")
+        if (item.argv && item.argv.length)
+          Exec.launchArgvInTerminal(item.argv)
+        else
+          Exec.launchInTerminal(item.exec || "")
         Hud.success("Launched in terminal")
         root.requestDismiss()
       }}
@@ -278,6 +381,242 @@ Item {
       { title: "Open Link", icon: "🔗", shortcut: "↵", callback: item.action }
     ])
     return item
+  }
+
+  function makeFileItem(f) {
+    var path = f.path || ""
+    var isDoc = /\.(docx?|odt|rtf|xlsx?|pptx?|pdf)$/i.test(path)
+    var item = {
+      id: f.id, title: f.title || f.name || path, subtitle: f.subtitle || path,
+      icon: f.icon || "󰈔", category: "Files", badge: f.badge || (f.is_dir ? "Dir" : "File"),
+      path: path, isDir: !!f.is_dir, keyword: path, contentMatch: !!f.content_match,
+      primaryActionTitle: f.is_dir ? "Open Folder" : "Open", actions: []
+    }
+    item.action = function() {
+      Ranking.bump(item.id)
+      if (root.openFileSmart(item.path)) {
+        root.requestDismiss()
+        Hud.success("Opening " + item.title)
+      }
+    }
+    item.actions = withMetaActions(item, [
+      { title: item.primaryActionTitle, icon: "󰏌", shortcut: "↵", callback: item.action },
+      { title: "Full Preview", icon: "󰈈", callback: function() {
+        Ranking.bump(item.id)
+        var sibs = root.fileSiblingPaths()
+        var idx = sibs.indexOf(item.path)
+        root.requestPushViewWithProps(item.title, root.filePreviewComp, {
+          filePath: item.path,
+          fileTitle: item.title,
+          siblingPaths: sibs,
+          siblingIndex: idx
+        })
+      }},
+      { title: "Copy Path", icon: "", callback: function() {
+        Exec.copyText(item.path)
+        Hud.success("Copied path")
+      }},
+      { title: "Reveal", icon: "󰉋", callback: function() {
+        Ranking.bump(item.id)
+        root.requestDismiss()
+        if (item.isDir)
+          Exec.openPath(item.path)
+        else
+          Exec.revealPath(item.path)
+      }},
+      { title: "Cycle File Scope", icon: "󰉖", shortcut: "Ctrl+⇧P", callback: function() { root.cycleCategory(1) } }
+    ])
+    return item
+  }
+
+  function isSensitivePath(path) {
+    var p = String(path || "").toLowerCase().replace(/\\/g, "/")
+    if (!p.length)
+      return true
+    var parts = [
+      "/.ssh/", "/.gnupg/", "/.aws/", "/.azure/", "/.kube/", "/.docker/",
+      "/.password-store/", "/.config/gcloud/", "/.config/chromium/",
+      "/.config/google-chrome/", "/.mozilla/firefox/", "/.local/share/keyrings/",
+      "/.config/keepassxc/", "/.config/bitwarden/", "/.config/1password/",
+      "/.config/signal/", "/.config/element/"
+    ]
+    for (var i = 0; i < parts.length; i++) {
+      if (p.indexOf(parts[i]) >= 0)
+        return true
+    }
+    var base = p.split("/").pop()
+    if (base === ".env" || base.indexOf(".env.") === 0)
+      return true
+    if (base.indexOf("id_rsa") === 0 || base.indexOf("id_ed25519") === 0 || base.indexOf("id_ecdsa") === 0)
+      return true
+    if (/\.(pem|key|p12|pfx|kdbx)$/.test(base))
+      return true
+    if (base === ".netrc" || base === ".git-credentials" || base === "credentials.json")
+      return true
+    return false
+  }
+
+  function openFileSmart(path) {
+    var p = String(path || "")
+    if (root.isSensitivePath(p)) {
+      Hud.error("Blocked: sensitive credentials or session data")
+      return false
+    }
+    var low = p.toLowerCase()
+    // Never hand scripts/binaries to xdg-open (often executes them)
+    if (/\.(sh|bash|zsh|fish|py|rb|pl|js|mjs|cjs|exe|bin|run|appimage)$/.test(low)) {
+      Exec.copyText(p)
+      Hud.error("Script/binary not launched from Files — path copied")
+      return false
+    }
+    if (/\.(docx?|odt|rtf|xlsx?|ods|pptx?|odp)$/.test(low)) {
+      Exec.detached(["onlyoffice-desktopeditors", "--view=" + p])
+      return true
+    }
+    Exec.openPath(p)
+    return true
+  }
+
+  function fileSiblingPaths() {
+    var out = []
+    for (var i = 0; i < fileHits.length; i++) {
+      if (fileHits[i] && fileHits[i].path)
+        out.push(fileHits[i].path)
+    }
+    return out
+  }
+
+  function cycleCategory(direction) {
+    var q = (filterText || "").trim()
+    if (root.queryLocksScope) {
+      Hud.info("Scope locked by in: · remove prefix to cycle")
+      return
+    }
+    var dir = direction || 1
+    fileScopeIndex = (fileScopeIndex + dir + fileScopes.length) % fileScopes.length
+    activeFileScope = fileScope
+    Hud.info("Files scope · " + fileScope + " · also in:" + fileScope)
+    fileQuery = ""
+    if (q.length >= 2) {
+      // Force a new search for the new scope (scheduleFileSearch may early-return)
+      fileScanner.running = false
+      fileSearchDebounce.stop()
+      runFileSearch(q)
+      root.filter(root.filterText)
+    }
+  }
+
+  function scopeFromQuery(query) {
+    var m = String(query || "").match(/^in:(\w+)\s+/i)
+    if (m) {
+      var name = m[1].toLowerCase()
+      var idx = fileScopes.indexOf(name)
+      if (idx >= 0)
+        return name
+    }
+    return fileScope
+  }
+
+  function syncScopeFromName(name) {
+    var n = (name || "").toLowerCase()
+    var idx = fileScopes.indexOf(n)
+    if (idx >= 0) {
+      fileScopeIndex = idx
+      activeFileScope = n
+    }
+  }
+
+  function runFileSearch(query) {
+    var q = (query || "").trim()
+    if (q.length < 2) {
+      fileHits = []
+      fileQuery = ""
+      fileScanner.pendingQuery = ""
+      fileScanner.activeQuery = ""
+      fileScanner.running = false
+      fileSearchStartTimer.stop()
+      return
+    }
+    var scope = scopeFromQuery(q)
+    syncScopeFromName(scope)
+    if (fileScanner.running && fileScanner.pendingQuery === q && fileScanner.pendingScope === scope)
+      return
+    fileScanner.running = false
+    fileScanner.pendingQuery = q
+    fileScanner.pendingScope = scope
+    console.log("[Omnicast] file search start:", q, "scope:", scope)
+    fileSearchStartTimer.restart()
+  }
+
+  function scheduleFileSearch(query) {
+    var q = (query || "").trim()
+    if (q.length < 2) {
+      fileSearchDebounce.stop()
+      fileSearchStartTimer.stop()
+      fileHits = []
+      fileQuery = ""
+      fileScanner.pendingQuery = ""
+      fileScanner.activeQuery = ""
+      fileScanner.running = false
+      return
+    }
+    var scope = scopeFromQuery(q)
+    // Already have results for this query+scope, or search already queued/running
+    if (fileQuery === q && activeFileScope === scope && !filesSearching)
+      return
+    if (fileScanner.pendingQuery === q && fileScanner.pendingScope === scope
+        && (fileScanner.running || fileSearchDebounce.running || fileSearchStartTimer.running))
+      return
+    fileSearchDebounce.restart()
+  }
+
+  function handleFileScanMeta(query, scope, raw) {
+    var q = (query || "").trim()
+    var sc = (scope || "").toLowerCase()
+    console.log("[Omnicast] file search meta:", q, sc, (raw || "").trim().slice(0, 120))
+    // Ignore stale responses when the user kept typing or changed scope
+    if (q !== (root.filterText || "").trim())
+      return
+    if (sc.length && sc !== scopeFromQuery(root.filterText))
+      return
+
+    var hits = []
+    try {
+      fileSearchCacheFile.path = ""
+      fileSearchCacheFile.path = Paths.cacheFile("file-search.json")
+      var cached = ""
+      try { cached = fileSearchCacheFile.text() || "" } catch (e0) {}
+      var data = null
+      var payload = null
+      if (cached.length) {
+        payload = JSON.parse(cached)
+        if (payload && payload.query === q
+            && (!sc.length || !payload.scope || payload.scope === sc)
+            && payload.hits)
+          data = payload.hits
+        if (payload && payload.scope && (!sc.length || payload.scope === sc))
+          syncScopeFromName(payload.scope)
+      }
+      if (!data) {
+        var meta = JSON.parse((raw || "").trim() || "{}")
+        if (meta && meta.scope && (!sc.length || meta.scope === sc))
+          syncScopeFromName(meta.scope)
+        if (meta && meta.hits)
+          data = meta.hits
+        else if (Array.isArray(meta))
+          data = meta
+      }
+      if (data && data.length) {
+        for (var i = 0; i < data.length; i++)
+          hits.push(makeFileItem(data[i]))
+      }
+    } catch (e) {
+      console.error("[Omnicast] file search parse failed:", e, raw)
+    }
+    fileQuery = q
+    fileHits = hits
+    console.log("[Omnicast] file search hits:", hits.length, "for", q)
+    root.filter(root.filterText)
   }
 
   function handleOmarchyScanMeta(raw) {
@@ -469,17 +808,37 @@ Item {
     Ranking.bump(s.id)
     var mode = (s.mode || "fullOutput").toLowerCase()
     if (mode === "silent" || mode === "compact") {
-      var argv = ["exec", s.path]
+      var cmd = ["python3", Paths.py("script_runner.py"), "exec", s.path]
       for (var i = 0; i < (argsList || []).length; i++)
-        argv.push(String(argsList[i]))
-      Exec.python("script_runner.py", argv)
-      Hud.success(mode === "silent" ? ("Ran " + s.title) : (s.title + " finished"))
+        cmd.push(String(argsList[i]))
+      silentRunner.pendingTitle = s.title
+      silentRunner.pendingMode = mode
+      silentRunner.command = cmd
+      silentRunner.running = true
       root.requestDismiss()
       return
     }
     root.requestPushViewWithProps(s.title, root.scriptResultComp, {
       scriptTitle: s.title, scriptPath: s.path, scriptArgs: argsList || []
     })
+  }
+
+  function handleSilentOutput(raw) {
+    var title = silentRunner.pendingTitle || "Script"
+    var mode = silentRunner.pendingMode || "silent"
+    silentRunner.pendingTitle = ""
+    silentRunner.pendingMode = ""
+    try {
+      var res = JSON.parse(raw || "{}")
+      if (res.status === "success") {
+        Hud.success(mode === "silent" ? ("Ran " + title) : (title + " finished"))
+      } else {
+        var err = res.stderr || res.error || "Unknown error"
+        Hud.error(title + " failed: " + String(err).split("\n")[0])
+      }
+    } catch (e) {
+      Hud.error(title + " failed: unreadable output")
+    }
   }
 
   function tryMathEvaluation(query) {
@@ -763,9 +1122,15 @@ Item {
   }
 
   function filter(query) {
+    var prevId = (root.selectedItem && root.selectedItem.id) ? root.selectedItem.id : ""
+    var prevQuery = root.filterText
     root.filterText = query
     var results = []
     var q = (query || "").trim()
+
+    // Honor in: immediately so loading/empty headers stay honest
+    if (q.length >= 2)
+      syncScopeFromName(scopeFromQuery(q))
 
     var mathResult = tryMathEvaluation(q)
     if (mathResult !== null) {
@@ -796,10 +1161,20 @@ Item {
     }
 
     if (!q.length) {
+      fileSearchDebounce.stop()
+      fileSearchStartTimer.stop()
+      fileHits = []
+      fileQuery = ""
+      fileScanner.pendingQuery = ""
+      fileScanner.activeQuery = ""
+      fileScanner.running = false
       filteredItems = results.length ? results.concat(allItems) : allItems
-      findNextSelectable(0, 1)
+      restoreSelection(prevId, prevQuery, q)
       return
     }
+
+    // Kick async file search (fd/plocate under $HOME)
+    scheduleFileSearch(q)
 
     var aliasId = Ranking.aliasTarget(q)
     var scored = [], catalog = catalogItems()
@@ -817,26 +1192,90 @@ Item {
     if (scored.length) {
       results.push(header("Results"))
       for (var s = 0; s < scored.length; s++) results.push(scored[s].item)
-    } else if (root.isLoading) {
-      // Catalogs still scanning: don't falsely fall back to web/AI
-      results.push(header("Loading"))
+    }
+
+    var contentMark = fileHits.some(function(h){ return h.contentMatch }) ? " · content" : ""
+    var filesHeader = "Files · " + activeFileScope + contentMark
+
+    // Files section: hits, loading, or honest empty
+    if (fileQuery === q && fileHits.length) {
+      results.push(header(filesHeader))
+      for (var fi = 0; fi < fileHits.length; fi++) results.push(fileHits[fi])
+    } else if (q.length >= 2 && filesSearching) {
+      results.push(header("Files · " + activeFileScope))
       results.push({
-        id: "loading-catalog", title: "Indexing commands…", subtitle: "Try again in a moment",
-        icon: "⏳", badge: "", category: "System", isHeader: false,
+        id: "loading-files", title: "Searching files…",
+        subtitle: activeFileScope + " · " + q,
+        icon: "󰔟", badge: "", category: "Files", isHeader: false,
         primaryActionTitle: "", actions: [], action: function() {}
       })
-    } else {
-      results.push(header("Fallback"))
-      var fb = fallbackItems(q)
-      for (var f = 0; f < fb.length; f++) results.push(fb[f])
+    } else if (fileQuery === q && q.length >= 2 && !filesSearching && !fileHits.length) {
+      results.push(header("Files · " + activeFileScope))
+      results.push({
+        id: "empty-files",
+        title: "No files in " + activeFileScope,
+        subtitle: "Try another name · in:projects · content:phrase · Ctrl+Shift+P",
+        icon: "󰈔", badge: "", category: "Files", isHeader: false,
+        primaryActionTitle: "", actions: [], action: function() {}
+      })
     }
+
+    if (!scored.length && !(fileQuery === q && fileHits.length) && !(fileQuery === q && q.length >= 2)) {
+      if (root.isLoading || (q.length >= 2 && filesSearching)) {
+        if (!results.length || (results.length && results[results.length - 1].id !== "loading-files")) {
+          if (!(q.length >= 2 && filesSearching)) {
+            results.push(header("Loading"))
+            results.push({
+              id: "loading-catalog", title: "Indexing commands…", subtitle: "Try again in a moment",
+              icon: "󰔟", badge: "", category: "System", isHeader: false,
+              primaryActionTitle: "", actions: [], action: function() {}
+            })
+          }
+        }
+      } else if (!(fileQuery === q && q.length >= 2 && !fileHits.length)) {
+        results.push(header("Fallback"))
+        var fb = fallbackItems(q)
+        for (var f = 0; f < fb.length; f++) results.push(fb[f])
+      }
+    } else if (!scored.length && fileQuery === q && q.length >= 2 && !fileHits.length && !filesSearching) {
+      // Keep empty-files; still offer web fallback below
+      results.push(header("Also"))
+      var fb2 = fallbackItems(q)
+      for (var f2 = 0; f2 < fb2.length; f2++) results.push(fb2[f2])
+    }
+
     filteredItems = results
+    restoreSelection(prevId, prevQuery, q)
+  }
+
+  function restoreSelection(prevId, prevQuery, newQuery) {
+    // Preserve selection across async file-hit refreshes; reset when the query changes
+    if (prevId && prevQuery === newQuery) {
+      for (var i = 0; i < filteredItems.length; i++) {
+        var it = filteredItems[i]
+        if (it && !it.isHeader && it.id === prevId
+            && it.id !== "loading-files" && it.id !== "empty-files") {
+          selectedIndex = i
+          return
+        }
+      }
+    }
     findNextSelectable(0, 1)
   }
 
   function findNextSelectable(start, direction) {
     if (!filteredItems.length) { selectedIndex = 0; return }
     var idx = start
+    while (idx >= 0 && idx < filteredItems.length) {
+      var it = filteredItems[idx]
+      if (!it.isHeader && it.id !== "loading-files" && it.id !== "empty-files") {
+        selectedIndex = idx
+        return
+      }
+      idx += direction
+    }
+    // Fall back to first non-header (including status rows) so list isn't stuck
+    idx = start
     while (idx >= 0 && idx < filteredItems.length) {
       if (!filteredItems[idx].isHeader) { selectedIndex = idx; return }
       idx += direction
@@ -847,7 +1286,8 @@ Item {
   function moveSelection(delta) {
     if (!filteredItems.length) return
     var next = selectedIndex + delta
-    while (next >= 0 && next < filteredItems.length && filteredItems[next].isHeader)
+    while (next >= 0 && next < filteredItems.length
+           && (filteredItems[next].isHeader || root.isFileStatusId(filteredItems[next].id)))
       next += delta
     if (next >= 0 && next < filteredItems.length) {
       selectedIndex = next
@@ -856,12 +1296,17 @@ Item {
   }
 
   function executeCurrent() {
-    if (selectedItem && !selectedItem.isHeader && typeof selectedItem.action === "function")
+    if (!selectedItem || selectedItem.isHeader)
+      return
+    if (root.isFileStatusId(selectedItem.id))
+      return
+    if (typeof selectedItem.action === "function")
       selectedItem.action()
   }
 
   function openActionPalette() {
     if (!selectedItem || selectedItem.isHeader) return
+    if (root.isFileStatusId(selectedItem.id)) return
     var acts = selectedItem.actions
     if (!acts || !acts.length) {
       acts = withMetaActions(selectedItem, [
@@ -872,31 +1317,48 @@ Item {
     root.requestActionPalette(acts)
   }
 
-  ListView {
-    id: list
+  Row {
     anchors.fill: parent
-    clip: true
-    model: root.filteredItems
-    boundsBehavior: Flickable.StopAtBounds
-    spacing: Theme.rowSpacing
+    spacing: 0
 
-    delegate: ItemRow {
-      width: list.width
-      title: modelData.title
-      subtitle: modelData.subtitle || ""
-      iconText: modelData.icon || ""
-      badgeText: modelData.badge || ""
-      shortcutHint: modelData.shortcut || ""
-      isSectionHeader: modelData.isHeader || false
-      isSelected: index === root.selectedIndex
-      onClicked: { root.selectedIndex = index; root.executeCurrent() }
+    ListView {
+      id: list
+      width: parent.width
+      height: parent.height
+      clip: true
+      model: root.filteredItems
+      boundsBehavior: Flickable.StopAtBounds
+      spacing: Theme.rowSpacing
+      highlightMoveDuration: 120
+      highlightMoveVelocity: -1
+
+      delegate: ItemRow {
+        width: list.width
+        title: modelData.title
+        subtitle: modelData.subtitle || ""
+        iconText: modelData.icon || ""
+        badgeText: modelData.badge || ""
+        shortcutHint: modelData.shortcut || ""
+        isSectionHeader: modelData.isHeader || false
+        isSelected: index === root.selectedIndex
+        onClicked: {
+          root.selectedIndex = index
+          // Same as apps/commands: activate. Peek via Ctrl+K → Full Preview.
+          if (!(modelData.isHeader || root.isFileStatusId(modelData.id)))
+            root.executeCurrent()
+        }
+        onDoubleClicked: {
+          root.selectedIndex = index
+          root.executeCurrent()
+        }
+      }
     }
   }
 
   EmptyState {
     visible: !root.isLoading && root.filteredItems.length === 0
-    title: "No Matching Commands"
-    subtitle: "No apps or commands match '" + root.filterText + "'"
+    title: "Nothing matched"
+    subtitle: "Try a name, content:phrase, or in:projects …"
   }
 
   Component.onCompleted: {

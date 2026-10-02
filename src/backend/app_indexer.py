@@ -13,9 +13,24 @@ APP_DIRS = [
 ]
 
 def clean_exec(exec_str):
-    # Remove field codes (%f, %F, %u, %U, %d, %D, %n, %N, %i, %c, %k, %v, %m)
-    cleaned = re.sub(r"%[a-zA-Z]", "", exec_str).strip()
+    # Remove field codes (%f, %F, %u, %U, …) — keep for display only.
+    # Launch uses desktop_path via gtk-launch / gio, never this string as shell.
+    cleaned = re.sub(r"%[a-zA-Z]", "", exec_str or "").strip()
     return cleaned
+
+
+def exec_to_argv(exec_str: str) -> list[str]:
+    """Best-effort FreeDesktop Exec → argv (no shell)."""
+    import shlex
+
+    cleaned = clean_exec(exec_str)
+    if not cleaned:
+        return []
+    try:
+        return shlex.split(cleaned, posix=True)
+    except Exception:
+        return [cleaned]
+
 
 def get_app_icon(name, icon_field):
     # Return a friendly icon or emoji based on app category/name
@@ -100,10 +115,9 @@ def index_desktop_apps():
                         app_info["categories"] = val.split(";")[0] if val else "Applications"
                         
                 if app_info["name"] and app_info["exec"] and not app_info["nodisplay"]:
-                    clean_cmd = clean_exec(app_info["exec"])
-                    if app_info["terminal"]:
-                        clean_cmd = f"ghostty -e {clean_cmd}"
-                        
+                    argv = exec_to_argv(app_info["exec"])
+                    if not argv:
+                        continue
                     app_id = f"app-{dfile.stem.lower()}"
                     # Avoid duplicates (prefer user local desktop entries)
                     if app_id not in apps or str(dfile).startswith(str(Path.home())):
@@ -114,8 +128,12 @@ def index_desktop_apps():
                             "icon": get_app_icon(app_info["name"], app_info["icon"]),
                             "category": "Applications",
                             "badge": "App",
-                            "exec": clean_cmd,
-                            "desktop_path": str(dfile)
+                            # Legacy display field — do NOT pass to sh -c
+                            "exec": " ".join(argv),
+                            "argv": argv,
+                            "terminal": bool(app_info["terminal"]),
+                            "desktop_path": str(dfile.resolve()),
+                            "desktop_id": dfile.stem,
                         }
             except Exception as e:
                 pass
@@ -126,10 +144,9 @@ def index_desktop_apps():
 
 if __name__ == "__main__":
     import os
+    from path_safety import write_secure_json, cache_dir
     apps = index_desktop_apps()
-    cache_dir = Path(os.environ.get("XDG_CACHE_HOME", Path.home() / ".cache")) / "omnicast"
-    cache_dir.mkdir(parents=True, exist_ok=True)
-    cache_file = cache_dir / "desktop-apps.json"
-    cache_file.write_text(json.dumps(apps, ensure_ascii=False), encoding="utf-8")
+    cache_file = cache_dir() / "desktop-apps.json"
+    write_secure_json(cache_file, apps)
     # Tiny status only: large stdout is dropped by Quickshell StdioCollector
     print(json.dumps({"ok": True, "count": len(apps), "path": str(cache_file)}))

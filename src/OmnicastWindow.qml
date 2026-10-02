@@ -31,7 +31,6 @@ PanelWindow {
       onRequestPushView: (title, comp) => root.pushSubView(title, comp)
       onRequestPushViewWithProps: (title, comp, props) => root.pushSubViewWithProps(title, comp, props)
       onRequestDismiss: root.dismissWithHud()
-      onIsLoadingChanged: searchBar.busy = isLoading
     }
   }
 
@@ -53,8 +52,22 @@ PanelWindow {
     anchors.horizontalCenter: parent.horizontalCenter
     anchors.verticalCenter: parent.verticalCenter
 
-    width: Theme.cardWidth
-    height: Theme.cardHeight
+    // Latch size to avoid resize thrash while browsing mixed results
+    property bool preferWide: {
+      var v = navStack.currentViewItem
+      return !!(v && v.wideLayout)
+    }
+    width: preferWide ? Math.max(Theme.cardWidth, 880) : Theme.cardWidth
+    height: preferWide ? Math.max(Theme.cardHeight, 680) : Theme.cardHeight
+
+    Behavior on width {
+      enabled: windowCard.visible
+      NumberAnimation { duration: 160; easing.type: Easing.OutCubic }
+    }
+    Behavior on height {
+      enabled: windowCard.visible
+      NumberAnimation { duration: 160; easing.type: Easing.OutCubic }
+    }
     radius: Theme.windowRadius
     color: Theme.darkerBackground
     border.color: Theme.border
@@ -63,8 +76,8 @@ PanelWindow {
 
     Rectangle {
       anchors.fill: parent
-      anchors.margins: windowCard.border.width > 0 ? 0 : 0
-      radius: parent.radius
+      anchors.margins: windowCard.border.width
+      radius: Math.max(0, parent.radius - windowCard.border.width)
       color: Theme.cardBackground
     }
 
@@ -82,6 +95,16 @@ PanelWindow {
         id: searchBar
         width: parent.width
         breadcrumbText: navStack.depth > 1 ? navStack.views.map(function(v) { return v.title }).join(" › ") : ""
+        placeholderText: {
+          var view = navStack.currentViewItem
+          if (view && view.searchPlaceholder)
+            return view.searchPlaceholder
+          return "Apps, commands, files…"
+        }
+        busy: {
+          var view = navStack.currentViewItem
+          return !!(view && (view.isBusy || view.isLoading))
+        }
 
         onTextChangedByUser: text => {
           var view = navStack.currentViewItem
@@ -164,7 +187,6 @@ PanelWindow {
             } else {
               Qt.callLater(searchBar.setFocus)
             }
-            searchBar.busy = !!(view && view.isLoading)
           }
         }
       }
@@ -174,15 +196,25 @@ PanelWindow {
         width: parent.width
         primaryActionText: {
           var item = navStack.currentViewItem ? navStack.currentViewItem.selectedItem : null
+          if (item && (item.id === "loading-files" || item.id === "empty-files" || item.id === "loading-catalog"))
+            return ""
           if (item && item.primaryActionTitle)
             return item.primaryActionTitle
           return "Select"
         }
         subtitleText: {
           var item = navStack.currentViewItem ? navStack.currentViewItem.selectedItem : null
+          if (item && item.category === "Files" && item.path)
+            return "↵ Open · Ctrl+K preview"
           if (item && item.badge) return item.badge
           if (navStack.views.length > 0) return navStack.views[navStack.views.length - 1].title
           return "Omnicast"
+        }
+        hintText: {
+          var view = navStack.currentViewItem
+          if (view && view.statusHint)
+            return view.statusHint
+          return "Enter · Ctrl+K · Esc"
         }
         canPop: navStack.depth > 1
 
@@ -246,11 +278,6 @@ PanelWindow {
     if ("requestPushViewWithProps" in view) {
       view.requestPushViewWithProps.connect(function(title, comp, props) {
         root.pushSubViewWithProps(title, comp, props)
-      })
-    }
-    if ("isLoadingChanged" in view) {
-      view.isLoadingChanged.connect(function() {
-        searchBar.busy = !!view.isLoading
       })
     }
   }

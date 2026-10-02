@@ -13,6 +13,7 @@ Item {
   property var scriptArgs: []
   property string outputMarkdown: "Running script..."
   property bool isRunning: false
+  readonly property bool isBusy: isRunning
   property string lastError: ""
 
   signal requestActionPalette(var actions)
@@ -44,7 +45,7 @@ Item {
   function runScript() {
     isRunning = true
     lastError = ""
-    outputMarkdown = "### Executing Script...\n\n`" + root.scriptPath + "`"
+    outputMarkdown = "Executing: " + root.scriptPath
     scriptRunner.command = _buildCommand()
     scriptRunner.running = true
   }
@@ -54,11 +55,12 @@ Item {
     try {
       var res = JSON.parse(raw || "{}")
       if (res.status === "success") {
-        root.outputMarkdown = res.stdout || "*Script completed with empty output.*"
+        // Plain text only — never interpret script stdout as Markdown
+        root.outputMarkdown = res.stdout || "(empty output)"
         Hud.success("Script finished")
       } else {
         root.lastError = res.stderr || res.error || "Unknown error"
-        root.outputMarkdown = "### ⚠️ Execution Error\n\n```text\n" + root.lastError + "\n```"
+        root.outputMarkdown = root.lastError
         Hud.error("Script failed")
       }
     } catch (e) {
@@ -70,6 +72,7 @@ Item {
     anchors.fill: parent
     title: root.scriptTitle
     headerBadge: root.isRunning ? "Running" : "Output"
+    contentFormat: "plain"
     markdownContent: root.outputMarkdown
     metadata: [
       { label: "Script Path", value: root.scriptPath.replace(/.*\/([^\/]+)$/, "$1") },
