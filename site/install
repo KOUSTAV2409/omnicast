@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # ==============================================================================
-# Omnicast Installer — Alt+Space Productivity Umbrella for Omarchy
+# Omnicast Installer: Alt+Space Productivity Umbrella for Omarchy
 # Website: https://omnicast.best
 # Repository: https://github.com/KOUSTAV2409/omnicast
 # ==============================================================================
