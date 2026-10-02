@@ -16,18 +16,35 @@ Paste this to Cursor / Claude / ChatGPT on an Omarchy machine:
 
 ```text
 Set up Omnicast on this Omarchy box:
-1. Clone https://github.com/KOUSTAV2409/omnicast.git
-2. Run ./bin/omnicast once to verify the launcher.
-3. Bind Alt+Space in ~/.config/hypr/bindings.lua to the absolute path of bin/omnicast.
-   Keep Super+Space for the Omarchy menu.
-4. Do not change Hyprland gaps/rounding globally. Follow README Quick start only.
+Run: curl -fsSL https://omnicast.best/install | bash
 ```
 
 ---
 
 ## Quick start (Omarchy only)
 
-**Needs:** Omarchy (Hyprland) + Quickshell (`qs` on PATH). This will not run on macOS or a generic distro.
+**Needs:** Omarchy (Hyprland) + Quickshell (`qs` on PATH).
+
+### One-line installer (Recommended)
+
+```bash
+curl -fsSL https://omnicast.best/install | bash
+```
+
+*Or via GitHub raw:*
+```bash
+curl -fsSL https://raw.githubusercontent.com/KOUSTAV2409/omnicast/main/install.sh | bash
+```
+
+The installer automatically:
+1. Clones to `~/.local/share/omnicast`
+2. Symlinks `omnicast` to `~/.local/bin/omnicast`
+3. Registers `ALT + SPACE` in `~/.config/hypr/bindings.lua` (keeping `SUPER + SPACE` for the Omarchy menu)
+4. Adds the desktop entry and populates sample script commands in `~/.config/omnicast/commands/`
+
+---
+
+### Manual Clone (Developers)
 
 ```bash
 git clone https://github.com/KOUSTAV2409/omnicast.git
@@ -35,17 +52,10 @@ cd omnicast
 ./bin/omnicast
 ```
 
-You should see the launcher. Esc dismisses; run the same command again to toggle.
-
-### Bind Alt+Space
-
-In `~/.config/hypr/bindings.lua` (or your Omarchy bindings file):
-
+Bind `Alt+Space` in `~/.config/hypr/bindings.lua`:
 ```lua
-o.bind("ALT + SPACE", "Omnicast", "/home/YOURUSER/omnicast/bin/omnicast")
+o.bind("ALT + SPACE", "Omnicast", os.getenv("HOME") .. "/omnicast/bin/omnicast")
 ```
-
-Use the **absolute path** to your clone. Keep **Super+Space** for the Omarchy menu.
 
 ### Optional
 
