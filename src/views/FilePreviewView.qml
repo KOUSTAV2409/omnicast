@@ -112,7 +112,7 @@ Item {
         return
       }
       var bin = String(argv[0] || "")
-      if (bin !== "xdg-open" && bin.indexOf("onlyoffice") < 0) {
+      if (bin !== "xdg-open" && bin.indexOf("onlyoffice") < 0 && bin.indexOf("omarchy-launch-editor") < 0) {
         Hud.error("Blocked: unexpected opener")
         return
       }

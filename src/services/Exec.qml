@@ -97,7 +97,13 @@ QtObject {
   function openPath(path) {
     if (!path || !String(path).length)
       return
-    detached(["xdg-open", String(path)])
+    var p = String(path)
+    var low = p.toLowerCase()
+    if (/\.(md|markdown|mdown|txt|text|json|jsonc|yaml|yml|toml|ini|conf|cfg|lua|py|pyi|js|ts|jsx|tsx|html|css|scss|rs|go|c|cpp|h|hpp|sh|bash|zsh|diff|patch)$/i.test(low)) {
+      detached(["omarchy-launch-editor", p])
+      return
+    }
+    detached(["xdg-open", p])
   }
 
   function openArgv(argv) {
