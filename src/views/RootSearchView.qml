@@ -27,9 +27,15 @@ Item {
   readonly property bool fileSelected: !!(selectedItem && selectedItem.path && selectedItem.category === "Files"
                                           && selectedItem.id !== "loading-files"
                                           && selectedItem.id !== "empty-files")
-  // Root search stays list-only — no split filesystem pane while browsing hits.
-  // Full preview is an explicit push (Ctrl+K → Full Preview).
-  property bool wideLayout: false
+  // Stay wide for the whole file-search session so arrowing apps↔files
+  // does not resize the card on every selection change.
+  readonly property bool filesInPlay: {
+    var q = (filterText || "").trim()
+    return fileHits.length > 0 || filesSearching || (q.length >= 2 && fileQuery.length > 0)
+  }
+  property bool wideLayout: filesInPlay
+  property string sidePreviewPath: ""
+  property string sidePreviewTitle: ""
 
   property bool isLoading: scriptScanner.running || omarchyScanner.running
                               || appScanner.running || quicklinkScanner.running
@@ -167,8 +173,56 @@ Item {
     }
   }
 
+  Timer {
+    id: sidePreviewDebounce
+    interval: 60
+    repeat: false
+    onTriggered: root.syncSidePreview()
+  }
+
   function isFileStatusId(id) {
     return id === "loading-files" || id === "empty-files" || id === "loading-catalog"
+  }
+
+  function selectionIsRealFile() {
+    var item = root.selectedItem
+    return !!(item && item.path && item.category === "Files" && !root.isFileStatusId(item.id))
+  }
+
+  onSelectedIndexChanged: {
+    if (!root.selectionIsRealFile()) {
+      sidePreviewDebounce.stop()
+      sidePreviewPath = ""
+      sidePreviewTitle = ""
+    } else {
+      sidePreviewDebounce.restart()
+    }
+  }
+
+  onFilteredItemsChanged: {
+    if (!root.selectionIsRealFile()) {
+      sidePreviewDebounce.stop()
+      sidePreviewPath = ""
+      sidePreviewTitle = ""
+    } else {
+      if (!sidePreviewPath || !sidePreviewPath.length) {
+        root.syncSidePreview()
+      } else {
+        sidePreviewDebounce.restart()
+      }
+    }
+  }
+
+  function syncSidePreview() {
+    var item = root.selectedItem
+    if (item && item.path && item.category === "Files"
+        && item.id !== "loading-files" && item.id !== "empty-files") {
+      sidePreviewPath = item.path
+      sidePreviewTitle = item.title || ""
+    } else {
+      sidePreviewPath = ""
+      sidePreviewTitle = ""
+    }
   }
 
   FileView {
@@ -1323,7 +1377,7 @@ Item {
 
     ListView {
       id: list
-      width: parent.width
+      width: root.wideLayout ? Math.round(parent.width * 0.38) : parent.width
       height: parent.height
       clip: true
       model: root.filteredItems
@@ -1343,13 +1397,78 @@ Item {
         isSelected: index === root.selectedIndex
         onClicked: {
           root.selectedIndex = index
-          // Same as apps/commands: activate. Peek via Ctrl+K → Full Preview.
-          if (!(modelData.isHeader || root.isFileStatusId(modelData.id)))
+          // File hits: select only (side preview follows). Others: run immediately.
+          if (!(modelData.path && modelData.category === "Files"))
             root.executeCurrent()
         }
         onDoubleClicked: {
           root.selectedIndex = index
           root.executeCurrent()
+        }
+      }
+    }
+
+    // Soft seam between list and preview
+    Item {
+      visible: root.wideLayout
+      width: root.wideLayout ? 12 : 0
+      height: parent.height
+
+      Rectangle {
+        anchors.horizontalCenter: parent.horizontalCenter
+        anchors.top: parent.top
+        anchors.bottom: parent.bottom
+        anchors.topMargin: 6
+        anchors.bottomMargin: 6
+        width: 1
+        color: Theme.subtleBorder
+      }
+    }
+
+    FilePreviewPane {
+      id: sidePreview
+      visible: root.wideLayout
+      width: root.wideLayout ? parent.width - list.width - 12 : 0
+      height: parent.height
+      filePath: root.sidePreviewPath
+      fileTitle: root.sidePreviewTitle
+      cacheName: "file-preview-side.json"
+      compactChrome: true
+      interactiveDirs: true
+      siblingPaths: root.fileSiblingPaths()
+      siblingIndex: {
+        var sibs = root.fileSiblingPaths()
+        return sibs.indexOf(root.sidePreviewPath)
+      }
+
+      onEntryActivated: (path, title) => {
+        Ranking.bump("file-side-drill")
+        var sibs = []
+        var entries = sidePreview.dirEntries || []
+        for (var i = 0; i < entries.length; i++) {
+          if (entries[i] && entries[i].path)
+            sibs.push(entries[i].path)
+        }
+        root.requestPushViewWithProps(title, root.filePreviewComp, {
+          filePath: path,
+          fileTitle: title,
+          siblingPaths: sibs,
+          siblingIndex: sibs.indexOf(path)
+        })
+      }
+
+      onSiblingRequested: delta => {
+        var sibs = root.fileSiblingPaths()
+        if (sibs.length < 2) return
+        var idx = sibs.indexOf(root.sidePreviewPath)
+        if (idx < 0) idx = 0
+        var next = (idx + delta + sibs.length) % sibs.length
+        for (var i = 0; i < filteredItems.length; i++) {
+          if (filteredItems[i].path === sibs[next]) {
+            selectedIndex = i
+            list.positionViewAtIndex(i, ListView.Contain)
+            return
+          }
         }
       }
     }

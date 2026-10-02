@@ -18,9 +18,10 @@ Item {
   width: parent ? parent.width : Theme.cardWidth
 
   Text {
+    id: leftLabel
     anchors.left: parent.left
     anchors.verticalCenter: parent.verticalCenter
-    width: Math.min(implicitWidth, parent.width * 0.42)
+    width: Math.min(implicitWidth, Math.max(80, parent.width * 0.32))
     text: root.subtitleText
     font.family: Theme.fontFamily
     font.pixelSize: Theme.fontBodySmall
@@ -30,8 +31,13 @@ Item {
   }
 
   Text {
+    id: rightLabel
     anchors.right: parent.right
+    anchors.left: leftLabel.right
+    anchors.leftMargin: 12
     anchors.verticalCenter: parent.verticalCenter
+    horizontalAlignment: Text.AlignRight
+    elide: Text.ElideLeft
     text: {
       var close = root.canPop ? "Esc Back" : "Esc"
       var primary = root.primaryActionText.length ? ("Enter " + root.primaryActionText) : "Enter"
