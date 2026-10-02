@@ -27,10 +27,23 @@ Item {
   readonly property bool fileSelected: !!(selectedItem && selectedItem.path && selectedItem.category === "Files"
                                           && selectedItem.id !== "loading-files"
                                           && selectedItem.id !== "empty-files")
+  function isQuicklinkKeywordQuery(query) {
+    var q = (query || "").trim().toLowerCase()
+    if (!q.length) return false
+    for (var i = 0; i < quickLinkItems.length; i++) {
+      var kw = (quickLinkItems[i].keyword || "").toLowerCase()
+      if (kw.length && (q === kw || q.startsWith(kw + " ")))
+        return true
+    }
+    return false
+  }
+
   // Stay wide for the whole file-search session so arrowing apps↔files
   // does not resize the card on every selection change.
   readonly property bool filesInPlay: {
     var q = (filterText || "").trim()
+    if (root.isQuicklinkKeywordQuery(q))
+      return false
     return fileHits.length > 0 || filesSearching || (q.length >= 2 && fileQuery.length > 0)
   }
   property bool wideLayout: filesInPlay
@@ -604,7 +617,7 @@ Item {
 
   function scheduleFileSearch(query) {
     var q = (query || "").trim()
-    if (q.length < 2) {
+    if (q.length < 2 || root.isQuicklinkKeywordQuery(q)) {
       fileSearchDebounce.stop()
       fileSearchStartTimer.stop()
       fileHits = []
@@ -1245,17 +1258,43 @@ Item {
     scored.sort(function(a, b) { return b.score - a.score })
     if (scored.length) {
       results.push(header("Results"))
-      for (var s = 0; s < scored.length; s++) results.push(scored[s].item)
+      for (var s = 0; s < scored.length; s++) {
+        var it = scored[s].item
+        if (it.category === "Quicklinks") {
+          var kw = (it.keyword || "").toLowerCase()
+          var lowQ = q.toLowerCase()
+          if (kw.length && lowQ.startsWith(kw + " ")) {
+            var arg = q.substring(kw.length).trim()
+            if (arg.length) {
+              var targetName = it.title.replace(/ Search$/i, "")
+              var newPrimary = "Search " + targetName
+              var updatedActions = (it.actions || []).map(function(act, idx) {
+                if (idx === 0) {
+                  return Object.assign({}, act, { title: newPrimary })
+                }
+                return act
+              })
+              it = Object.assign({}, it, {
+                subtitle: 'Search ' + targetName + ' for "' + arg + '"',
+                primaryActionTitle: newPrimary,
+                actions: updatedActions
+              })
+            }
+          }
+        }
+        results.push(it)
+      }
     }
 
     var contentMark = fileHits.some(function(h){ return h.contentMatch }) ? " · content" : ""
     var filesHeader = "Files · " + activeFileScope + contentMark
 
     // Files section: hits, loading, or honest empty
-    if (fileQuery === q && fileHits.length) {
+    var isQuicklink = root.isQuicklinkKeywordQuery(q)
+    if (!isQuicklink && fileQuery === q && fileHits.length) {
       results.push(header(filesHeader))
       for (var fi = 0; fi < fileHits.length; fi++) results.push(fileHits[fi])
-    } else if (q.length >= 2 && filesSearching) {
+    } else if (!isQuicklink && q.length >= 2 && filesSearching) {
       results.push(header("Files · " + activeFileScope))
       results.push({
         id: "loading-files", title: "Searching files…",
@@ -1263,7 +1302,7 @@ Item {
         icon: "󰔟", badge: "", category: "Files", isHeader: false,
         primaryActionTitle: "", actions: [], action: function() {}
       })
-    } else if (fileQuery === q && q.length >= 2 && !filesSearching && !fileHits.length) {
+    } else if (!isQuicklink && fileQuery === q && q.length >= 2 && !filesSearching && !fileHits.length) {
       results.push(header("Files · " + activeFileScope))
       results.push({
         id: "empty-files",

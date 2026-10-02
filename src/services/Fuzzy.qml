@@ -95,8 +95,17 @@ QtObject {
     }
     best = Math.max(best, score(q, item.category || "") * 0.3)
     best = Math.max(best, score(q, item.badge || "") * 0.25)
-    if (item.keyword)
-      best = Math.max(best, score(q, item.keyword) * 1.15)
+    if (item.keyword) {
+      var kw = String(item.keyword).toLowerCase()
+      var lowQ = q.toLowerCase()
+      var trimQ = lowQ.trim()
+      if (trimQ === kw)
+        best = Math.max(best, 1200)
+      else if (lowQ.startsWith(kw + " "))
+        best = Math.max(best, 2000)
+      else
+        best = Math.max(best, score(q, item.keyword) * 1.15)
+    }
     if (item.alias)
       best = Math.max(best, score(q, item.alias) * 1.4)
     if (item.route)
