@@ -129,6 +129,19 @@ Item {
     printErrors: false
   }
 
+  // Silent/compact script runs: collect real result so HUD never lies.
+  // HudPanel is shell-level, so feedback survives the dismiss below.
+  Process {
+    id: silentRunner
+    property string pendingTitle: ""
+    property string pendingMode: ""
+    running: false
+    stdout: StdioCollector {
+      waitForEnd: true
+      onStreamFinished: text => root.handleSilentOutput(text)
+    }
+  }
+
   Timer {
     id: fileSearchDebounce
     interval: 70
@@ -795,17 +808,37 @@ Item {
     Ranking.bump(s.id)
     var mode = (s.mode || "fullOutput").toLowerCase()
     if (mode === "silent" || mode === "compact") {
-      var argv = ["exec", s.path]
+      var cmd = ["python3", Paths.py("script_runner.py"), "exec", s.path]
       for (var i = 0; i < (argsList || []).length; i++)
-        argv.push(String(argsList[i]))
-      Exec.python("script_runner.py", argv)
-      Hud.success(mode === "silent" ? ("Ran " + s.title) : (s.title + " finished"))
+        cmd.push(String(argsList[i]))
+      silentRunner.pendingTitle = s.title
+      silentRunner.pendingMode = mode
+      silentRunner.command = cmd
+      silentRunner.running = true
       root.requestDismiss()
       return
     }
     root.requestPushViewWithProps(s.title, root.scriptResultComp, {
       scriptTitle: s.title, scriptPath: s.path, scriptArgs: argsList || []
     })
+  }
+
+  function handleSilentOutput(raw) {
+    var title = silentRunner.pendingTitle || "Script"
+    var mode = silentRunner.pendingMode || "silent"
+    silentRunner.pendingTitle = ""
+    silentRunner.pendingMode = ""
+    try {
+      var res = JSON.parse(raw || "{}")
+      if (res.status === "success") {
+        Hud.success(mode === "silent" ? ("Ran " + title) : (title + " finished"))
+      } else {
+        var err = res.stderr || res.error || "Unknown error"
+        Hud.error(title + " failed: " + String(err).split("\n")[0])
+      }
+    } catch (e) {
+      Hud.error(title + " failed: unreadable output")
+    }
   }
 
   function tryMathEvaluation(query) {
