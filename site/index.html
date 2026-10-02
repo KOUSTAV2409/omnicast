@@ -597,24 +597,20 @@
         <p>Needs Omarchy (Hyprland) and Quickshell on PATH. Not macOS.</p>
       </div>
 
-      <div class="term" data-copy="git clone https://github.com/KOUSTAV2409/omnicast.git
-cd omnicast
-./bin/omnicast">
+      <div class="term" data-copy="curl -fsSL https://omnicast.best/install | bash">
         <div class="term-bar">
           <div class="term-dots" aria-hidden="true"><span></span><span></span><span></span></div>
-          <span class="term-title">foot · ~/omnicast</span>
-          <button type="button" class="term-copy" aria-label="Copy install commands">Copy</button>
+          <span class="term-title">terminal · one-line install</span>
+          <button type="button" class="term-copy" aria-label="Copy install command">Copy</button>
         </div>
-        <pre><code><span class="c"># clone the public repo</span>
-<span class="p">$</span> <span class="cmd">git clone</span> <span class="path">https://github.com/KOUSTAV2409/omnicast.git</span>
-<span class="p">$</span> <span class="cmd">cd</span> <span class="path">omnicast</span>
-<span class="p">$</span> <span class="cmd">./bin/omnicast</span></code></pre>
+        <pre><code><span class="c"># one-line installer (auto-binds Alt+Space & symlinks omnicast)</span>
+<span class="p">$</span> <span class="cmd">curl</span> -fsSL https://omnicast.best/install | <span class="cmd">bash</span></code></pre>
       </div>
 
       <p class="bind-hint">
-        Then bind <code>Alt+Space</code> to the absolute path of <code>bin/omnicast</code>
-        in <code>~/.config/hypr/bindings.lua</code>.
-        Keep <code>Super+Space</code> for the Omarchy menu.
+        Automatically installs to <code>~/.local/share/omnicast</code>, symlinks <code>omnicast</code> to your PATH,
+        and binds <code>Alt+Space</code> in <code>~/.config/hypr/bindings.lua</code>.
+        Keeps <code>Super+Space</code> for your native Omarchy menu.
       </p>
 
       <p class="foot">
