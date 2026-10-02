@@ -205,7 +205,7 @@ PanelWindow {
         subtitleText: {
           var item = navStack.currentViewItem ? navStack.currentViewItem.selectedItem : null
           if (item && item.category === "Files" && item.path)
-            return "↵ Open · Ctrl+K preview"
+            return item.title || "File"
           if (item && item.badge) return item.badge
           if (navStack.views.length > 0) return navStack.views[navStack.views.length - 1].title
           return "Omnicast"
