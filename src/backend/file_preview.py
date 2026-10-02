@@ -713,6 +713,13 @@ def preferred_opener(path: Path, mime: str, ext: str) -> dict:
         return {"id": "xdg", "title": "Open with PDF viewer", "argv": ["xdg-open", str(path)]}
     if ext in IMAGE_EXT:
         return {"id": "xdg", "title": "Open with image viewer", "argv": ["xdg-open", str(path)]}
+    if ext in MARKDOWN_EXT or ext in CODE_EXT or ext in TEXT_EXT or mime.startswith("text/") or mime in (
+        "application/json", "application/javascript", "application/xml", "application/x-sh", "application/toml"
+    ):
+        editor_bin = shutil.which("omarchy-launch-editor")
+        if editor_bin:
+            return {"id": "editor", "title": "Open in Editor", "argv": [editor_bin, str(path)]}
+        return {"id": "editor", "title": "Open in Editor", "argv": ["xdg-open", str(path)]}
     return {"id": "xdg", "title": "Open with system app", "argv": ["xdg-open", str(path)]}
 
 
