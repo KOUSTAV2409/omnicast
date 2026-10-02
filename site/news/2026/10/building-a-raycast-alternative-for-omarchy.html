@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#1a1b26" />
+  <meta name="color-scheme" content="dark" />
+  <title>Building a true Raycast alternative for Omarchy Linux · Omnicast</title>
+  <meta name="description" content="One-line install, live split file previews, multimodal clipboard history, and 100+ native Omarchy tools. How Omnicast becomes a daily driver on Wayland." />
+  <link rel="canonical" href="https://omnicast.best/news/2026/10/building-a-raycast-alternative-for-omarchy.html" />
+  <meta property="og:title" content="Building a true Raycast alternative for Omarchy Linux" />
+  <meta property="og:description" content="One-line install, live split file previews, multimodal clipboard history, and 100+ native Omarchy tools. How Omnicast becomes a daily driver on Wayland." />
+  <meta property="og:type" content="article" />
+  <meta property="og:url" content="https://omnicast.best/news/2026/10/building-a-raycast-alternative-for-omarchy.html" />
+  <meta property="og:image" content="https://omnicast.best/assets/og.jpg" />
+  <meta property="og:image:type" content="image/jpeg" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta property="og:image:alt" content="Omnicast: Alt+Space for Omarchy." />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Building a true Raycast alternative for Omarchy Linux" />
+  <meta name="twitter:description" content="One-line install, live split file previews, multimodal clipboard history, and 100+ native Omarchy tools." />
+  <meta name="twitter:image" content="https://omnicast.best/assets/og.jpg" />
+  <meta name="twitter:creator" content="@koustavdotco" />
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/assets/site.css" />
+  <link rel="stylesheet" href="/assets/news.css" />
+</head>
+<body class="news-body">
+  <div class="pre pre--news">
+    <a href="/" aria-label="Omnicast">
+<pre>
+ ██████╗ ███╗   ███╗███╗   ██╗██╗ ██████╗ █████╗ ███████╗████████╗
+██╔═══██╗████╗ ████║████╗  ██║██║██╔════╝██╔══██╗██╔════╝╚══██╔══╝
+██║   ██║██╔████╔██║██╔██╗ ██║██║██║     ███████║███████╗   ██║
+██║   ██║██║╚██╔╝██║██║╚██╗██║██║██║     ██╔══██║╚════██║   ██║
+╚██████╔╝██║ ╚═╝ ██║██║ ╚████║██║╚██████╗██║  ██║███████║   ██║
+ ╚═════╝ ╚═╝     ╚═╝╚═╝  ╚═══╝╚═╝ ╚═════╝╚═╝  ╚═╝╚══════╝   ╚═╝
+</pre>
+    </a>
+  </div>
+
+  <main class="news-page">
+    <article class="news-post">
+      <header class="news-post__header">
+        <p class="news-meta">
+          <span class="news-byline">By <a href="https://x.com/koustavdotco" rel="author">@koustavdotco</a></span> on <time class="news-date" datetime="2026-10-02">October 2, 2026</time>
+        </p>
+        <h1 class="news-post__title">Building a true Raycast alternative for Omarchy Linux</h1>
+      </header>
+
+      <div class="news-prose">
+        <p>If you have ever used Raycast on macOS, you know the feeling: once it enters your muscle memory, every other desktop environment feels incomplete. On Linux, people have tried to bridge this gap with application launchers and dmenu scripts, but they often lack the fluid, unified experience: split previews, rich metadata, modal actions, and instant responsiveness.</p>
+
+        <p>With Omnicast, our mission began with a clear principle: first make it an uncompromising daily driver for Omarchy, then expand it across the Linux world.</p>
+
+        <h2>The one-line install</h2>
+        <p>No more manual git cloning or hunting down configuration files. You can now set up Omnicast on Omarchy with a single command:</p>
+
+<pre><code>curl -fsSL https://omnicast.best/install | bash</code></pre>
+
+        <p>The installer validates prerequisites, installs Omnicast to <code>~/.local/share/omnicast</code>, puts the binary on your PATH, registers the desktop entry, and binds <code>Alt+Space</code> in your Hyprland configuration while preserving <code>Super+Space</code> for the native Omarchy menu.</p>
+
+        <h2>Live split file preview</h2>
+        <p>Searching for files now feels like a document browser, not a raw list dump. When you search for files (like <code>quicknotes.md</code>), Omnicast opens a split view:</p>
+
+        <ul>
+          <li><strong>Formatted Markdown:</strong> Rendered headings, lists, and prose directly inside the card.</li>
+          <li><strong>Code syntax highlighting:</strong> Accurate syntax blocks for Python, JavaScript, Rust, Bash, and config files.</li>
+          <li><strong>Smart editor handoff:</strong> Files open with your preferred editor through <code>omarchy-launch-editor</code>. If your editor is terminal-based, like Neovim, Omnicast automatically wraps it in Ghostty so your editor appears immediately.</li>
+          <li><strong>Security hardening:</strong> Built-in path safety guards automatically filter out private keys, session tokens, and sensitive directories.</li>
+        </ul>
+
+        <h2>Native Omarchy clipboard integration</h2>
+        <p>Instead of running duplicate clipboard daemons that compete for memory, Omnicast connects directly to Omarchy's native state files. Any screenshot taken with Flameshot, copied image, code snippet, or color code is instantly indexed.</p>
+
+        <p>Color codes show visual swatches alongside HEX, RGB, and HSL values. Code snippets detect their language automatically. Pinned items stay permanently on top with <code>Ctrl+P</code>, and pressing Enter pastes directly into your active window.</p>
+
+        <h2>100+ native system commands</h2>
+        <p>Omnicast indexes the entire Omarchy CLI catalog directly into your root search. Screenshots, audio input muting, nightlight toggling, theme switching, font previews, and AI agent prompts are all accessible with a single keystroke.</p>
+
+        <h2>First Manhattan, then Berlin</h2>
+        <p>By focusing deeply on Omarchy first, we built a tool that is fast, resilient, and native. The daily non-AI loop is now fully operational: app launching, file search with live preview, clipboard history, calculator, snippets, and window management.</p>
+
+        <p>From here, our next step is packaging for the Arch User Repository (AUR) and modularizing system hooks so Omnicast can bring this experience to Fedora, Ubuntu, and generic Wayland setups.</p>
+
+        <p>First we take Manhattan, then we take Berlin.</p>
+      </div>
+    </article>
+
+    <p class="news-back"><a href="/news/">← All news</a></p>
+  </main>
+</body>
+</html>
