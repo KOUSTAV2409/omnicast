@@ -87,6 +87,17 @@ SECRET_NAMES = {
     "shadow",
     "gshadow",
     "master_password.aes",
+    # UNIX system files — prevented from leaking via any path collision
+    "passwd",
+    "group",
+    "sudoers",
+    "fstab",
+    "hosts",
+    "crontab",
+    "master.passwd",
+    "ssh_host_rsa_key",
+    "ssh_host_ecdsa_key",
+    "ssh_host_ed25519_key",
 }
 
 SECRET_SUFFIXES = (
@@ -174,14 +185,23 @@ def cache_dir() -> Path:
 
 
 def safe_cache_name(name: str, default: str = "cache.json") -> str:
-    """Basename only — no directory separators or traversal."""
+    """Basename only -- no directory separators or traversal.
+
+    Always enforces a .json extension so cache files can never collide with
+    UNIX system file names (passwd, hosts, sudoers, etc.) or credential files.
+    """
     raw = (name or "").strip().replace("\\", "/")
     base = Path(raw).name
     if not base or base in {".", ".."} or "/" in base:
         return default
     if not re.fullmatch(r"[A-Za-z0-9._-]+", base):
         return default
-    return base
+    # Strip any existing extension and enforce .json
+    stem = Path(base).stem
+    if not stem or not re.fullmatch(r"[A-Za-z0-9_-]+", stem):
+        return default
+    return stem + ".json"
+
 
 
 def write_secure_json(path: Path, payload: dict | list) -> Path:
