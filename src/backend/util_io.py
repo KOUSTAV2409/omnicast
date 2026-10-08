@@ -8,6 +8,7 @@ Omarchy paste flow:
 """
 from __future__ import annotations
 
+import os
 import subprocess
 import sys
 import time
@@ -16,6 +17,42 @@ from pathlib import Path
 from path_safety import allowed_path, deny_reason
 
 MAX_CLIP_BYTES = 20 * 1024 * 1024  # 20 MiB
+
+
+def _spool_dir() -> Path:
+    base = Path(os.environ.get("XDG_RUNTIME_DIR", Path.home() / ".cache" / "omnicast")).resolve()
+    base.mkdir(parents=True, exist_ok=True)
+    try:
+        os.chmod(base, 0o700)
+    except Exception:
+        pass
+    return base
+
+
+def write_clip_payload(text: str) -> str:
+    """Safely store clipboard payload into owner-only 0600 file in runtime dir."""
+    spool = _spool_dir() / "clip.spool"
+    # Atomic write with strict 0600 permissions
+    tmp = _spool_dir() / f"clip.{os.getpid()}.tmp"
+    tmp.write_text(text or "", encoding="utf-8", errors="replace")
+    os.chmod(tmp, 0o600)
+    tmp.replace(spool)
+    return str(spool)
+
+
+def read_clip_payload() -> str:
+    """Read and immediately wipe the owner-only clipboard payload."""
+    spool = _spool_dir() / "clip.spool"
+    if not spool.is_file():
+        return ""
+    if spool.stat().st_uid != os.getuid() or (spool.stat().st_mode & 0o077) != 0:
+        return ""
+    text = spool.read_text(encoding="utf-8", errors="replace")
+    try:
+        spool.unlink(missing_ok=True)
+    except Exception:
+        pass
+    return text
 
 
 def copy_text(text: str) -> None:
@@ -83,10 +120,30 @@ def main():
         print("usage: util_io.py copy|copy-file|paste|paste-image ...", file=sys.stderr)
         sys.exit(1)
     op = sys.argv[1]
-    if op in ("copy", "paste") and len(sys.argv) > 2 and sys.argv[2] == "--":
-        arg = sys.stdin.read()
-    elif op in ("copy", "paste") and len(sys.argv) > 3:
-        arg = " ".join(sys.argv[2:])
+    if op in ("spool-copy", "spool-paste"):
+        arg = read_clip_payload()
+        op = "copy" if op == "spool-copy" else "paste"
+    elif op in ("copy", "paste"):
+        # If --stdin or -- is specified, or if no second argument is provided, read securely from stdin
+        if len(sys.argv) > 2 and sys.argv[2] in ("--stdin", "--"):
+            arg = sys.stdin.read()
+        elif len(sys.argv) > 2 and sys.argv[2] == "--file":
+            p = Path(sys.argv[3]).resolve()
+            if not p.is_file():
+                sys.exit(1)
+            # Ensure the file is owner-only
+            if p.stat().st_uid != os.getuid() or (p.stat().st_mode & 0o077) != 0:
+                print("Refusing to read file with insecure permissions", file=sys.stderr)
+                sys.exit(1)
+            arg = p.read_text(encoding="utf-8", errors="replace")
+            try:
+                p.unlink(missing_ok=True)
+            except Exception:
+                pass
+        elif len(sys.argv) == 2:
+            arg = sys.stdin.read()
+        else:
+            arg = " ".join(sys.argv[2:])
     else:
         arg = sys.argv[2] if len(sys.argv) > 2 else ""
 

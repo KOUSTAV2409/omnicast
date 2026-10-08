@@ -108,9 +108,8 @@ Omnicast dismisses and opens the native surface:
   - Try: open **Quicklinks**, or search a link title you saved
 - **Script commands**: Raycast-style frontmatter (`@raycast.*` / `@omarchy.*`), form args, `silent` / `compact` / `fullOutput`  
   - Drop scripts in `~/.config/omnicast/commands/`. See [`docs/script-commands.md`](docs/script-commands.md)
-- **Snippets**: manage + optional global expander (`bin/omnicast-snippetd`)  
-  - Try: open **Snippets**, or type a keyword like `:shrug` if snippetd is running  
-  - Settings: `~/.config/omnicast/snippetd.json` → `{ "delay_ms": 150, "backend": "auto" }` (`wtype` / `ydotool`)
+- **Snippets**: manage and insert text snippets directly from the launcher
+  - Try: open **Snippets** → Enter to insert into active window, or Ctrl+C to copy
 - **Windows**: curated Omarchy Hyprland helpers (pop, gaps, transparency, layout) + Lua-safe float/fullscreen  
   - Try: `pop`, `gaps`, `float`, or open **Windows**
 - **Fallbacks**: no match → Search Web or Ask AI  
@@ -167,8 +166,6 @@ Full leftover backlog: [`roadmap.md`](roadmap.md) → **What’s left to build**
 Omnicast is a **local** Alt+Space launcher. Cloning it from GitHub does **not** give anyone remote access to your machine. It runs as your user, like a browser or editor.
 
 Hardening includes: secrets/session paths blocked from search & preview, owner-only cache (`0600`), no shell launch of desktop `Exec=` lines, script commands only from allowlisted folders, and no executing `.sh`/binaries from Files search.
-
-Optional **`omnicast-snippetd`** uses the `input` group (keystroke expansion). Only enable it if you understand that; it is not required for the launcher.
 
 ---
 

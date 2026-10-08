@@ -80,9 +80,9 @@ Item {
             title: "Copy Snippet",
             icon: "📋",
             shortcut: "Ctrl+C",
-            callback: (function(content) {
-              return function() { root.copySnippet(content) }
-            })(item.content)
+            callback: (function(sid) {
+              return function() { root.copySnippet(sid) }
+            })(item.id)
           },
           {
             title: "Delete Snippet",
@@ -149,10 +149,10 @@ Item {
     insertProc.running = true
   }
 
-  function copySnippet(text) {
+  function copySnippet(sid) {
+    Exec.python("snippet_manager.py", ["copy", sid || ""])
     Hud.success("Copied snippet")
     root.requestDismiss()
-    Exec.copyText(text || "")
   }
 
   function deleteSnippet(sid) {
