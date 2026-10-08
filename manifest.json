@@ -4,7 +4,7 @@
   "name": "Omnicast",
   "version": "0.2.0",
   "author": "Koustav",
-  "license": "GPL-3.0",
+  "license": "MIT",
   "description": "Alt+Space umbrella launcher for Omarchy: instant file search, live code preview, quicklinks, and script commands.",
   "homepage": "https://omnicast.best",
   "repository": "https://github.com/KOUSTAV2409/omnicast",
