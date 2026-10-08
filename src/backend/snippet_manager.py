@@ -173,7 +173,12 @@ def type_expanded(text: str, settings: dict | None = None) -> dict:
 
     # Always copy first so Shift+Insert / paste works even if typing fails
     try:
-        p = subprocess.Popen(["wl-copy"], stdin=subprocess.PIPE)
+        p = subprocess.Popen(
+            ["wl-copy"],
+            stdin=subprocess.PIPE,
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+        )
         p.communicate(input=text.encode("utf-8"), timeout=2)
     except Exception as e:
         return {"ok": False, "backend": None, "error": f"wl-copy failed: {e}"}
@@ -274,7 +279,12 @@ def copy_snippet_by_id(snippet_id):
         return {"ok": False, "error": "snippet not found"}
     expanded = resolve_template(target.get("snippet", ""))
     try:
-        p = subprocess.Popen(["wl-copy"], stdin=subprocess.PIPE)
+        p = subprocess.Popen(
+            ["wl-copy"],
+            stdin=subprocess.PIPE,
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+        )
         p.communicate(input=expanded.encode("utf-8"), timeout=2)
         return {"ok": True, "copied": True}
     except Exception as e:
@@ -319,14 +329,28 @@ if __name__ == "__main__":
         print(json.dumps(copy_snippet_by_id(sys.argv[2])))
     elif sys.argv[1] == "settings":
         print(json.dumps(load_settings()))
-    elif sys.argv[1] == "create" and len(sys.argv) > 5:
-        print(json.dumps(create_snippet(sys.argv[2], sys.argv[3], sys.argv[4], sys.argv[5])))
-    elif sys.argv[1] == "create" and len(sys.argv) > 4:
-        print(json.dumps(create_snippet(sys.argv[2], sys.argv[3], sys.argv[4])))
+    elif sys.argv[1] in ("create", "create-json"):
+        if len(sys.argv) > 2:
+            print(json.dumps({"ok": False, "error": "arguments forbidden, stream JSON via stdin"}))
+            sys.exit(1)
+        line = sys.stdin.readline()
+        if not line.strip():
+            line = sys.stdin.read()
+        try:
+            data = json.loads(line or "{}")
+        except Exception:
+            data = {}
+        if not data:
+            print(json.dumps({"ok": False, "error": "payload required on stdin"}))
+            sys.exit(1)
+        print(json.dumps(create_snippet(
+            data.get("keyword", ""),
+            data.get("title", data.get("keyword", "Snippet")),
+            data.get("snippet", ""),
+            data.get("category", "General")
+        )))
     elif sys.argv[1] == "delete" and len(sys.argv) > 2:
         print(json.dumps(delete_snippet(sys.argv[2])))
-    elif sys.argv[1] == "keywords":
-        print(json.dumps({k: v.get("snippet") for k, v in keywords_map().items()}))
     else:
         print(json.dumps({"error": "usage"}))
         sys.exit(1)
