@@ -16,7 +16,7 @@ Paste this to Cursor / Claude / ChatGPT on an Omarchy machine:
 
 ```text
 Set up Omnicast on this Omarchy box:
-Run: curl -fsSL https://omnicast.best/install | bash
+Run: omarchy plugin add https://github.com/KOUSTAV2409/omnicast.git --enable
 ```
 
 ---
@@ -25,22 +25,25 @@ Run: curl -fsSL https://omnicast.best/install | bash
 
 **Needs:** Omarchy (Hyprland) + Quickshell (`qs` on PATH).
 
-### One-line installer (Recommended)
+### Recommended: Install as Omarchy Shell Plugin
 
-```bash
-curl -fsSL https://omnicast.best/install | bash
-```
-
-*Or install as an Omarchy Shell Plugin into your bar:*
 ```bash
 omarchy plugin add https://github.com/KOUSTAV2409/omnicast.git --enable
 ```
 
+---
+
+### Standalone Launcher Installation
+
+```bash
+git clone --depth=1 https://github.com/KOUSTAV2409/omnicast.git ~/.local/share/omnicast
+bash ~/.local/share/omnicast/install.sh
+```
+
 The installer automatically:
-1. Clones to `~/.local/share/omnicast`
-2. Symlinks `omnicast` to `~/.local/bin/omnicast`
-3. Registers `ALT + SPACE` in `~/.config/hypr/bindings.lua` (keeping `SUPER + SPACE` for the Omarchy menu)
-4. Adds the desktop entry and populates sample script commands in `~/.config/omnicast/commands/`
+1. Symlinks `omnicast` to `~/.local/bin/omnicast`
+2. Registers `ALT + SPACE` in `~/.config/hypr/bindings.lua` (keeping `SUPER + SPACE` for the Omarchy menu)
+3. Adds the desktop entry and populates sample script commands in `~/.config/omnicast/commands/`
 
 ---
 
