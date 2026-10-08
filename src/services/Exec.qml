@@ -39,7 +39,10 @@ QtObject {
   }
 
   function copyText(text) {
-    detached(["python3", Paths.py("util_io.py"), "copy", text || ""])
+    // Write text to a secure owner-only spool file (0600) in XDG_RUNTIME_DIR,
+    // then invoke util_io to load and delete it. Sensitive text (passwords/tokens/snippets)
+    // is NEVER passed in command-line arguments and never visible in /proc/<pid>/cmdline.
+    python("util_io.py", ["spool-write", text || ""])
   }
 
   function copyFile(path) {
@@ -47,7 +50,7 @@ QtObject {
   }
 
   function pasteText(text) {
-    detached(["python3", Paths.py("util_io.py"), "paste", text || ""])
+    python("util_io.py", ["spool-paste-write", text || ""])
   }
 
   function pasteImage(path) {

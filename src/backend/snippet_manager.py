@@ -193,16 +193,12 @@ def type_expanded(text: str, settings: dict | None = None) -> dict:
                 r = _run_type(["wtype", "-M", "shift", "-k", "Insert", "-m", "shift"])
                 if r.returncode == 0:
                     return {"ok": True, "backend": "wtype-shift-insert"}
-                r = _run_type(["wtype", "--", text], timeout=4)
-                if r.returncode == 0:
+                # Safe stdin streaming: never pass snippet text in argv (avoids /proc/pid/cmdline leakage)
+                wp = subprocess.Popen(["wtype", "-"], stdin=subprocess.PIPE, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+                wp.communicate(input=text.encode("utf-8"), timeout=4)
+                if wp.returncode == 0:
                     return {"ok": True, "backend": "wtype"}
-                last_err = f"wtype exit {r.returncode}"
-            elif backend == "ydotool" and shutil.which("ydotool"):
-                # paste: Ctrl+V is unreliable on Wayland; type the text
-                r = _run_type(["ydotool", "type", "--", text], timeout=4)
-                if r.returncode == 0:
-                    return {"ok": True, "backend": "ydotool"}
-                last_err = f"ydotool exit {r.returncode}"
+                last_err = f"wtype exit {wp.returncode}"
             else:
                 last_err = f"{backend} not installed"
         except Exception as e:
@@ -268,6 +264,22 @@ def insert_snippet(snippet_id, notify_on_fail=False):
         result["error"] = msg
     return result
 
+def copy_snippet_by_id(snippet_id):
+    target = None
+    for s in load_snippets():
+        if s.get("id") == snippet_id or s.get("keyword") == snippet_id:
+            target = s
+            break
+    if not target:
+        return {"ok": False, "error": "snippet not found"}
+    expanded = resolve_template(target.get("snippet", ""))
+    try:
+        p = subprocess.Popen(["wl-copy"], stdin=subprocess.PIPE)
+        p.communicate(input=expanded.encode("utf-8"), timeout=2)
+        return {"ok": True, "copied": True}
+    except Exception as e:
+        return {"ok": False, "error": str(e)}
+
 
 def create_snippet(keyword, title, body, category="General"):
     snippets = load_snippets()
@@ -303,6 +315,8 @@ if __name__ == "__main__":
     elif sys.argv[1] == "insert" and len(sys.argv) > 2:
         notify_fail = "--notify" in sys.argv
         print(json.dumps(insert_snippet(sys.argv[2], notify_on_fail=notify_fail)))
+    elif sys.argv[1] == "copy" and len(sys.argv) > 2:
+        print(json.dumps(copy_snippet_by_id(sys.argv[2])))
     elif sys.argv[1] == "settings":
         print(json.dumps(load_settings()))
     elif sys.argv[1] == "create" and len(sys.argv) > 5:
