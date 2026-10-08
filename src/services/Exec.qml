@@ -1,9 +1,38 @@
 pragma Singleton
 import QtQuick
 import Quickshell
+import Quickshell.Io
 
 QtObject {
   id: root
+
+  property Component copyComp: Component {
+    Process {
+      id: copyProc
+      property string payload: ""
+      command: ["python3", Paths.py("util_io.py"), "copy"]
+      stdinEnabled: true
+      onStarted: {
+        write(payload + "\n")
+        payload = ""
+      }
+      onExited: copyProc.destroy()
+    }
+  }
+
+  property Component pasteComp: Component {
+    Process {
+      id: pasteProc
+      property string payload: ""
+      command: ["python3", Paths.py("util_io.py"), "paste"]
+      stdinEnabled: true
+      onStarted: {
+        write(payload + "\n")
+        payload = ""
+      }
+      onExited: pasteProc.destroy()
+    }
+  }
 
   readonly property string terminal: {
     var t = Quickshell.env("TERMINAL") || ""
@@ -39,10 +68,12 @@ QtObject {
   }
 
   function copyText(text) {
-    // Write text to a secure owner-only spool file (0600) in XDG_RUNTIME_DIR,
-    // then invoke util_io to load and delete it. Sensitive text (passwords/tokens/snippets)
-    // is NEVER passed in command-line arguments and never visible in /proc/<pid>/cmdline.
-    python("util_io.py", ["spool-write", text || ""])
+    // Stream clipboard text strictly over stdin: sensitive text is NEVER
+    // passed in command-line arguments and never visible in /proc/<pid>/cmdline.
+    copyComp.createObject(root, {
+      payload: JSON.stringify({ text: String(text || "") }),
+      running: true
+    })
   }
 
   function copyFile(path) {
@@ -50,7 +81,12 @@ QtObject {
   }
 
   function pasteText(text) {
-    python("util_io.py", ["spool-paste-write", text || ""])
+    // Stream clipboard text strictly over stdin: sensitive text is NEVER
+    // passed in command-line arguments and never visible in /proc/<pid>/cmdline.
+    pasteComp.createObject(root, {
+      payload: JSON.stringify({ text: String(text || "") }),
+      running: true
+    })
   }
 
   function pasteImage(path) {

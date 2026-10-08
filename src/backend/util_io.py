@@ -8,6 +8,7 @@ Omarchy paste flow:
 """
 from __future__ import annotations
 
+import json
 import os
 import subprocess
 import sys
@@ -19,44 +20,13 @@ from path_safety import allowed_path, deny_reason
 MAX_CLIP_BYTES = 20 * 1024 * 1024  # 20 MiB
 
 
-def _spool_dir() -> Path:
-    base = Path(os.environ.get("XDG_RUNTIME_DIR", Path.home() / ".cache" / "omnicast")).resolve()
-    base.mkdir(parents=True, exist_ok=True)
-    try:
-        os.chmod(base, 0o700)
-    except Exception:
-        pass
-    return base
-
-
-def write_clip_payload(text: str) -> str:
-    """Safely store clipboard payload into owner-only 0600 file in runtime dir."""
-    spool = _spool_dir() / "clip.spool"
-    # Atomic write with strict 0600 permissions
-    tmp = _spool_dir() / f"clip.{os.getpid()}.tmp"
-    tmp.write_text(text or "", encoding="utf-8", errors="replace")
-    os.chmod(tmp, 0o600)
-    tmp.replace(spool)
-    return str(spool)
-
-
-def read_clip_payload() -> str:
-    """Read and immediately wipe the owner-only clipboard payload."""
-    spool = _spool_dir() / "clip.spool"
-    if not spool.is_file():
-        return ""
-    if spool.stat().st_uid != os.getuid() or (spool.stat().st_mode & 0o077) != 0:
-        return ""
-    text = spool.read_text(encoding="utf-8", errors="replace")
-    try:
-        spool.unlink(missing_ok=True)
-    except Exception:
-        pass
-    return text
-
-
 def copy_text(text: str) -> None:
-    p = subprocess.Popen(["wl-copy"], stdin=subprocess.PIPE)
+    p = subprocess.Popen(
+        ["wl-copy"],
+        stdin=subprocess.PIPE,
+        stdout=subprocess.DEVNULL,
+        stderr=subprocess.DEVNULL,
+    )
     p.communicate(input=(text or "").encode("utf-8", errors="replace"))
 
 
@@ -87,7 +57,12 @@ def copy_file(path: str) -> None:
         mime = "image/webp"
     elif p.suffix.lower() == ".gif":
         mime = "image/gif"
-    proc = subprocess.Popen(["wl-copy", "--type", mime], stdin=subprocess.PIPE)
+    proc = subprocess.Popen(
+        ["wl-copy", "--type", mime],
+        stdin=subprocess.PIPE,
+        stdout=subprocess.DEVNULL,
+        stderr=subprocess.DEVNULL,
+    )
     proc.communicate(input=data)
 
 
@@ -120,32 +95,32 @@ def main():
         print("usage: util_io.py copy|copy-file|paste|paste-image ...", file=sys.stderr)
         sys.exit(1)
     op = sys.argv[1]
-    if op in ("spool-copy", "spool-paste"):
-        arg = read_clip_payload()
-        op = "copy" if op == "spool-copy" else "paste"
-    elif op in ("copy", "paste"):
-        # If --stdin or -- is specified, or if no second argument is provided, read securely from stdin
-        if len(sys.argv) > 2 and sys.argv[2] in ("--stdin", "--"):
-            arg = sys.stdin.read()
-        elif len(sys.argv) > 2 and sys.argv[2] == "--file":
-            p = Path(sys.argv[3]).resolve()
-            if not p.is_file():
-                sys.exit(1)
-            # Ensure the file is owner-only
-            if p.stat().st_uid != os.getuid() or (p.stat().st_mode & 0o077) != 0:
-                print("Refusing to read file with insecure permissions", file=sys.stderr)
-                sys.exit(1)
-            arg = p.read_text(encoding="utf-8", errors="replace")
-            try:
-                p.unlink(missing_ok=True)
-            except Exception:
-                pass
-        elif len(sys.argv) == 2:
-            arg = sys.stdin.read()
-        else:
-            arg = " ".join(sys.argv[2:])
-    else:
+    if op in ("copy", "paste"):
+        # Process arguments are strictly forbidden for clipboard payload to prevent /proc/<pid>/cmdline leakage.
+        # Payload must be passed via stdin (as JSON {"text": ...} or raw string).
+        if len(sys.argv) > 2:
+            print("Refusing argument: clipboard payload must be passed via stdin", file=sys.stderr)
+            sys.exit(1)
+        raw = sys.stdin.readline()
+        if not raw and not sys.stdin.isatty():
+            raw = sys.stdin.read()
+        raw = raw.rstrip("\r\n")
+        try:
+            parsed = json.loads(raw)
+            if isinstance(parsed, dict) and "text" in parsed:
+                arg = str(parsed["text"])
+            elif isinstance(parsed, str):
+                arg = parsed
+            else:
+                arg = raw
+        except Exception:
+            arg = raw
+    elif op == "copy-file":
         arg = sys.argv[2] if len(sys.argv) > 2 else ""
+    elif op == "paste-image":
+        arg = sys.argv[2] if len(sys.argv) > 2 else ""
+    else:
+        sys.exit(2)
 
     try:
         if op == "copy":

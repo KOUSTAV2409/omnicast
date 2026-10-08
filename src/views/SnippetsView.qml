@@ -38,6 +38,24 @@ Item {
     }
   }
 
+  property Process createProc: Process {
+    property string payloadJson: ""
+    command: ["python3", Paths.py("snippet_manager.py"), "create"]
+    running: false
+    stdinEnabled: true
+    onStarted: {
+      write(payloadJson + "\n")
+      payloadJson = ""
+    }
+    stdout: StdioCollector {
+      waitForEnd: true
+      onStreamFinished: {
+        Hud.success("Snippet created")
+        root.reloadData()
+      }
+    }
+  }
+
   function reloadData() {
     snippetLoader.running = true
   }
@@ -129,15 +147,13 @@ Item {
         { id: "category", label: "CATEGORY", type: "text", placeholder: "General", defaultValue: "General" }
       ],
       onFormSubmitted: function(values) {
-        Exec.python("snippet_manager.py", [
-          "create",
-          values.keyword || "",
-          values.title || values.keyword || "Snippet",
-          values.snippet || "",
-          values.category || "General"
-        ])
-        Hud.success("Snippet created")
-        // Pop happens via nav; reload when returning: dismiss for simplicity
+        createProc.payloadJson = JSON.stringify({
+          keyword: values.keyword || "",
+          title: values.title || values.keyword || "Snippet",
+          snippet: values.snippet || "",
+          category: values.category || "General"
+        })
+        createProc.running = true
         root.requestDismiss()
       }
     })
