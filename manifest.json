@@ -1,0 +1,34 @@
+{
+  "schemaVersion": 1,
+  "id": "koustav.omnicast",
+  "name": "Omnicast",
+  "version": "0.2.0",
+  "author": "Koustav",
+  "license": "GPL-3.0",
+  "description": "Alt+Space umbrella launcher for Omarchy: instant file search, live code preview, quicklinks, and script commands.",
+  "homepage": "https://omnicast.best",
+  "repository": "https://github.com/KOUSTAV2409/omnicast",
+  "keywords": [
+    "launcher",
+    "raycast",
+    "spotlight",
+    "omarchy",
+    "omarchy-plugin",
+    "quickshell",
+    "search",
+    "wayland"
+  ],
+  "kinds": [
+    "bar-widget"
+  ],
+  "entryPoints": {
+    "barWidget": "BarWidget.qml"
+  },
+  "barWidget": {
+    "displayName": "Omnicast",
+    "description": "Search apps, files, quicklinks, and Omarchy commands (Alt+Space)",
+    "category": "Apps",
+    "allowMultiple": false,
+    "defaultSection": "left"
+  }
+}
