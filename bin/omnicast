@@ -3,7 +3,13 @@
 # IPC form mirrors omarchy-shell: `qs ipc call -- <target> <method>`
 # The `--` is required so methods like `show` are not eaten as qs subcommands.
 
-ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+SOURCE="${BASH_SOURCE[0]}"
+while [ -h "$SOURCE" ]; do
+  DIR="$(cd -P "$(dirname "$SOURCE")" && pwd)"
+  SOURCE="$(readlink "$SOURCE")"
+  [[ $SOURCE != /* ]] && SOURCE="$DIR/$SOURCE"
+done
+ROOT="$(cd -P "$(dirname "$SOURCE")/.." && pwd)"
 export OMNICAST_ROOT="$ROOT"
 CONFIG_PATH="$ROOT/src"
 

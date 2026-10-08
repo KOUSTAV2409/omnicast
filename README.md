@@ -31,9 +31,9 @@ Run: curl -fsSL https://omnicast.best/install | bash
 curl -fsSL https://omnicast.best/install | bash
 ```
 
-*Or via GitHub raw:*
+*Or install as an Omarchy Shell Plugin into your bar:*
 ```bash
-curl -fsSL https://raw.githubusercontent.com/KOUSTAV2409/omnicast/main/install.sh | bash
+omarchy plugin add https://github.com/KOUSTAV2409/omnicast.git --enable
 ```
 
 The installer automatically:
