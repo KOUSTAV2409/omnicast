@@ -37,7 +37,7 @@ TEXT_EXT = {
     ".qml", ".lua", ".sql", ".r", ".jl", ".php", ".pl", ".pm", ".vim", ".diff",
     ".patch", ".gitignore", ".dockerfile", ".makefile", ".cmake", ".nix",
 }
-# SVG intentionally excluded from Image{} — Qt SVG can follow external refs.
+# SVG intentionally excluded from Image{}: Qt SVG can follow external refs.
 IMAGE_EXT = {".png", ".jpg", ".jpeg", ".gif", ".webp", ".bmp", ".ico"}
 OFFICE_EXT = {
     ".doc", ".docx", ".odt", ".rtf",
@@ -472,7 +472,7 @@ def _tokenize_highlight(text: str, ext: str) -> str:
                 if text[j] == quote:
                     j += 1
                     break
-                # template ${ } — keep simple, stay in string
+                # template ${ }: keep simple, stay in string
                 j += 1
             out.append(_span(C_STR, text[i:j]))
             i = j
@@ -871,7 +871,7 @@ def preview(path_str: str) -> dict:
                 base["text"] = text
             return base
 
-    # Sniff unknown small files as text — never for secrets
+    # Sniff unknown small files as text: never for secrets
     if st.st_size <= MAX_TEXT_BYTES and not is_secret_path(path):
         text = read_text_file(path)
         if text:

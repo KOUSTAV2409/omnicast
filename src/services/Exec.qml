@@ -106,14 +106,14 @@ QtObject {
     detached(argv)
   }
 
-  // Delayed argv run without shell — uses sleep(1) as argv[0] then the real command.
+  // Delayed argv run without shell: uses sleep(1) as argv[0] then the real command.
   // Prefer fixed argv arrays only; never pass user-controlled shell strings.
   function afterDismiss(argv, delayMs) {
     if (!argv || !argv.length)
       return
     var ms = delayMs === undefined ? 80 : delayMs
     var secs = Math.max(0, ms / 1000)
-    // sleep then exec via env — still no user string concatenation into sh -c
+    // sleep then exec via env: still no user string concatenation into sh -c
     var wrapped = ["sleep", String(secs)]
     // Chain with a tiny helper: python -c is avoided; use `sh -c` ONLY with
     // individually single-quoted argv pieces (no raw user shell).
@@ -179,7 +179,7 @@ QtObject {
     }
   }
 
-  // Legacy: execLine may still arrive from old cache — refuse shell metacharacters.
+  // Legacy: execLine may still arrive from old cache: refuse shell metacharacters.
   function launchApp(execLine) {
     var cleaned = (execLine || "").replace(/%[fFuUdDnNickvm]/g, "").replace(/\s+/g, " ").trim()
     if (!cleaned.length)
@@ -188,7 +188,7 @@ QtObject {
       console.error("[Exec] blocked unsafe Exec line (use desktop_path/argv):", cleaned)
       return
     }
-    // Split on spaces only — no shell. Imperfect for quoted args; prefer launchDesktop.
+    // Split on spaces only: no shell. Imperfect for quoted args; prefer launchDesktop.
     var parts = cleaned.split(/\s+/).filter(function(p) { return p.length })
     if (!parts.length)
       return
@@ -203,7 +203,7 @@ QtObject {
   }
 
   function launchInTerminal(cmd) {
-    // Legacy string path — refuse metacharacters; prefer launchArgvInTerminal
+    // Legacy string path: refuse metacharacters; prefer launchArgvInTerminal
     var c = String(cmd || "").trim()
     if (!c.length)
       return
@@ -238,7 +238,7 @@ QtObject {
   }
 
   function omarchyMenu(route) {
-    // route is a fixed Omarchy menu id — reject shell metacharacters
+    // route is a fixed Omarchy menu id: reject shell metacharacters
     var r = String(route || "root")
     if (!/^[A-Za-z0-9._-]+$/.test(r)) {
       console.error("[Exec] blocked unsafe omarchy menu route:", r)

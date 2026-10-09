@@ -34,7 +34,7 @@ QtObject {
     var home = Quickshell.env("HOME") || ""
     var xdg = Quickshell.env("XDG_CACHE_HOME") || ""
     var base = xdg.length ? xdg : (home + "/.cache")
-    // Basename only — never allow path separators / traversal into cacheFile()
+    // Basename only: never allow path separators / traversal into cacheFile()
     var raw = String(name || "cache.json")
     var parts = raw.replace(/\\/g, "/").split("/")
     var safe = parts[parts.length - 1] || "cache.json"

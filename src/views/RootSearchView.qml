@@ -126,6 +126,18 @@ Item {
   }
 
   Process {
+    id: quicklinkOpener
+    property string pendingPayloadJson: ""
+    command: ["python3", Paths.py("quicklinks.py"), "open-json"]
+    running: false
+    stdinEnabled: true
+    onStarted: {
+      write(pendingPayloadJson + "\n")
+      pendingPayloadJson = ""
+    }
+  }
+
+  Process {
     id: fileScanner
     property string pendingPayloadJson: ""
     property string pendingQuery: ""
@@ -538,7 +550,7 @@ Item {
     // Never hand scripts/binaries to xdg-open (often executes them)
     if (/\.(sh|bash|zsh|fish|py|rb|pl|js|mjs|cjs|exe|bin|run|appimage)$/.test(low)) {
       Exec.copyText(p)
-      Hud.error("Script/binary not launched from Files — path copied")
+      Hud.error("Script/binary not launched from Files: path copied")
       return false
     }
     if (/\.(docx?|odt|rtf|xlsx?|ods|pptx?|odp)$/.test(low)) {
@@ -829,10 +841,14 @@ Item {
       root.requestPushViewWithProps(item.title + " (Argument)", root.formViewComp, {
         title: item.title,
         subtitle: "Provide the link argument.",
-        fields: [{ id: "arg", label: "ARGUMENT", type: "text", placeholder: "Search or path…" }],
+        fields: [{ id: "arg", label: "ARGUMENT", type: "text", placeholder: "Search or path..." }],
         onFormSubmitted: function(values) {
           Ranking.bump(item.id)
-          Exec.python("quicklinks.py", ["open", item.id, (values && values.arg) ? String(values.arg) : ""])
+          quicklinkOpener.pendingPayloadJson = JSON.stringify({
+            id: item.id,
+            arg: (values && values.arg) ? String(values.arg) : ""
+          })
+          quicklinkOpener.running = true
           Hud.success("Opened " + item.title)
           root.requestDismiss()
         }
@@ -840,7 +856,11 @@ Item {
       return
     }
     Ranking.bump(item.id)
-    Exec.python("quicklinks.py", ["open", item.id, arg])
+    quicklinkOpener.pendingPayloadJson = JSON.stringify({
+      id: item.id,
+      arg: arg || ""
+    })
+    quicklinkOpener.running = true
     Hud.success("Opened " + item.title)
     root.requestDismiss()
   }

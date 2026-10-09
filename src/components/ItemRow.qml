@@ -32,7 +32,7 @@ Rectangle {
 
   Behavior on color { ColorAnimation { duration: 110; easing.type: Easing.OutCubic } }
 
-  // Accent rail — makes selection feel intentional
+  // Accent rail: makes selection feel intentional
   Rectangle {
     visible: !root.isSectionHeader && root.isSelected
     anchors.left: parent.left

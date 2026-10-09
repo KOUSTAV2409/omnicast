@@ -87,7 +87,7 @@ SECRET_NAMES = {
     "shadow",
     "gshadow",
     "master_password.aes",
-    # UNIX system files — prevented from leaking via any path collision
+    # UNIX system files: prevented from leaking via any path collision
     "passwd",
     "group",
     "sudoers",
@@ -111,7 +111,7 @@ SECRET_SUFFIXES = (
     ".asc",  # often armored private material
 )
 
-# Extra rg --glob denials (content search) — keep in sync with SECRET_DIR_PARTS.
+# Extra rg --glob denials (content search): keep in sync with SECRET_DIR_PARTS.
 SECRET_RG_GLOBS = [
     "!.ssh/**",
     "!.gnupg/**",

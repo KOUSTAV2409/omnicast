@@ -150,7 +150,7 @@ def execute_command(script_path, args=None):
                 return {"status": "error", "error": "Script is not executable"}
             cmd = interp + [str(resolved)] + clean_args
         else:
-            # Executable file under allowlist only — never /bin/bash as the "script"
+            # Executable file under allowlist only: never /bin/bash as the "script"
             cmd = [str(resolved)] + clean_args
 
         res = subprocess.run(

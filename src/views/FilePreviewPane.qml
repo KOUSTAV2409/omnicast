@@ -258,7 +258,7 @@ Item {
     if (tryApplyCache(want, metaPath, cachePathHint))
       return
 
-    // FileView can briefly miss a just-written cache — one deferred retry
+    // FileView can briefly miss a just-written cache: one deferred retry
     if (meta && meta.ok && (pathsEqual(metaPath, want) || !metaPath.length)) {
       cacheRetryTimer.wantPath = want
       cacheRetryTimer.metaPath = metaPath
@@ -337,7 +337,7 @@ Item {
         Text {
           anchors.verticalCenter: parent.verticalCenter
           text: root.siblingIndex < 0
-                ? ("—/" + root.siblingPaths.length)
+                ? ("-/" + root.siblingPaths.length)
                 : ((root.siblingIndex + 1) + "/" + root.siblingPaths.length)
           font.family: Theme.fontFamily
           font.pixelSize: Theme.fontCaption
@@ -560,7 +560,7 @@ Item {
       }
     }
 
-    // Text / markdown / code — document reading surface
+    // Text / markdown / code: document reading surface
     Flickable {
       id: textScroll
       anchors.fill: parent

@@ -42,7 +42,7 @@ Item {
       var close = root.canPop ? "Esc Back" : "Esc"
       var primary = root.primaryActionText.length ? ("Enter " + root.primaryActionText) : "Enter"
       var base = primary + " · Ctrl+K · " + close
-      // Append Files scope context — never replace Enter/Ctrl+K
+      // Append Files scope context: never replace Enter/Ctrl+K
       if (root.hintText.length && root.hintText.indexOf("Files") === 0)
         return base.replace(" · " + close, "") + " · " + root.hintText + " · " + close
       if (root.hintText.length && root.hintText !== "Enter · Ctrl+K · Esc")

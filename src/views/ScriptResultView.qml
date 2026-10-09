@@ -55,7 +55,7 @@ Item {
     try {
       var res = JSON.parse(raw || "{}")
       if (res.status === "success") {
-        // Plain text only — never interpret script stdout as Markdown
+        // Plain text only: never interpret script stdout as Markdown
         root.outputMarkdown = res.stdout || "(empty output)"
         Hud.success("Script finished")
       } else {
