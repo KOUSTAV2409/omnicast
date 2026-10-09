@@ -49,7 +49,7 @@ Whenever any agent or developer touches this project, the following rules MUST b
 * **Site**: https://omnicast.best
 * **File search / preview (2026-09-05, branch `koustav`)**: typed Files in root (`fd` + scopes), selection-follow side preview, colored markdown/code HTML, OnlyOffice-aware open, content search opt-in via `content:` only (keeps name search fast).
 
-### File search — saved backlog (do not lose)
+### File search: saved backlog (do not lose)
 
 **Optional polish (not required now)**
 - Richer highlight via pygments (optional dep)
@@ -60,11 +60,11 @@ Whenever any agent or developer touches this project, the following rules MUST b
 - Tiny “no results in this scope” empty state
 
 **Still behind Raycast (file loop)**
-1. Content search as a first-class, fast index — not only opt-in `content:` over a live `rg` scan
-2. Richer Quick Look — PDF/Office thumbnails, media scrubbing, smoother type coverage
-3. Search scopes UX — saved scopes, ignore rules, UI to manage them (we have cycle + `in:`)
-4. Actions depth — duplicate, Quicklink, AI attach, etc.
-5. Years of edge-case polish — weird encodings, huge trees, permissions, network mounts
+1. Content search as a first-class, fast index: not only opt-in `content:` over a live `rg` scan
+2. Richer Quick Look: PDF/Office thumbnails, media scrubbing, smoother type coverage
+3. Search scopes UX: saved scopes, ignore rules, UI to manage them (we have cycle + `in:`)
+4. Actions depth: duplicate, Quicklink, AI attach, etc.
+5. Years of edge-case polish: weird encodings, huge trees, permissions, network mounts
 
 **Not behind on the idea**: in-pane reading, OnlyOffice-aware open, Omarchy feel, blazing name search.
 

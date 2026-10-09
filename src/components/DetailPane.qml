@@ -10,7 +10,7 @@ Rectangle {
   property string imageSource: ""
   property string headerBadge: ""
   property string swatchColor: ""
-  // "markdown" (default) or "plain" — plain avoids script-stdout Markdown injection
+  // "markdown" (default) or "plain": plain avoids script-stdout Markdown injection
   property string contentFormat: "markdown"
 
   color: "transparent"

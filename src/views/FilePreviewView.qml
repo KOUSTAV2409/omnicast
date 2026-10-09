@@ -94,7 +94,7 @@ Item {
     // Match RootSearchView.openFileSmart: never xdg-open scripts/binaries
     if (/\.(sh|bash|zsh|fish|py|rb|pl|js|mjs|cjs|exe|bin|run|appimage)$/.test(low)) {
       Exec.copyText(p)
-      Hud.error("Script/binary not launched — path copied")
+      Hud.error("Script/binary not launched: path copied")
       return
     }
     if (pane.opener && pane.opener.argv && pane.opener.argv.length) {
@@ -108,7 +108,7 @@ Item {
           argvPath = a
       }
       if (argvPath.length && argvPath !== root.filePath) {
-        Hud.error("Preview out of sync — reopen from search")
+        Hud.error("Preview out of sync: reopen from search")
         return
       }
       var bin = String(argv[0] || "")

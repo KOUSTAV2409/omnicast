@@ -374,7 +374,7 @@ def search_content(query: str, limit: int, root: Path) -> list[Path]:
 
 
 def path_query_hits(query: str, root: Path) -> list[Path]:
-    """Exact path / ~ expansion — only if inside scope and not secret."""
+    """Exact path / ~ expansion: only if inside scope and not secret."""
     q = query.strip()
     if not q:
         return []

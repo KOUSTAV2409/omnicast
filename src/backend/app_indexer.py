@@ -13,7 +13,7 @@ APP_DIRS = [
 ]
 
 def clean_exec(exec_str):
-    # Remove field codes (%f, %F, %u, %U, …) — keep for display only.
+    # Remove field codes (%f, %F, %u, %U, …): keep for display only.
     # Launch uses desktop_path via gtk-launch / gio, never this string as shell.
     cleaned = re.sub(r"%[a-zA-Z]", "", exec_str or "").strip()
     return cleaned
@@ -128,7 +128,7 @@ def index_desktop_apps():
                             "icon": get_app_icon(app_info["name"], app_info["icon"]),
                             "category": "Applications",
                             "badge": "App",
-                            # Legacy display field — do NOT pass to sh -c
+                            # Legacy display field: do NOT pass to sh -c
                             "exec": " ".join(argv),
                             "argv": argv,
                             "terminal": bool(app_info["terminal"]),

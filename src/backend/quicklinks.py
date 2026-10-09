@@ -121,7 +121,18 @@ if __name__ == "__main__":
         cache_file = cache_dir() / "quicklinks.json"
         write_secure_json(cache_file, results)
         print(json.dumps({"ok": True, "count": len(results), "path": str(cache_file)}))
-    elif sys.argv[1] == "open" and len(sys.argv) > 2:
-        open_link(sys.argv[2], sys.argv[3] if len(sys.argv) > 3 else "")
+    elif sys.argv[1] in ("open-json", "open"):
+        # Support reading payload via stdin to avoid /proc/<pid>/cmdline exposure
+        if sys.argv[1] == "open-json" or (len(sys.argv) == 2 and not sys.stdin.isatty()):
+            line = sys.stdin.readline()
+            try:
+                data = json.loads(line)
+                open_link(data.get("id", ""), data.get("arg", ""))
+            except Exception:
+                open_link(line.strip())
+        elif len(sys.argv) > 2:
+            open_link(sys.argv[2], sys.argv[3] if len(sys.argv) > 3 else "")
+        else:
+            sys.exit(1)
     else:
         sys.exit(1)
