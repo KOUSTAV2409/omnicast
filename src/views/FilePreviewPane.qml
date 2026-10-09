@@ -302,6 +302,7 @@ Item {
                - (kindBadge.visible ? kindBadge.width + 8 : 0)
                - (sibRow.visible ? sibRow.width + 8 : 0)
         text: root.fileTitle || root.filePath || "Preview"
+        textFormat: Text.PlainText
         font.family: Theme.fontFamily
         font.pixelSize: compactChrome ? Theme.fontBody : Theme.fontHeading
         font.weight: Font.DemiBold
@@ -394,6 +395,7 @@ Item {
         if (root.modified.length) bits.push(root.modified)
         return bits.join("  ·  ")
       }
+      textFormat: Text.PlainText
       font.family: Theme.fontFamily
       font.pixelSize: Theme.fontCaption
       color: Theme.darkForeground
@@ -478,6 +480,7 @@ Item {
           width: parent.width
           visible: root.previewText.length > 0
           text: root.previewText
+          textFormat: Text.PlainText
           font.family: root.previewFontFamily
           font.pixelSize: root.previewFontSize - 1
           lineHeight: root.previewLineHeight

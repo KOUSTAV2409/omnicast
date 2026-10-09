@@ -237,6 +237,13 @@ def extract_docx_text(path: Path) -> str:
         return ""
 
 
+def sanitize_plain_text(text: str) -> str:
+    """Strip HTML-like tags from plain-text file extracts to prevent remote resource loading."""
+    if not text:
+        return ""
+    return re.sub(r"<[^>]+>", " ", text)
+
+
 def extract_pdf_text(path: Path) -> str:
     pdftotext = shutil.which("pdftotext")
     if not pdftotext:
@@ -248,7 +255,7 @@ def extract_pdf_text(path: Path) -> str:
             stderr=subprocess.DEVNULL,
             timeout=4,
         )
-        text = out.strip()
+        text = sanitize_plain_text(out.strip())
         if len(text) > MAX_TEXT_CHARS:
             text = text[:MAX_TEXT_CHARS] + "\n\n… truncated …"
         return text
@@ -812,6 +819,7 @@ def preview(path_str: str) -> dict:
 
     if ext in PDF_EXT or mime == "application/pdf":
         base["kind"] = "pdf"
+        base["text_format"] = "plain"
         img = pdf_page_image(path)
         if img:
             base["image"] = img
@@ -822,8 +830,9 @@ def preview(path_str: str) -> dict:
 
     if ext in {".docx"} or "wordprocessingml" in mime:
         base["kind"] = "docx"
+        base["text_format"] = "plain"
         text = extract_docx_text(path)
-        base["text"] = text or "(Could not extract text. Open in OnlyOffice to view.)"
+        base["text"] = sanitize_plain_text(text) if text else "(Could not extract text. Open in OnlyOffice to view.)"
         return base
 
     if ext in OFFICE_EXT or mime.startswith("application/vnd"):
