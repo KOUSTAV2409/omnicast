@@ -338,17 +338,26 @@ def search_content(query: str, limit: int, root: Path) -> list[Path]:
         cmd.extend(["--glob", g])
     cmd.extend(
         [
+            "-F",
+            "-f",
+            "-",
             "--max-count",
             "1",
             "-m",
             str(max(limit * 2, 24)),
             "--",
-            query,
             str(root),
         ]
     )
     try:
-        out = subprocess.check_output(cmd, text=True, stderr=subprocess.DEVNULL, timeout=3.0)
+        p = subprocess.Popen(
+            cmd,
+            stdin=subprocess.PIPE,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.DEVNULL,
+            text=True,
+        )
+        out, _ = p.communicate(input=query.strip() + "\n", timeout=3.0)
     except Exception:
         return []
     paths = []
@@ -459,19 +468,45 @@ def search(
 
 def main() -> int:
     ap = argparse.ArgumentParser()
-    ap.add_argument("query")
+    ap.add_argument("query", nargs="?", default="")
+    ap.add_argument("--stdin", action="store_true", default=False)
     ap.add_argument("--limit", type=int, default=16)
     ap.add_argument("--scope", default="home")
     ap.add_argument("--content", dest="content", action="store_true", default=False)
     ap.add_argument("--no-content", dest="content", action="store_false")
     args = ap.parse_args()
 
+    # Reject content queries passed as CLI arguments to prevent /proc/<pid>/cmdline exposure
+    if args.query.lower().startswith("content:") and not args.stdin:
+        print("Refusing argument: content queries must be streamed via stdin", file=sys.stderr)
+        return 1
+
+    query = args.query
+    scope = args.scope
+    limit = args.limit
+    content = args.content
+
+    if args.stdin or not query:
+        line = sys.stdin.readline()
+        if line.strip():
+            try:
+                data = json.loads(line)
+                if isinstance(data, dict):
+                    query = str(data.get("query", query))
+                    scope = str(data.get("scope", scope))
+                    limit = int(data.get("limit", limit) or limit)
+                    content = bool(data.get("content", content))
+                elif isinstance(data, str):
+                    query = data.strip()
+            except Exception:
+                query = line.strip()
+
     hits, parsed_q, scope_name = search(
-        args.query, args.limit, scope=args.scope, content=args.content
+        query, limit, scope=scope, content=content
     )
     cache_file = cache_dir() / "file-search.json"
     payload = {
-        "query": args.query.strip(),
+        "query": query.strip(),
         "parsed_query": parsed_q,
         "scope": scope_name,
         "hits": hits,
@@ -483,7 +518,6 @@ def main() -> int:
                 "ok": True,
                 "count": len(hits),
                 "path": str(cache_file),
-                "query": args.query.strip(),
                 "scope": scope_name,
             }
         )

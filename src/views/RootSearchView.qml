@@ -127,14 +127,19 @@ Item {
 
   Process {
     id: fileScanner
+    property string pendingPayloadJson: ""
     property string pendingQuery: ""
     property string pendingScope: "home"
     // Captured at process start so completions aren't attributed to a newer keystroke
     property string activeQuery: ""
     property string activeScope: "home"
-    // Bind query + scope into argv
-    command: ["python3", Paths.py("file_search.py"), pendingQuery, "--limit", "18", "--scope", pendingScope]
+    command: ["python3", Paths.py("file_search.py"), "--stdin"]
     running: false
+    stdinEnabled: true
+    onStarted: {
+      write(pendingPayloadJson + "\n")
+      pendingPayloadJson = ""
+    }
     stdout: StdioCollector {
       waitForEnd: true
       onStreamFinished: text => root.handleFileScanMeta(fileScanner.activeQuery, fileScanner.activeScope, text)
@@ -176,11 +181,11 @@ Item {
       if (fileScanner.pendingQuery.length >= 2) {
         fileScanner.activeQuery = fileScanner.pendingQuery
         fileScanner.activeScope = fileScanner.pendingScope
-        fileScanner.command = [
-          "python3", Paths.py("file_search.py"),
-          fileScanner.pendingQuery, "--limit", "18",
-          "--scope", fileScanner.pendingScope
-        ]
+        fileScanner.pendingPayloadJson = JSON.stringify({
+          query: fileScanner.pendingQuery,
+          scope: fileScanner.pendingScope,
+          limit: 18
+        })
         fileScanner.running = true
       }
     }
@@ -611,7 +616,6 @@ Item {
     fileScanner.running = false
     fileScanner.pendingQuery = q
     fileScanner.pendingScope = scope
-    console.log("[Omnicast] file search start:", q, "scope:", scope)
     fileSearchStartTimer.restart()
   }
 
@@ -640,7 +644,6 @@ Item {
   function handleFileScanMeta(query, scope, raw) {
     var q = (query || "").trim()
     var sc = (scope || "").toLowerCase()
-    console.log("[Omnicast] file search meta:", q, sc, (raw || "").trim().slice(0, 120))
     // Ignore stale responses when the user kept typing or changed scope
     if (q !== (root.filterText || "").trim())
       return
@@ -678,11 +681,11 @@ Item {
           hits.push(makeFileItem(data[i]))
       }
     } catch (e) {
-      console.error("[Omnicast] file search parse failed:", e, raw)
+      console.error("[Omnicast] file search parse failed:", e)
     }
     fileQuery = q
     fileHits = hits
-    console.log("[Omnicast] file search hits:", hits.length, "for", q)
+    console.log("[Omnicast] file search hits:", hits.length)
     root.filter(root.filterText)
   }
 
