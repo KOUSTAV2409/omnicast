@@ -37,3 +37,9 @@ secrets.json
 secrets.toml
 .netrc
 .git-credentials
+
+# Node / Remotion video builds
+node_modules/
+video/out/
+video/.remotion/
+
