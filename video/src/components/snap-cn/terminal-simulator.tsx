@@ -127,8 +127,8 @@ const CMD_W = 760;
 const CMD_H = 170;
 
 /** Terminal station geometry in world px (sized against the reference). */
-const TERM_BAR_OFFSET = 137; // bar sits this far left of the focus point
-const TERM_TEXT_OFFSET = 90; // text column left edge relative to focus
+const TERM_BAR_OFFSET = 420; // bar sits this far left of the focus point
+const TERM_TEXT_OFFSET = 380; // text column left edge relative to focus
 const TERM_BLOCK_TOP = 215; // first line sits this far above the focus point
 const TERM_LINE_H = 83;
 const TERM_FONT = 44;
@@ -494,7 +494,7 @@ export function TerminalSimulator({
   const hasIntro = intro != null && intro.trim().length > 0;
   const hasCommand = command != null && command.text.trim().length > 0;
   const camera = resolveZoom(zoom);
-  const landingZoom = camera.enabled ? camera.scale : 1.5;
+  const landingZoom = camera.enabled ? camera.scale : 0.72;
 
   const stops = buildCameraStops(hasIntro, hasCommand, landingZoom);
   const cam = cameraAt(frame, stops);

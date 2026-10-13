@@ -1,51 +1,69 @@
 import React from "react";
-import { Composition, Series } from "remotion";
-import { IntroScene } from "./scenes/IntroScene";
-import { SearchScene } from "./scenes/SearchScene";
-import { PreviewScene } from "./scenes/PreviewScene";
-import { SecurityScene } from "./scenes/SecurityScene";
-import { OutroScene } from "./scenes/OutroScene";
+import { AbsoluteFill } from "remotion";
+import {
+  TransitionSeries,
+  springTiming,
+} from "@remotion/transitions";
+import { slide } from "@remotion/transitions/slide";
+
+import { AnnounceIntroScene } from "./scenes/AnnounceIntroScene";
+import { InteractiveSearchScene } from "./scenes/InteractiveSearchScene";
+import { CapabilitiesScene } from "./scenes/CapabilitiesScene";
+import { ManifestoScene } from "./scenes/ManifestoScene";
+import { TerminalInstallScene } from "./scenes/TerminalInstallScene";
+import { OutroWordmarkScene } from "./scenes/OutroWordmarkScene";
+
+/**
+ * Slide transition with critically damped spring:
+ * No awkward double-inked fades, crisp cinematic separation between beats.
+ */
+const slideTransition = {
+  presentation: slide(),
+  timing: springTiming({
+    durationInFrames: 18,
+    config: { damping: 200, mass: 1, stiffness: 120 },
+  }),
+};
 
 export const OmnicastDemoVideo: React.FC = () => {
   return (
-    <Series>
-      {/* Beat 1: Intro Hook & Branding */}
-      <Series.Sequence durationInFrames={100}>
-        <IntroScene />
-      </Series.Sequence>
+    <AbsoluteFill style={{ backgroundColor: "#1a1b26" }}>
+      <TransitionSeries>
+        {/* Beat 1: Launch Announcement (Natural length: 170f) */}
+        <TransitionSeries.Sequence durationInFrames={170}>
+          <AnnounceIntroScene />
+        </TransitionSeries.Sequence>
+        <TransitionSeries.Transition {...slideTransition} />
 
-      {/* Beat 2: Core Search Experience */}
-      <Series.Sequence durationInFrames={220}>
-        <SearchScene />
-      </Series.Sequence>
+        {/* Beat 2: Core Interactive Search & Cursor Tracking (180f) */}
+        <TransitionSeries.Sequence durationInFrames={180}>
+          <InteractiveSearchScene />
+        </TransitionSeries.Sequence>
+        <TransitionSeries.Transition {...slideTransition} />
 
-      {/* Beat 3: Live Split-Pane Previews */}
-      <Series.Sequence durationInFrames={200}>
-        <PreviewScene />
-      </Series.Sequence>
+        {/* Beat 3: Capabilities & Status Cycle (Natural length: 150f) */}
+        <TransitionSeries.Sequence durationInFrames={150}>
+          <CapabilitiesScene />
+        </TransitionSeries.Sequence>
+        <TransitionSeries.Transition {...slideTransition} />
 
-      {/* Beat 4: Security Sandboxing & Marketplace Approval */}
-      <Series.Sequence durationInFrames={150}>
-        <SecurityScene />
-      </Series.Sequence>
+        {/* Beat 4: Security Sandboxing & Proof Manifesto (160f) */}
+        <TransitionSeries.Sequence durationInFrames={160}>
+          <ManifestoScene />
+        </TransitionSeries.Sequence>
+        <TransitionSeries.Transition {...slideTransition} />
 
-      {/* Beat 5: Outro & Terminal 1-Line Installer */}
-      <Series.Sequence durationInFrames={230}>
-        <OutroScene />
-      </Series.Sequence>
-    </Series>
-  );
-};
+        {/* Beat 5: Terminal One-Line Install & Call to Action (200f) */}
+        <TransitionSeries.Sequence durationInFrames={200}>
+          <TerminalInstallScene />
+        </TransitionSeries.Sequence>
+        <TransitionSeries.Transition {...slideTransition} />
 
-export const MyComposition: React.FC = () => {
-  return (
-    <Composition
-      id="OmnicastDemo"
-      component={OmnicastDemoVideo}
-      durationInFrames={900}
-      fps={30}
-      width={1920}
-      height={1080}
-    />
+        {/* Beat 6: Signature Wordmark Cut Outro (Natural length: 66f) */}
+        <TransitionSeries.Sequence durationInFrames={66}>
+          <OutroWordmarkScene />
+        </TransitionSeries.Sequence>
+      </TransitionSeries>
+    </AbsoluteFill>
   );
 };

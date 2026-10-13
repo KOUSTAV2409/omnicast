@@ -9,6 +9,7 @@
     "@paper-design/shaders-react": "^0.0.81",
     "@remotion/cli": "4.0.535",
     "@remotion/google-fonts": "^4.0.535",
+    "@remotion/transitions": "^4.0.535",
     "class-variance-authority": "^0.7.1",
     "cn": "^0.4.0",
     "culori": "^4.0.2",
@@ -28,6 +29,8 @@
   "scripts": {
     "dev": "remotion studio",
     "build": "remotion bundle",
+    "render": "remotion render src/index.ts OmnicastDemo out/omnicast-demo.mp4",
+    "render:1080": "remotion render src/index.ts OmnicastDemo out/omnicast-demo.mp4 --scale=1.5",
     "upgrade": "remotion upgrade",
     "lint": "eslint src && tsc"
   }
