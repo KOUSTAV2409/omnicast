@@ -60,8 +60,8 @@ export const OmnicastDemoVideo: React.FC = () => {
         </TransitionSeries.Sequence>
         <TransitionSeries.Transition {...slideTransition} />
 
-        {/* Beat 6: Terminal One-Line Install & Call to Action (200f) */}
-        <TransitionSeries.Sequence durationInFrames={200}>
+        {/* Beat 6: Terminal One-Line Install & Call to Action (240f) */}
+        <TransitionSeries.Sequence durationInFrames={240}>
           <TerminalInstallScene />
         </TransitionSeries.Sequence>
         <TransitionSeries.Transition {...slideTransition} />

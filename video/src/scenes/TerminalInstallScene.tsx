@@ -6,7 +6,7 @@ import { omnicastTheme } from "../theme";
 export const TerminalInstallScene: React.FC = () => {
   const frame = useCurrentFrame();
 
-  const ctaOpacity = interpolate(frame, [140, 175], [0, 1], {
+  const ctaOpacity = interpolate(frame, [155, 185], [0, 1], {
     extrapolateLeft: "clamp",
     extrapolateRight: "clamp",
   });
@@ -19,23 +19,26 @@ export const TerminalInstallScene: React.FC = () => {
       }}
     >
       <TerminalSimulator
-        intro={null}
+        intro="*Install* in *one line.*"
         command={{
-          managers: ["omarchy", "bash"],
-          text: "curl -fsSL https://omnicast.best/install | bash",
+          managers: ["omarchy", "curl"],
+          text: "omarchy plugin add omnicast",
         }}
         lines={[
-          { text: "Verifying Omarchy Hyprland environment...", type: "log", pause: 6 },
-          { text: "✓ Installed to ~/.local/share/omnicast", type: "success", pause: 6 },
-          { text: "✓ Configured Alt+Space in ~/.config/hypr/bindings.lua", type: "success", pause: 8 },
-          { text: "Ready. Launch Omnicast with Alt+Space.", type: "command" },
+          { text: "Verifying Omarchy environment...", type: "log", pause: 4 },
+          { text: "✓ Installed omnicast plugin", type: "success", pause: 4 },
+          { text: "✓ Bound Alt+Space keybind", type: "success", pause: 4 },
+          { text: "Ready. Launch with Alt+Space", type: "command" },
         ]}
-        zoom={false}
+        fontSize={12}
+        charsPerFrame={3.2}
+        chunkSize={3}
+        zoom={{ enabled: true, scale: 0.82 }}
         mode="dark"
         theme={omnicastTheme}
       />
 
-      {/* Modern pill CTA */}
+      {/* Modern bottom pill CTA that lands with the finished install */}
       <div
         style={{
           position: "absolute",
