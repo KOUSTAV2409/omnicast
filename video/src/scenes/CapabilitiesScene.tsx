@@ -1,7 +1,6 @@
 import React from "react";
 import { AbsoluteFill } from "remotion";
 import { StatusCycle } from "@/components/snap-cn/status-cycle";
-import { omnicastTheme } from "../theme";
 
 export const CapabilitiesScene: React.FC = () => {
   return (
@@ -14,15 +13,15 @@ export const CapabilitiesScene: React.FC = () => {
       <StatusCycle
         prefix="Omnicast is"
         statuses={[
-          "indexing",
+          "local search",
           "instant preview",
-          "clipboard sync",
+          "clipboard history",
           "zero telemetry",
           "native Wayland",
         ]}
         chips={[
-          "FTS5 Local Database",
-          "File Markdown Preview",
+          "FTS5 SQLite Index",
+          "Markdown Quick View",
           "Omarchy Theme Match",
           "Hyprland LayerShell",
           "100% Offline Engine",

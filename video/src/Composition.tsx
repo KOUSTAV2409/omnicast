@@ -7,7 +7,8 @@ import {
 import { slide } from "@remotion/transitions/slide";
 
 import { AnnounceIntroScene } from "./scenes/AnnounceIntroScene";
-import { InteractiveSearchScene } from "./scenes/InteractiveSearchScene";
+import { SearchInteractiveScene } from "./scenes/SearchInteractiveScene";
+import { LocalEngineScene } from "./scenes/LocalEngineScene";
 import { CapabilitiesScene } from "./scenes/CapabilitiesScene";
 import { ManifestoScene } from "./scenes/ManifestoScene";
 import { TerminalInstallScene } from "./scenes/TerminalInstallScene";
@@ -15,7 +16,7 @@ import { OutroWordmarkScene } from "./scenes/OutroWordmarkScene";
 
 /**
  * Slide transition with critically damped spring:
- * No awkward double-inked fades, crisp cinematic separation between beats.
+ * No double-inked fades, crisp cinematic separation between beats.
  */
 const slideTransition = {
   presentation: slide(),
@@ -35,31 +36,37 @@ export const OmnicastDemoVideo: React.FC = () => {
         </TransitionSeries.Sequence>
         <TransitionSeries.Transition {...slideTransition} />
 
-        {/* Beat 2: Core Interactive Search & Cursor Tracking (180f) */}
-        <TransitionSeries.Sequence durationInFrames={180}>
-          <InteractiveSearchScene />
+        {/* Beat 2: Interactive Real-Time Search Typing (160f) */}
+        <TransitionSeries.Sequence durationInFrames={160}>
+          <SearchInteractiveScene />
         </TransitionSeries.Sequence>
         <TransitionSeries.Transition {...slideTransition} />
 
-        {/* Beat 3: Capabilities & Status Cycle (Natural length: 150f) */}
+        {/* Beat 3: Local Offline Engine & Instant Indexing Steps (150f) */}
+        <TransitionSeries.Sequence durationInFrames={150}>
+          <LocalEngineScene />
+        </TransitionSeries.Sequence>
+        <TransitionSeries.Transition {...slideTransition} />
+
+        {/* Beat 4: Capabilities & Status Cycle (150f) */}
         <TransitionSeries.Sequence durationInFrames={150}>
           <CapabilitiesScene />
         </TransitionSeries.Sequence>
         <TransitionSeries.Transition {...slideTransition} />
 
-        {/* Beat 4: Security Sandboxing & Proof Manifesto (160f) */}
+        {/* Beat 5: Security Sandboxing & Manifesto Cards (160f) */}
         <TransitionSeries.Sequence durationInFrames={160}>
           <ManifestoScene />
         </TransitionSeries.Sequence>
         <TransitionSeries.Transition {...slideTransition} />
 
-        {/* Beat 5: Terminal One-Line Install & Call to Action (200f) */}
+        {/* Beat 6: Terminal One-Line Install & Call to Action (200f) */}
         <TransitionSeries.Sequence durationInFrames={200}>
           <TerminalInstallScene />
         </TransitionSeries.Sequence>
         <TransitionSeries.Transition {...slideTransition} />
 
-        {/* Beat 6: Signature Wordmark Cut Outro (Natural length: 66f) */}
+        {/* Beat 7: Signature Wordmark Cut Outro (66f) */}
         <TransitionSeries.Sequence durationInFrames={66}>
           <OutroWordmarkScene />
         </TransitionSeries.Sequence>
