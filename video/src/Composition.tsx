@@ -4,6 +4,7 @@ import {
   TransitionSeries,
   springTiming,
 } from "@remotion/transitions";
+import { fade } from "@remotion/transitions/fade";
 import { slide } from "@remotion/transitions/slide";
 
 import { ColdOpenHookScene } from "./scenes/ColdOpenHookScene";
@@ -17,11 +18,19 @@ import { TerminalInstallScene } from "./scenes/TerminalInstallScene";
 import { OutroWordmarkScene } from "./scenes/OutroWordmarkScene";
 
 /**
- * Slide transition with critically damped spring:
- * No double-inked fades, crisp cinematic separation between beats.
+ * Editorial cinematic transitions:
+ * Fluid spring-eased crossfades and contextual slide-up for launcher summoning.
  */
-const slideTransition = {
-  presentation: slide(),
+const fadeTransition = {
+  presentation: fade(),
+  timing: springTiming({
+    durationInFrames: 18,
+    config: { damping: 200, mass: 1, stiffness: 120 },
+  }),
+};
+
+const slideUpTransition = {
+  presentation: slide({ direction: "from-bottom" }),
   timing: springTiming({
     durationInFrames: 18,
     config: { damping: 200, mass: 1, stiffness: 120 },
@@ -30,55 +39,55 @@ const slideTransition = {
 
 export const OmnicastDemoVideo: React.FC = () => {
   return (
-    <AbsoluteFill style={{ backgroundColor: "#1a1b26" }}>
+    <AbsoluteFill style={{ backgroundColor: "#0d1017" }}>
       <TransitionSeries>
         {/* Act 1 - Beat 1: Cold Open Hook (90f / 3.0s) */}
         <TransitionSeries.Sequence durationInFrames={90}>
           <ColdOpenHookScene />
         </TransitionSeries.Sequence>
-        <TransitionSeries.Transition {...slideTransition} />
+        <TransitionSeries.Transition {...fadeTransition} />
 
         {/* Act 1 - Beat 2: Hero Reveal (150f / 5.0s) */}
         <TransitionSeries.Sequence durationInFrames={150}>
           <AnnounceIntroScene />
         </TransitionSeries.Sequence>
-        <TransitionSeries.Transition {...slideTransition} />
+        <TransitionSeries.Transition {...slideUpTransition} />
 
         {/* Act 2 - Beat 3: The Omnicast Command Palette in Action (135f / 4.5s) */}
         <TransitionSeries.Sequence durationInFrames={135}>
           <CommandPaletteDemoScene />
         </TransitionSeries.Sequence>
-        <TransitionSeries.Transition {...slideTransition} />
+        <TransitionSeries.Transition {...fadeTransition} />
 
         {/* Act 2 - Beat 4: Engine Under the Hood (120f / 4.0s) */}
         <TransitionSeries.Sequence durationInFrames={120}>
           <LocalEngineScene />
         </TransitionSeries.Sequence>
-        <TransitionSeries.Transition {...slideTransition} />
+        <TransitionSeries.Transition {...fadeTransition} />
 
         {/* Act 2 - Beat 5: Security Sandboxing & Manifesto Cards (150f / 5.0s) */}
         <TransitionSeries.Sequence durationInFrames={150}>
           <ManifestoScene />
         </TransitionSeries.Sequence>
-        <TransitionSeries.Transition {...slideTransition} />
+        <TransitionSeries.Transition {...fadeTransition} />
 
         {/* Act 2 - Beat 6: Capabilities & Status Cycle (135f / 4.5s) */}
         <TransitionSeries.Sequence durationInFrames={135}>
           <CapabilitiesScene />
         </TransitionSeries.Sequence>
-        <TransitionSeries.Transition {...slideTransition} />
+        <TransitionSeries.Transition {...fadeTransition} />
 
         {/* Act 3 - Beat 7: Social Proof & Marketplace Verification (90f / 3.0s) */}
         <TransitionSeries.Sequence durationInFrames={90}>
           <SocialProofScene />
         </TransitionSeries.Sequence>
-        <TransitionSeries.Transition {...slideTransition} />
+        <TransitionSeries.Transition {...fadeTransition} />
 
         {/* Act 3 - Beat 8: Terminal One-Line Install & Call to Action (180f / 6.0s) */}
         <TransitionSeries.Sequence durationInFrames={180}>
           <TerminalInstallScene />
         </TransitionSeries.Sequence>
-        <TransitionSeries.Transition {...slideTransition} />
+        <TransitionSeries.Transition {...fadeTransition} />
 
         {/* Act 3 - Beat 9: Signature Wordmark Cut Outro & Final Launch Card (80f / 2.67s) */}
         <TransitionSeries.Sequence durationInFrames={80}>

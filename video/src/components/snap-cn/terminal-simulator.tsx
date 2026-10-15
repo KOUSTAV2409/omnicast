@@ -410,15 +410,15 @@ export function buildCameraStops(
         frame: hasIntro ? CMD_ARRIVE : 0,
         x: CMD_POS.x,
         y: CMD_POS.y,
-        z: 1.55,
+        z: 1.25,
         easing: whip,
       },
-      // Slow push-in while the command types — leaves the trailing copies.
+      // Slow push-in while the command types - leaves the trailing copies.
       {
         frame: PUSH_END,
         x: CMD_POS.x,
-        y: CMD_POS.y + 28,
-        z: 1.9,
+        y: CMD_POS.y + 15,
+        z: 1.38,
         easing: Easing.inOut(Easing.quad),
       },
       // Zoom out and start descending toward the terminal.
