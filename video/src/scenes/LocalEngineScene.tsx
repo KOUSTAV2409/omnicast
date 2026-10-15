@@ -34,9 +34,9 @@ export const LocalEngineScene: React.FC = () => {
           },
         ]}
         result="⚡ Query completed in 1.8ms"
-        queryHold={0.5}
-        stepHold={0.4}
-        finalHold={0.4}
+        queryHold={0.4}
+        stepHold={0.32}
+        finalHold={0.35}
         paperColor="#1a1b26"
         pillColor="#24283b"
         inkColor="#c0caf5"
@@ -45,7 +45,7 @@ export const LocalEngineScene: React.FC = () => {
         glowColor="rgba(122, 162, 247, 0.15)"
         glowRadius={0.55}
         mode="dark"
-        speed={1}
+        speed={1.08}
       />
     </AbsoluteFill>
   );

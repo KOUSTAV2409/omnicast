@@ -37,7 +37,7 @@ export const CapabilitiesScene: React.FC = () => {
         chipBorderColor="rgba(122, 162, 247, 0.3)"
         fontWeight={600}
         chipFontWeight={400}
-        speed={1}
+        speed={1.1}
       />
     </AbsoluteFill>
   );
