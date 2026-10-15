@@ -80,8 +80,8 @@ export const OmnicastDemoVideo: React.FC = () => {
         </TransitionSeries.Sequence>
         <TransitionSeries.Transition {...slideTransition} />
 
-        {/* Act 3 - Beat 9: Signature Wordmark Cut Outro (60f / 2.0s) */}
-        <TransitionSeries.Sequence durationInFrames={60}>
+        {/* Act 3 - Beat 9: Signature Wordmark Cut Outro & Final Launch Card (80f / 2.67s) */}
+        <TransitionSeries.Sequence durationInFrames={80}>
           <OutroWordmarkScene />
         </TransitionSeries.Sequence>
       </TransitionSeries>
