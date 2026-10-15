@@ -14,19 +14,19 @@ export const SearchInteractiveScene: React.FC = () => {
       }}
     >
       <SearchTyping
-        text="docs.hyprland.org/Configuring/Binds"
-        charsPerSecond={18}
-        humanize={0.3}
-        wordPause={1.4}
-        punctuationPause={2.0}
-        startDelay={0.4}
-        dollyDuration={0.8}
-        panDuration={0.6}
-        holdAfter={1.0}
-        recedeDuration={1.0}
-        dolly={1.22}
+        text="hyprland window bindings config"
+        charsPerSecond={22}
+        humanize={0.25}
+        wordPause={1.1}
+        punctuationPause={1.4}
+        startDelay={0.3}
+        dollyDuration={0.7}
+        panDuration={0.5}
+        holdAfter={0.8}
+        recedeDuration={0.8}
+        dolly={1.2}
         fieldHeight={0.24}
-        frontVisible={0.58}
+        frontVisible={0.65}
         edgeInset={48}
         caret={true}
         surface="shadcn"
@@ -34,7 +34,7 @@ export const SearchInteractiveScene: React.FC = () => {
         icon="search"
         fontWeight={500}
         seed="omnicast-search-speed"
-        speed={1}
+        speed={1.05}
       />
 
       {/* Floating Tokyo Night pill badge */}

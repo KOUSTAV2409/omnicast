@@ -6,11 +6,13 @@ import {
 } from "@remotion/transitions";
 import { slide } from "@remotion/transitions/slide";
 
+import { ColdOpenHookScene } from "./scenes/ColdOpenHookScene";
 import { AnnounceIntroScene } from "./scenes/AnnounceIntroScene";
 import { SearchInteractiveScene } from "./scenes/SearchInteractiveScene";
 import { LocalEngineScene } from "./scenes/LocalEngineScene";
 import { CapabilitiesScene } from "./scenes/CapabilitiesScene";
 import { ManifestoScene } from "./scenes/ManifestoScene";
+import { SocialProofScene } from "./scenes/SocialProofScene";
 import { TerminalInstallScene } from "./scenes/TerminalInstallScene";
 import { OutroWordmarkScene } from "./scenes/OutroWordmarkScene";
 
@@ -30,44 +32,56 @@ export const OmnicastDemoVideo: React.FC = () => {
   return (
     <AbsoluteFill style={{ backgroundColor: "#1a1b26" }}>
       <TransitionSeries>
-        {/* Beat 1: Launch Announcement (Natural length: 170f) */}
-        <TransitionSeries.Sequence durationInFrames={170}>
+        {/* Act 1 - Beat 1: Cold Open Hook (90f / 3.0s) */}
+        <TransitionSeries.Sequence durationInFrames={90}>
+          <ColdOpenHookScene />
+        </TransitionSeries.Sequence>
+        <TransitionSeries.Transition {...slideTransition} />
+
+        {/* Act 1 - Beat 2: Hero Reveal (150f / 5.0s) */}
+        <TransitionSeries.Sequence durationInFrames={150}>
           <AnnounceIntroScene />
         </TransitionSeries.Sequence>
         <TransitionSeries.Transition {...slideTransition} />
 
-        {/* Beat 2: Interactive Real-Time Search Typing (160f) */}
-        <TransitionSeries.Sequence durationInFrames={160}>
+        {/* Act 2 - Beat 3: Search in Action (135f / 4.5s) */}
+        <TransitionSeries.Sequence durationInFrames={135}>
           <SearchInteractiveScene />
         </TransitionSeries.Sequence>
         <TransitionSeries.Transition {...slideTransition} />
 
-        {/* Beat 3: Local Offline Engine & Instant Indexing Steps (150f) */}
-        <TransitionSeries.Sequence durationInFrames={150}>
+        {/* Act 2 - Beat 4: Engine Under the Hood (120f / 4.0s) */}
+        <TransitionSeries.Sequence durationInFrames={120}>
           <LocalEngineScene />
         </TransitionSeries.Sequence>
         <TransitionSeries.Transition {...slideTransition} />
 
-        {/* Beat 4: Capabilities & Status Cycle (150f) */}
+        {/* Act 2 - Beat 5: Security Sandboxing & Manifesto Cards (150f / 5.0s) */}
         <TransitionSeries.Sequence durationInFrames={150}>
-          <CapabilitiesScene />
-        </TransitionSeries.Sequence>
-        <TransitionSeries.Transition {...slideTransition} />
-
-        {/* Beat 5: Security Sandboxing & Manifesto Cards (160f) */}
-        <TransitionSeries.Sequence durationInFrames={160}>
           <ManifestoScene />
         </TransitionSeries.Sequence>
         <TransitionSeries.Transition {...slideTransition} />
 
-        {/* Beat 6: Terminal One-Line Install & Call to Action (240f) */}
-        <TransitionSeries.Sequence durationInFrames={240}>
+        {/* Act 2 - Beat 6: Capabilities & Status Cycle (135f / 4.5s) */}
+        <TransitionSeries.Sequence durationInFrames={135}>
+          <CapabilitiesScene />
+        </TransitionSeries.Sequence>
+        <TransitionSeries.Transition {...slideTransition} />
+
+        {/* Act 3 - Beat 7: Social Proof & Marketplace Verification (90f / 3.0s) */}
+        <TransitionSeries.Sequence durationInFrames={90}>
+          <SocialProofScene />
+        </TransitionSeries.Sequence>
+        <TransitionSeries.Transition {...slideTransition} />
+
+        {/* Act 3 - Beat 8: Terminal One-Line Install & Call to Action (180f / 6.0s) */}
+        <TransitionSeries.Sequence durationInFrames={180}>
           <TerminalInstallScene />
         </TransitionSeries.Sequence>
         <TransitionSeries.Transition {...slideTransition} />
 
-        {/* Beat 7: Signature Wordmark Cut Outro (66f) */}
-        <TransitionSeries.Sequence durationInFrames={66}>
+        {/* Act 3 - Beat 9: Signature Wordmark Cut Outro (60f / 2.0s) */}
+        <TransitionSeries.Sequence durationInFrames={60}>
           <OutroWordmarkScene />
         </TransitionSeries.Sequence>
       </TransitionSeries>

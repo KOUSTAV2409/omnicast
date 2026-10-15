@@ -6,7 +6,7 @@ import { omnicastTheme } from "../theme";
 export const TerminalInstallScene: React.FC = () => {
   const frame = useCurrentFrame();
 
-  const ctaOpacity = interpolate(frame, [155, 185], [0, 1], {
+  const ctaOpacity = interpolate(frame, [110, 135], [0, 1], {
     extrapolateLeft: "clamp",
     extrapolateRight: "clamp",
   });
@@ -25,15 +25,16 @@ export const TerminalInstallScene: React.FC = () => {
           text: "omarchy plugin add omnicast",
         }}
         lines={[
-          { text: "Verifying Omarchy environment...", type: "log", pause: 4 },
-          { text: "✓ Installed omnicast plugin", type: "success", pause: 4 },
-          { text: "✓ Bound Alt+Space keybind", type: "success", pause: 4 },
+          { text: "Verifying Omarchy environment...", type: "log", pause: 2 },
+          { text: "✓ Installed omnicast plugin", type: "success", pause: 2 },
+          { text: "✓ Bound Alt+Space keybind", type: "success", pause: 2 },
           { text: "Ready. Launch with Alt+Space", type: "command" },
         ]}
         fontSize={12}
-        charsPerFrame={3.2}
-        chunkSize={3}
+        charsPerFrame={5.5}
+        chunkSize={4}
         zoom={{ enabled: true, scale: 0.82 }}
+        speed={1.38}
         mode="dark"
         theme={omnicastTheme}
       />
