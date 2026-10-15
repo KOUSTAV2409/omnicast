@@ -8,7 +8,7 @@ import { slide } from "@remotion/transitions/slide";
 
 import { ColdOpenHookScene } from "./scenes/ColdOpenHookScene";
 import { AnnounceIntroScene } from "./scenes/AnnounceIntroScene";
-import { SearchInteractiveScene } from "./scenes/SearchInteractiveScene";
+import { CommandPaletteDemoScene } from "./scenes/CommandPaletteDemoScene";
 import { LocalEngineScene } from "./scenes/LocalEngineScene";
 import { CapabilitiesScene } from "./scenes/CapabilitiesScene";
 import { ManifestoScene } from "./scenes/ManifestoScene";
@@ -44,9 +44,9 @@ export const OmnicastDemoVideo: React.FC = () => {
         </TransitionSeries.Sequence>
         <TransitionSeries.Transition {...slideTransition} />
 
-        {/* Act 2 - Beat 3: Search in Action (135f / 4.5s) */}
+        {/* Act 2 - Beat 3: The Omnicast Command Palette in Action (135f / 4.5s) */}
         <TransitionSeries.Sequence durationInFrames={135}>
-          <SearchInteractiveScene />
+          <CommandPaletteDemoScene />
         </TransitionSeries.Sequence>
         <TransitionSeries.Transition {...slideTransition} />
 
