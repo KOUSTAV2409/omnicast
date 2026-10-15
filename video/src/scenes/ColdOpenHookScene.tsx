@@ -27,7 +27,7 @@ export const ColdOpenHookScene: React.FC = () => {
   return (
     <AbsoluteFill
       style={{
-        backgroundColor: "#16161e",
+        backgroundColor: "#0d1017",
         display: "flex",
         alignItems: "center",
         justifyContent: "center",

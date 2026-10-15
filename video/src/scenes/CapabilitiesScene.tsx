@@ -6,7 +6,7 @@ export const CapabilitiesScene: React.FC = () => {
   return (
     <AbsoluteFill
       style={{
-        backgroundColor: "#1a1b26",
+        backgroundColor: "#0d1017",
         fontFamily: "JetBrains Mono, monospace",
       }}
     >
@@ -27,17 +27,18 @@ export const CapabilitiesScene: React.FC = () => {
           "100% Offline Engine",
           "Script Runner Sandbox",
         ]}
-        fieldColor="#16161e"
-        pageColor="#1a1b26"
-        pillColor="#24283b"
+        fieldColor="#141824"
+        pageColor="#0d1017"
+        pillColor="#1f2335"
         pillLabelColor="#7dcfff"
         prefixColor="#c0caf5"
-        chipFills={["#1f2335", "#24283b", "#16161e"]}
+        chipFills={["#161b26", "#1c2230", "#141824"]}
         chipTextColor="#c0caf5"
-        chipBorderColor="rgba(122, 162, 247, 0.3)"
+        chipBorderColor="rgba(122, 162, 247, 0.25)"
         fontWeight={600}
         chipFontWeight={400}
-        speed={1.1}
+        speed={1.15}
+        mode="dark"
       />
     </AbsoluteFill>
   );
