@@ -968,7 +968,12 @@ Item {
         return function() {
           Ranking.bump(def.id)
           root.requestDismiss()
-          if (def.kind === "omarchy")
+          if (def.kind === "snap")
+            Exec.afterDismiss(
+              ["python3", Paths.py("window_snap.py"), "apply", String(def.preset || "")],
+              100
+            )
+          else if (def.kind === "omarchy")
             Exec.afterDismiss(def.argv, 80)
           else
             Exec.afterDismiss(["hyprctl", "dispatch", def.expr], 80)

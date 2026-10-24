@@ -31,7 +31,9 @@ Item {
       }
       item.action = (function(def) {
         return function() {
-          if (def.kind === "omarchy")
+          if (def.kind === "snap")
+            root.runSnap(def.preset, def.title)
+          else if (def.kind === "omarchy")
             root.runOmarchy(def.argv, def.title)
           else
             root.runLua(def.expr, def.title)
@@ -48,6 +50,15 @@ Item {
     Hud.success(title || (selectedItem ? selectedItem.title : "Done"))
     root.requestDismiss()
     Exec.afterDismiss(argv, 80)
+  }
+
+  function runSnap(preset, title) {
+    Hud.success(title || "Snapped")
+    root.requestDismiss()
+    Exec.afterDismiss(
+      ["python3", Paths.py("window_snap.py"), "apply", String(preset || "")],
+      100
+    )
   }
 
   function runLua(expr, title) {

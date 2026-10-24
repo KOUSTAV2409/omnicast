@@ -11,11 +11,12 @@
 - [x] CI smoke + AUR PKGBUILD draft
 
 ## Berlin next
-1. [ ] Submit AUR `omnicast-git`
-2. [ ] Deeplinks `omnicast://…`
-3. [ ] One Hyprland-only killer workflow
-4. [ ] Extension strategy ADR
+1. [ ] Submit AUR `omnicast-git` (PKGBUILD + README ready in `packaging/aur/`)
+2. [x] Deeplinks `omnicast://…` (`docs/deeplinks.md`)
+3. [x] Hyprland float snaps (`window_snap.py` + Windows palette)
+4. [x] Extension strategy ADR 016
 5. [ ] Optional: generic Ollama/BYOK gateway (still not Omarchy-LLM)
+6. [ ] Index / handoff Omarchy plugin store in umbrella
 
 ## Out of band
 - Real AI streaming for Manhattan (already closed without it)

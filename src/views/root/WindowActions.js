@@ -2,8 +2,37 @@
 .pragma library
 
 // Full palette (WindowTilerView + root index subset).
+// kind: omarchy | lua | snap
 function allDefs() {
   return [
+    // Berlin killer: exact float snaps via Hyprland Lua (Raycast can't do this on macOS)
+    { id: "snap-left", title: "Snap Left Half", subtitle: "Float · left 50% of monitor", icon: "󰁍",
+      kind: "snap", preset: "left" },
+    { id: "snap-right", title: "Snap Right Half", subtitle: "Float · right 50% of monitor", icon: "󰁔",
+      kind: "snap", preset: "right" },
+    { id: "snap-top", title: "Snap Top Half", subtitle: "Float · top 50%", icon: "󰁝",
+      kind: "snap", preset: "top" },
+    { id: "snap-bottom", title: "Snap Bottom Half", subtitle: "Float · bottom 50%", icon: "󰁅",
+      kind: "snap", preset: "bottom" },
+    { id: "snap-left-third", title: "Snap Left Third", subtitle: "Float · left ⅓", icon: "󰁍",
+      kind: "snap", preset: "left-third" },
+    { id: "snap-center-third", title: "Snap Center Third", subtitle: "Float · middle ⅓", icon: "󰁔",
+      kind: "snap", preset: "center-third" },
+    { id: "snap-right-third", title: "Snap Right Third", subtitle: "Float · right ⅓", icon: "󰁔",
+      kind: "snap", preset: "right-third" },
+    { id: "snap-top-left", title: "Snap Top Left", subtitle: "Float · upper-left quarter", icon: "󰁃",
+      kind: "snap", preset: "top-left" },
+    { id: "snap-top-right", title: "Snap Top Right", subtitle: "Float · upper-right quarter", icon: "󰁜",
+      kind: "snap", preset: "top-right" },
+    { id: "snap-bottom-left", title: "Snap Bottom Left", subtitle: "Float · lower-left quarter", icon: "󰁂",
+      kind: "snap", preset: "bottom-left" },
+    { id: "snap-bottom-right", title: "Snap Bottom Right", subtitle: "Float · lower-right quarter", icon: "󰁩",
+      kind: "snap", preset: "bottom-right" },
+    { id: "snap-center", title: "Snap Center", subtitle: "Float · centered 60×70%", icon: "󰘕",
+      kind: "snap", preset: "center" },
+    { id: "snap-maximize", title: "Snap Maximize", subtitle: "Float · fill usable monitor", icon: "󰁌",
+      kind: "snap", preset: "maximize" },
+
     { id: "om-pop", title: "Pop Window", subtitle: "Super+O · float & pin (toggle)", icon: "󰖯",
       kind: "omarchy", argv: ["omarchy-hyprland-window-pop"] },
     { id: "om-gaps", title: "Toggle Gaps", subtitle: "No gaps ↔ default gaps", icon: "󰝘",
@@ -39,9 +68,12 @@ function allDefs() {
   ]
 }
 
-// Root-indexed subset (daily helpers only).
+// Root-indexed subset (daily helpers + Berlin snaps)
 function rootIndexIds() {
-  return ["om-pop", "om-gaps", "om-trans", "om-tfs", "win-float", "win-full"]
+  return [
+    "snap-left", "snap-right", "snap-center",
+    "om-pop", "om-gaps", "om-trans", "om-tfs", "win-float", "win-full"
+  ]
 }
 
 function rootIndexDefs() {
@@ -56,4 +88,9 @@ function rootIndexDefs() {
       out.push(all[j])
   }
   return out
+}
+
+function snapArgv(preset) {
+  // Caller prefixes python3 + Paths.py("window_snap.py")
+  return ["apply", String(preset || "")]
 }

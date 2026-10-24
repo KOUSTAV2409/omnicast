@@ -105,8 +105,8 @@ Omnicast dismisses and opens the native surface:
   - Drop scripts in `~/.config/omnicast/commands/`. See [`docs/script-commands.md`](docs/script-commands.md)
 - **Snippets**: manage and insert text snippets from the launcher (no global expander daemon)
   - Try: open **Snippets** → Enter to insert into active window, or Ctrl+C to copy
-- **Windows**: curated Omarchy Hyprland helpers (pop, gaps, transparency, layout) + Lua-safe float/fullscreen  
-  - Try: `pop`, `gaps`, `float`, or open **Windows**
+- **Windows**: Hyprland **float snaps** (left/right/thirds/quarters) + Omarchy helpers (pop, gaps, transparency, layout)  
+  - Try: `snap left`, open **Windows**, or `omnicast snap left` / `omnicast://snap?layout=left`
 - **Fallbacks**: no match → Search Web or Ask AI  
   - Try: type nonsense → **Search Web** / **Ask AI** rows appear
 
@@ -153,7 +153,7 @@ Full Raycast ↔ Omarchy map: [`docs/raycast-vs-omarchy.md`](docs/raycast-vs-oma
 
 **Manhattan (non-AI umbrella): taken.** Daily loop works without real AI. Ask AI stays mocked.
 
-**Next (Berlin):** AUR submit, deeplinks, one Hyprland-only killer workflow, optional generic AI gateway. Omarchy-LLM stays out of band. Public site: [omnicast.best](https://omnicast.best).
+**Berlin underway:** float snaps + deeplinks shipped; AUR submit + optional AI gateway next. Omarchy-LLM stays out of band. Deeplinks: [`docs/deeplinks.md`](docs/deeplinks.md). Public site: [omnicast.best](https://omnicast.best).
 
 Full leftover backlog: [`roadmap.md`](roadmap.md) → **What’s left to build**.
 

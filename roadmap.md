@@ -45,11 +45,11 @@
 ## What’s left to build
 
 ### Berlin (M6)
-1. **Submit AUR** `omnicast-git` from `packaging/aur/PKGBUILD`
-2. **Deeplinks**: `omnicast://…`
-3. **One Hyprland-only killer workflow** (layouts that feel better than Raycast Accessibility WM)
+1. **Submit AUR** `omnicast-git` (PKGBUILD ready; needs AUR account push — see `packaging/aur/README.md`)
+2. [x] **Deeplinks**: `omnicast://…` + CLI (`docs/deeplinks.md`)
+3. [x] **Hyprland float snaps**: halves / thirds / quarters via Lua (`window_snap.py`)
 4. **Omarchy plugin store in the umbrella**: [omarchyplugins.com](https://omarchyplugins.com)
-5. **Extension strategy ADR**: scripts-first; Omarchy registry next; never Raycast Store clone
+5. [x] **Extension strategy ADR 016**: scripts-first; Omarchy registry next; never Raycast Store clone
 6. **Optional:** generic AI gateway (Ollama/BYOK): still not Omarchy-LLM
 
 ### File search polish (optional)

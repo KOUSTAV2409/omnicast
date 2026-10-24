@@ -323,6 +323,42 @@ PanelWindow {
     })
   }
 
+  // Berlin deeplink: show root and apply a query string
+  function showWithQuery(query) {
+    while (navStack.depth > 1)
+      navStack.pop()
+    show()
+    var q = String(query || "")
+    Qt.callLater(function() {
+      searchBar.text = q
+      var view = navStack.currentViewItem
+      if (view && typeof view.filter === "function")
+        view.filter(q)
+      searchBar.setFocus()
+    })
+  }
+
+  function openNamedView(name) {
+    var n = String(name || "").toLowerCase()
+    while (navStack.depth > 1)
+      navStack.pop()
+    show()
+    Qt.callLater(function() {
+      var rootView = navStack.currentViewItem
+      if (!rootView)
+        return
+      if (n === "windows" || n === "window") {
+        if (rootView.windowTilerComp)
+          root.pushSubView("Window Management", rootView.windowTilerComp)
+      } else if (n === "snippets" || n === "snippet") {
+        if (rootView.snippetsComp)
+          root.pushSubView("Snippets", rootView.snippetsComp)
+      } else if (n.length) {
+        root.showWithQuery(n)
+      }
+    })
+  }
+
   function dismiss() {
     isVisible = false
     actionPalette.active = false

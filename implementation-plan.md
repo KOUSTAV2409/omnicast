@@ -220,11 +220,11 @@ Adjust if dogfooding reveals a broken hero path: **always prioritize trust (A/B)
 
 ### M6: “Berlin underway” (= Phase F)
 - [x] Public clone + Omarchy plugin path
-- [ ] AUR submit (`packaging/aur/PKGBUILD`)
+- [ ] AUR submit (`packaging/aur/PKGBUILD` + README; needs maintainer AUR push)
 - [x] CI smoke (`tests/smoke_backends.sh` + `.github/workflows/smoke.yml`)
-- [ ] Deeplinks (`omnicast://…`)
-- [ ] One Hyprland-only workflow clearly better than Raycast
-- [ ] Extension strategy ADR accepted
+- [x] Deeplinks (`omnicast://…` + CLI; `docs/deeplinks.md`)
+- [x] Hyprland float snaps (`window_snap.py`: halves/thirds/quarters)
+- [x] Extension strategy ADR 016 accepted
 - [ ] Optional: generic AI gateway (Ollama/BYOK): still separate from Omarchy-LLM
 
 Plain-language backlog: [`roadmap.md`](roadmap.md) → **What’s left to build**.

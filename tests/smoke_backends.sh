@@ -95,6 +95,20 @@ for f in Calc.js PathSafety.js Handoffs.js WindowActions.js; do
   fi
 done
 
+# window snap backend
+if python3 src/backend/window_snap.py list 2>/dev/null | grep -q '"ok"[[:space:]]*:[[:space:]]*true\|"ok": true'; then
+  pass "window_snap list"
+else
+  bad "window_snap list"
+fi
+
+# deeplink help path
+if ./bin/omnicast --help 2>&1 | grep -qi snap; then
+  pass "omnicast --help"
+else
+  bad "omnicast --help"
+fi
+
 # PKGBUILD sanity
 if [[ -f packaging/aur/PKGBUILD ]]; then
   if grep -q 'python-evdev' packaging/aur/PKGBUILD; then
