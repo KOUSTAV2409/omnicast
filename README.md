@@ -60,14 +60,9 @@ Bind `Alt+Space` in `~/.config/hypr/bindings.lua`:
 o.bind("ALT + SPACE", "Omnicast", os.getenv("HOME") .. "/omnicast/bin/omnicast")
 ```
 
-### Optional
-
-```bash
-# Global snippet expander (python-evdev + membership in `input` group)
-./bin/omnicast-snippetd
-```
-
 Script commands: drop executables in `~/.config/omnicast/commands/`. See [`docs/script-commands.md`](docs/script-commands.md).
+
+Snippets are managed inside the launcher (no global keystroke expander; that path was removed).
 
 **Stuck?** [Open an issue](https://github.com/KOUSTAV2409/omnicast/issues). Feedback from Raycast → Omarchy users is especially welcome.
 
@@ -108,7 +103,7 @@ Omnicast dismisses and opens the native surface:
   - Try: open **Quicklinks**, or search a link title you saved
 - **Script commands**: Raycast-style frontmatter (`@raycast.*` / `@omarchy.*`), form args, `silent` / `compact` / `fullOutput`  
   - Drop scripts in `~/.config/omnicast/commands/`. See [`docs/script-commands.md`](docs/script-commands.md)
-- **Snippets**: manage and insert text snippets directly from the launcher
+- **Snippets**: manage and insert text snippets from the launcher (no global expander daemon)
   - Try: open **Snippets** → Enter to insert into active window, or Ctrl+C to copy
 - **Windows**: curated Omarchy Hyprland helpers (pop, gaps, transparency, layout) + Lua-safe float/fullscreen  
   - Try: `pop`, `gaps`, `float`, or open **Windows**
@@ -116,8 +111,8 @@ Omnicast dismisses and opens the native surface:
   - Try: type nonsense → **Search Web** / **Ask AI** rows appear
 
 ### Not ready yet
-- **AI**: UI stub only; **deferred** (not required for Manhattan). Custom Omarchy-LLM is a separate mission outside this repo.  
-- **Packaged install**: clone-and-run for now (AUR / plugin path later)
+- **AI**: UI stub only; **deferred** (post-Manhattan). Custom Omarchy-LLM is a separate mission outside this repo.  
+- **AUR publish**: `packaging/aur/PKGBUILD` is ready to submit; clone / Omarchy plugin remain the primary install paths
 
 Full Raycast ↔ Omarchy map: [`docs/raycast-vs-omarchy.md`](docs/raycast-vs-omarchy.md)
 
@@ -140,7 +135,10 @@ Full Raycast ↔ Omarchy map: [`docs/raycast-vs-omarchy.md`](docs/raycast-vs-oma
 |---|---|
 | [`bin/omnicast`](bin/omnicast) | Launch / IPC toggle |
 | [`src/`](src/) | Shell, views, services, backends |
-| [`docs/work-order.md`](docs/work-order.md) | Ordered next actions (Manhattan non-AI) |
+| [`src/views/root/`](src/views/root/) | Calc / PathSafety / Handoffs / WindowActions modules |
+| [`tests/smoke_backends.sh`](tests/smoke_backends.sh) | Backend + packaging smoke |
+| [`packaging/aur/`](packaging/aur/) | AUR `omnicast-git` PKGBUILD |
+| [`docs/work-order.md`](docs/work-order.md) | Ordered next actions (Berlin) |
 | [`site/`](site/) | Public landing + news |
 | [`docs/script-commands.md`](docs/script-commands.md) | Script command API |
 | [`docs/raycast-vs-omarchy.md`](docs/raycast-vs-omarchy.md) | Feature crosswalk |
@@ -153,9 +151,9 @@ Full Raycast ↔ Omarchy map: [`docs/raycast-vs-omarchy.md`](docs/raycast-vs-oma
 
 ## Status
 
-**Manhattan (non-AI umbrella):** close remaining handoff/own/curate gaps, then declare taken **without** shipping real AI.  
+**Manhattan (non-AI umbrella): taken.** Daily loop works without real AI. Ask AI stays mocked.
 
-**Next:** non-AI dogfood + gap close. AI gateway and Omarchy-LLM are out of band. Public site: [omnicast.best](https://omnicast.best).
+**Next (Berlin):** AUR submit, deeplinks, one Hyprland-only killer workflow, optional generic AI gateway. Omarchy-LLM stays out of band. Public site: [omnicast.best](https://omnicast.best).
 
 Full leftover backlog: [`roadmap.md`](roadmap.md) → **What’s left to build**.
 

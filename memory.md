@@ -43,9 +43,9 @@ Whenever any agent or developer touches this project, the following rules MUST b
 
 ## 4. Current Working State
 
-* **System Status**: Umbrella pivot: Omnicast is the Omarchy command surface. Manhattan = non-AI tools first. AI deferred; Omarchy-LLM is a separate mission (ADR 015).
+* **System Status**: Manhattan taken (2026-10-24, non-AI). Berlin next (AUR, deeplinks, Hyprland-only workflows). AI deferred; Omarchy-LLM is a separate mission (ADR 015).
 * **Live hotkey**: `ALT + SPACE` → `bin/omnicast`
-* **Snippet daemon** (optional): `bin/omnicast-snippetd` (needs `python-evdev` + `input` group)
+* **Snippets**: in-launcher only (`SnippetsView` + `snippet_manager.py`). Global expander daemon removed.
 * **Site**: https://omnicast.best
 * **File search / preview (2026-09-05, branch `koustav`)**: typed Files in root (`fd` + scopes), selection-follow side preview, colored markdown/code HTML, OnlyOffice-aware open, content search opt-in via `content:` only (keeps name search fast).
 

@@ -139,7 +139,7 @@ Item {
   function openCreateForm() {
     root.requestPushViewWithProps("New Snippet", root.formViewComp, {
       title: "Create Snippet",
-      subtitle: "Keyword expands system-wide when snippet daemon is running.",
+      subtitle: "Insert from the launcher into the focused window, or copy.",
       fields: [
         { id: "keyword", label: "KEYWORD", type: "text", placeholder: ":mysnip" },
         { id: "title", label: "TITLE", type: "text", placeholder: "Display name" },

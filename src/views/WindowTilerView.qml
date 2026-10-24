@@ -1,6 +1,7 @@
 import QtQuick
 import "../services"
 import "../components"
+import "root/WindowActions.js" as WindowActions
 
 // Curated Omarchy / Hyprland window actions.
 // Omarchy Hyprland is Lua-first: never use classic `dispatch setfloating` batches.
@@ -19,62 +20,27 @@ Item {
   readonly property var selectedItem: filteredItems.length > 0 && selectedIndex < filteredItems.length
                                       ? filteredItems[selectedIndex] : null
 
-  function mkOmarchy(id, title, subtitle, icon, argv) {
-    var item = {
-      id: id, title: title, subtitle: subtitle, icon: icon,
-      badge: "", category: "Windows", primaryActionTitle: title, actions: []
-    }
-    item.action = function() { root.runOmarchy(argv, title) }
-    item.actions = [{ title: title, icon: icon, shortcut: "↵", callback: item.action }]
-    return item
-  }
-
-  function mkLua(id, title, subtitle, icon, expr) {
-    var item = {
-      id: id, title: title, subtitle: subtitle, icon: icon,
-      badge: "", category: "Windows", primaryActionTitle: title, actions: []
-    }
-    item.action = function() { root.runLua(expr, title) }
-    item.actions = [{ title: title, icon: icon, shortcut: "↵", callback: item.action }]
-    return item
-  }
-
   function loadWindowActions() {
-    allItems = [
-      mkOmarchy("om-pop", "Pop Window", "Super+O · float & pin (toggle)", "󰖯",
-                ["omarchy-hyprland-window-pop"]),
-      mkOmarchy("om-gaps", "Toggle Gaps", "No gaps ↔ default gaps", "󰝘",
-                ["omarchy-hyprland-window-gaps-toggle"]),
-      mkOmarchy("om-trans", "Toggle Transparency", "Active window opacity", "󰗔",
-                ["omarchy-hyprland-window-transparency-toggle"]),
-      mkOmarchy("om-tfs", "Tiled Fullscreen", "Borderless tiled fullscreen", "󰊓",
-                ["omarchy-hyprland-window-tiled-fullscreen-toggle"]),
-      mkOmarchy("om-ratio", "1-Window Ratio", "Square aspect for single window", "󰕮",
-                ["omarchy-hyprland-window-single-square-aspect-toggle"]),
-      mkOmarchy("om-layout", "Workspace Layout", "Dwindle ↔ scrolling", "󰕰",
-                ["omarchy-hyprland-workspace-layout-toggle"]),
-      mkOmarchy("om-width-save", "Save Window Width", "Remember focused width", "󰁎",
-                ["omarchy-hyprland-window-width", "save"]),
-      mkOmarchy("om-width-restore", "Restore Window Width", "Apply saved width", "󰁊",
-                ["omarchy-hyprland-window-width", "restore"]),
-      mkOmarchy("om-close-all", "Close All Windows", "Close every client window", "󰅖",
-                ["omarchy-hyprland-window-close-all"]),
-
-      mkLua("win-float", "Toggle Float", "Super+T · tile ↔ float", "󰖲",
-            "hl.dsp.window.float({ action = \"toggle\" })"),
-      mkLua("win-center", "Center Window", "Center floating window", "󰘕",
-            "hl.dsp.window.center()"),
-      mkLua("win-full", "Fullscreen", "Super+F", "󰊓",
-            "hl.dsp.window.fullscreen({ mode = \"fullscreen\" })"),
-      mkLua("win-max", "Maximize", "Super+Alt+F · maximized", "󰁌",
-            "hl.dsp.window.fullscreen({ mode = \"maximized\" })"),
-      mkLua("win-scratch", "Move to Scratchpad", "Super+Alt+S", "󰖯",
-            "hl.dsp.window.move({ workspace = \"special:scratchpad\", follow = false })"),
-      mkLua("win-ws-next", "Next Workspace", "Move window e+1", "󰁔",
-            "hl.dsp.window.move({ workspace = \"e+1\" })"),
-      mkLua("win-ws-prev", "Previous Workspace", "Move window e-1", "󰁍",
-            "hl.dsp.window.move({ workspace = \"e-1\" })")
-    ]
+    var defs = WindowActions.allDefs()
+    var items = []
+    for (var i = 0; i < defs.length; i++) {
+      var d = defs[i]
+      var item = {
+        id: d.id, title: d.title, subtitle: d.subtitle, icon: d.icon,
+        badge: "", category: "Windows", primaryActionTitle: d.title, actions: []
+      }
+      item.action = (function(def) {
+        return function() {
+          if (def.kind === "omarchy")
+            root.runOmarchy(def.argv, def.title)
+          else
+            root.runLua(def.expr, def.title)
+        }
+      })(d)
+      item.actions = [{ title: d.title, icon: d.icon, shortcut: "↵", callback: item.action }]
+      items.push(item)
+    }
+    allItems = items
     filter(filterText)
   }
 

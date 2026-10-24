@@ -154,10 +154,10 @@ Item {
         anchors.fill: parent
         title: "AI Response"
         headerBadge: root.isGenerating ? "Streaming" : "Complete"
-        markdownContent: root.responseMarkdown.length > 0 ? root.responseMarkdown : "Type a query above or click a preset to generate streaming AI insights."
+        markdownContent: root.responseMarkdown.length > 0 ? root.responseMarkdown : "AI is deferred (post-Manhattan). Presets return a mock response only."
         metadata: root.responseMarkdown.length > 0 ? [
-          { label: "Engine", value: "Antigravity LLM Stream" },
-          { label: "Latency", value: "Instant" }
+          { label: "Engine", value: "Mock (no model)" },
+          { label: "Status", value: "Deferred" }
         ] : []
       }
     }
