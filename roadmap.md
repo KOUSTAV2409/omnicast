@@ -25,7 +25,7 @@
 | **AI** | Deferred | Mock UI only |
 | **Visual language** | Done | shell.toml menu/launcher tokens + Hyprland rounding |
 | **Public release** | Done | [omnicast.best](https://omnicast.best) + plugin listing + clone-and-run |
-| **Packaging** | Plugin done · OPR next | Plugin is Omarchy-default; OPR scaffold in `packaging/opr/`; AUR demoted |
+| **Packaging** | Plugin done · OPR PR open | Plugin is Omarchy-default; [OPR #1573](https://github.com/omacom/omarchy-pkgs/pull/1573) awaiting maintainer; AUR demoted |
 
 ---
 
@@ -46,8 +46,8 @@
 
 ### Berlin (M6)
 1. [x] **Omarchy plugin airtight**: plugin-local bar launcher + `omnicast-omarchy-setup` + integration doc
-2. **Merge to `main`** so `omarchy plugin add/update` gets current code
-3. **OPR package** PR to `omacom/omarchy-pkgs` (`packaging/opr/`)
+2. [x] **Merge to `main`** so `omarchy plugin add/update` gets current code
+3. [x] **OPR package** PR opened: [omacom/omarchy-pkgs#1573](https://github.com/omacom/omarchy-pkgs/pull/1573) (awaiting maintainer build approval / publish)
 4. [x] **Deeplinks** + **Hyprland float snaps** + **ADR 016**
 5. **Omarchy plugin store in the umbrella**: [omarchyplugins.com](https://omarchyplugins.com) / [plugins.omarchy.org](https://plugins.omarchy.org)
 6. **Optional:** generic AI gateway (Ollama/BYOK): still not Omarchy-LLM

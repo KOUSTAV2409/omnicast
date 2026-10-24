@@ -154,7 +154,7 @@ Phases below sequence these workstreams so each milestone is shippable.
 | F3 | dmenu/stdin mode for Rofi interop (Walker lesson) | Linux credibility |
 | F4 | Extension strategy decision: **script-first forever** vs Raycast-compat (Vicinae path) vs own API: write ADR | Don’t stall on Store early |
 | F5 | Optional MCP tools for AI (after D) | Match Raycast frontier selectively |
-| F6 | Packaging: AUR / omarchy plugin path; Hyprland `layerrule` blur docs | Install ≠ clone repo |
+| F6 | Packaging: Omarchy plugin + OPR (`pkgs.omarchy.org`); AUR demoted; Hyprland `layerrule` blur docs | Install ≠ clone repo |
 | F7 | Competitive dogfood vs Vicinae monthly | Stay honest about gaps |
 
 ---
@@ -221,8 +221,8 @@ Adjust if dogfooding reveals a broken hero path: **always prioritize trust (A/B)
 ### M6: “Berlin underway” (= Phase F)
 - [x] Public clone + Omarchy plugin path
 - [x] Omarchy plugin path airtight (plugin-local bin + omarchy-setup)
-- [ ] Merge `koustav` → `main` (plugin-add default branch)
-- [ ] OPR submit (`packaging/opr/` → `omacom/omarchy-pkgs`)
+- [x] Merge `koustav` → `main` (plugin-add default branch)
+- [x] OPR PR opened (`packaging/opr/` → [omacom/omarchy-pkgs#1573](https://github.com/omacom/omarchy-pkgs/pull/1573); awaiting publish)
 - [x] CI smoke (`tests/smoke_backends.sh` + `.github/workflows/smoke.yml`)
 - [x] Deeplinks (`omnicast://…` + CLI; `docs/deeplinks.md`)
 - [x] Hyprland float snaps (`window_snap.py`: halves/thirds/quarters)
@@ -260,8 +260,8 @@ Plain-language backlog: [`roadmap.md`](roadmap.md) → **What’s left to build*
 
 ## 8. Immediate next actions (start here)
 
-1. **Merge to `main`** so Omarchy plugin installs are current  
-2. **OPR PR** to `omacom/omarchy-pkgs`  
+1. [x] **Merge to `main`** so Omarchy plugin installs are current  
+2. [x] **OPR PR** to `omacom/omarchy-pkgs` ([#1573](https://github.com/omacom/omarchy-pkgs/pull/1573); awaiting maintainer publish)  
 3. **Plugin-store umbrella** handoff  
 4. **Optional later:** generic Ollama/BYOK gateway  
 5. **Never** schedule Omarchy-LLM inside Omnicast M4-M6  
