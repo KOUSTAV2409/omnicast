@@ -67,7 +67,8 @@ omnicast/
 │   ├── script-commands.md
 │   └── spec/
 ├── bin/omnicast              # Launch / toggle
-├── src/views/root/           # Calc / PathSafety / Handoffs / WindowActions modules
+├── src/views/root/           # Calc / Handoffs / WindowActions modules
+├── src/services/PathSafety.js # Client sensitive-path checks (↔ path_safety.py)
 └── src/                      # QML + Python backends
 ```
 

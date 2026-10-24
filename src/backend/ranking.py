@@ -8,12 +8,42 @@ from pathlib import Path
 DATA_DIR = Path.home() / ".local/share/omnicast"
 DATA_FILE = DATA_DIR / "ranking.json"
 
+MAX_SCORES = 2000
+MAX_ALIASES = 200
+MAX_FAVORITES = 100
+MAX_ID_LEN = 256
+
 DEFAULT = {
     "favorites": [],
     "aliases": {},
     "scores": {},
     "recent": [],
 }
+
+
+def _valid_id(item_id: str) -> bool:
+    s = str(item_id or "")
+    return 0 < len(s) <= MAX_ID_LEN and "\0" not in s
+
+
+def _prune(data: dict) -> dict:
+    scores = data.get("scores") or {}
+    if len(scores) > MAX_SCORES:
+        # Drop lowest score, then oldest last-used.
+        ranked = sorted(
+            scores.items(),
+            key=lambda kv: (float(kv[1].get("score", 0)), float(kv[1].get("last", 0))),
+        )
+        keep = dict(ranked[-MAX_SCORES:])
+        data["scores"] = keep
+    aliases = data.get("aliases") or {}
+    if len(aliases) > MAX_ALIASES:
+        # Arbitrary but bounded: keep insertion order of first N keys.
+        data["aliases"] = dict(list(aliases.items())[:MAX_ALIASES])
+    favs = data.get("favorites") or []
+    if len(favs) > MAX_FAVORITES:
+        data["favorites"] = favs[:MAX_FAVORITES]
+    return data
 
 
 def load():
@@ -44,6 +74,9 @@ def save(data):
 
 
 def bump(item_id: str):
+    if not _valid_id(item_id):
+        print(json.dumps({"ok": False, "error": "invalid id"}))
+        return
     data = load()
     now = time.time()
     entry = data["scores"].get(item_id, {"count": 0, "last": 0, "score": 0})
@@ -56,11 +89,14 @@ def bump(item_id: str):
         recent.remove(item_id)
     recent.insert(0, item_id)
     data["recent"] = recent[:40]
-    save(data)
+    save(_prune(data))
     print(json.dumps({"ok": True, "entry": entry}))
 
 
 def toggle_favorite(item_id: str):
+    if not _valid_id(item_id):
+        print(json.dumps({"ok": False, "error": "invalid id"}))
+        return
     data = load()
     favs = data.setdefault("favorites", [])
     if item_id in favs:
@@ -69,18 +105,18 @@ def toggle_favorite(item_id: str):
     else:
         favs.insert(0, item_id)
         state = True
-    save(data)
+    save(_prune(data))
     print(json.dumps({"ok": True, "favorited": state, "favorites": favs}))
 
 
 def set_alias(alias: str, item_id: str):
     data = load()
     alias = alias.strip().lower()
-    if not alias:
-        print(json.dumps({"ok": False, "error": "empty alias"}))
+    if not alias or len(alias) > 64 or not _valid_id(item_id):
+        print(json.dumps({"ok": False, "error": "invalid alias or id"}))
         return
     data.setdefault("aliases", {})[alias] = item_id
-    save(data)
+    save(_prune(data))
     print(json.dumps({"ok": True, "alias": alias, "id": item_id}))
 
 

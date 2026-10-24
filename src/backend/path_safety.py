@@ -10,6 +10,7 @@ from __future__ import annotations
 import json
 import os
 import re
+import sys
 from pathlib import Path
 
 # Directory path segments that must never appear in search/preview.
@@ -48,6 +49,8 @@ SECRET_DIR_PARTS = (
 )
 
 # Exact / suffix filenames that are typically credentials.
+# Keep this list tight: bare words like "token"/"passwd"/"hosts" overblock
+# normal project files (API token docs, /etc-style names under $HOME, etc.).
 SECRET_NAMES = {
     ".netrc",
     ".pgpass",
@@ -68,7 +71,6 @@ SECRET_NAMES = {
     "id_ed25519_sk",
     "authorized_keys",
     "known_hosts",
-    "credentials",
     "credentials.json",
     "credentials.csv",
     "service_account.json",
@@ -76,9 +78,7 @@ SECRET_NAMES = {
     "secrets.yaml",
     "secrets.yml",
     "secrets.toml",
-    "token",
     "token.json",
-    "cookies",
     "cookies.sqlite",
     "login data",
     "logins.json",
@@ -87,13 +87,6 @@ SECRET_NAMES = {
     "shadow",
     "gshadow",
     "master_password.aes",
-    # UNIX system files: prevented from leaking via any path collision
-    "passwd",
-    "group",
-    "sudoers",
-    "fstab",
-    "hosts",
-    "crontab",
     "master.passwd",
     "ssh_host_rsa_key",
     "ssh_host_ecdsa_key",
@@ -308,3 +301,20 @@ def deny_reason(path: Path, scope_root: Path | None = None) -> str:
     if is_secret_path(p):
         return "Blocked: sensitive credentials or session data"
     return ""
+
+
+def check_cli(path_str: str) -> int:
+    """Exit 0 if path is allowed for open/reveal; print reason on deny."""
+    reason = deny_reason(Path(path_str))
+    if reason:
+        print(reason, file=sys.stderr)
+        return 1
+    print("ok")
+    return 0
+
+
+if __name__ == "__main__":
+    if len(sys.argv) >= 3 and sys.argv[1] == "check":
+        raise SystemExit(check_cli(sys.argv[2]))
+    print("usage: path_safety.py check <path>", file=sys.stderr)
+    raise SystemExit(2)

@@ -1,47 +1,51 @@
 # Maintainer: Koustav Ganguly <koustavganguly24@gmail.com>
-# OPR recipe scaffold — copy into omacom/omarchy-pkgs pkgbuilds/omnicast/
-# Pin _commit before opening a PR (omarchy-pkgs rejects unpinned git sources).
-
 pkgname=omnicast
 pkgver=0.2.1
 pkgrel=1
-pkgdesc="Alt+Space productivity umbrella for Omarchy (Hyprland / Quickshell)"
+pkgdesc='Alt+Space productivity umbrella for Omarchy (Hyprland / Quickshell)'
 arch=('any')
-url="https://omnicast.best"
+url='https://omnicast.best'
 license=('MIT')
+_commit='bf646385b6a02244318d57fb8ed77e1be8a1d1ed'
 depends=(
-    'quickshell'
-    'python'
-    'wl-clipboard'
-    'xdg-utils'
+  'omarchy'
+  'python'
+  'quickshell'
+  'wl-clipboard'
+  'xdg-utils'
 )
+makedepends=('git')
 optdepends=(
-    'fd: fast file name search'
-    'ripgrep: content: file search'
-    'plocate: locate-backed file search'
-    'ghostty: default terminal'
-    'imv: image preview'
-    'onlyoffice-desktopeditors: office document viewer'
+  'fd: fast file name search'
+  'ripgrep: content: file search'
+  'plocate: locate-backed file search'
+  'ghostty: default terminal'
+  'imv: image preview'
+  'onlyoffice-desktopeditors: office document viewer'
 )
-# REPLACE with the exact commit you are packaging, then run updpkgsums.
-_commit=REPLACE_WITH_GIT_SHA
-source=("git+https://github.com/KOUSTAV2409/omnicast.git#commit=${_commit}")
+options=('!debug')
+source=("omnicast::git+https://github.com/KOUSTAV2409/omnicast.git#commit=${_commit}")
 sha256sums=('SKIP')
 
+prepare() {
+  [[ $(git -C omnicast rev-parse HEAD) == "$_commit" ]]
+}
+
 package() {
-    cd "$srcdir/omnicast"
+  cd omnicast
 
-    install -d "$pkgdir/usr/share/omnicast"
-    cp -a src bin BarWidget.qml manifest.json LICENSE README.md \
-        "$pkgdir/usr/share/omnicast/"
+  install -d "$pkgdir/usr/share/omnicast"
+  cp -a src bin BarWidget.qml manifest.json LICENSE README.md \
+    "$pkgdir/usr/share/omnicast/"
 
-    # Do not ship marketing video, site, or draft packaging trees
-    rm -rf "$pkgdir/usr/share/omnicast/bin/__pycache__" 2>/dev/null || true
+  # Keep the package lean: no marketing video, site, or draft trees
+  find "$pkgdir/usr/share/omnicast" -type d -name '__pycache__' -exec rm -rf {} + 2>/dev/null || true
+  find "$pkgdir/usr/share/omnicast" -type f -name '*.pyc' -delete 2>/dev/null || true
 
-    install -d "$pkgdir/usr/bin"
-    ln -sf /usr/share/omnicast/bin/omnicast "$pkgdir/usr/bin/omnicast"
+  install -d "$pkgdir/usr/bin"
+  ln -sf /usr/share/omnicast/bin/omnicast "$pkgdir/usr/bin/omnicast"
 
-    install -Dm644 /dev/stdin "$pkgdir/usr/share/applications/omnicast.desktop" <<'DESKTOP'
+  install -Dm644 /dev/stdin "$pkgdir/usr/share/applications/omnicast.desktop" <<'DESKTOP'
 [Desktop Entry]
 Name=Omnicast
 Comment=Alt+Space Productivity Umbrella for Omarchy
@@ -54,5 +58,5 @@ MimeType=x-scheme-handler/omnicast;
 StartupNotify=false
 DESKTOP
 
-    install -Dm644 LICENSE "$pkgdir/usr/share/licenses/$pkgname/LICENSE"
+  install -Dm644 LICENSE "$pkgdir/usr/share/licenses/$pkgname/LICENSE"
 }

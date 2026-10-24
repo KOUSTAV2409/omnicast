@@ -1,18 +1,118 @@
 // Pure calculator helpers for root search (math, color, units, FX, dates).
+// Math uses a recursive-descent parser — never Function()/eval.
 .pragma library
+
+var MAX_EXPR_LEN = 64
+var MAX_NUMBER = 1e15
+var MAX_EXP = 20
 
 function tryMathEvaluation(query) {
   if (!query) return null
   var clean = query.trim()
+  if (clean.length > MAX_EXPR_LEN)
+    return null
   if (!/^[0-9.\s+\-*/()%^eE]+$/.test(clean) || !/[0-9]/.test(clean) || !/[+\-*/%^]/.test(clean))
     return null
+  if ((clean.match(/\^/g) || []).length > 1)
+    return null
   try {
-    var result = Function('"use strict"; return (' + clean.replace(/\^/g, "**") + ')')()
-    if (typeof result === "number" && isFinite(result))
-      return Number.isInteger(result) ? result.toLocaleString()
-             : result.toFixed(6).replace(/\.?0+$/, "")
+    var tokens = _tokenize(clean.replace(/\^/g, "**"))
+    var idx = 0
+    function peek() { return tokens[idx] }
+    function take() { return tokens[idx++] }
+    function parseExpr() {
+      var v = parseTerm()
+      while (peek() === "+" || peek() === "-") {
+        var op = take()
+        var r = parseTerm()
+        v = op === "+" ? v + r : v - r
+        _check(v)
+      }
+      return v
+    }
+    function parseTerm() {
+      var v = parsePower()
+      while (peek() === "*" || peek() === "/" || peek() === "%") {
+        var op = take()
+        var r = parsePower()
+        if (op === "*") v = v * r
+        else if (op === "/") {
+          if (r === 0) throw new Error("div0")
+          v = v / r
+        } else {
+          if (r === 0) throw new Error("mod0")
+          v = v % r
+        }
+        _check(v)
+      }
+      return v
+    }
+    function parsePower() {
+      var v = parseUnary()
+      if (peek() === "**") {
+        take()
+        var exp = parseUnary()
+        if (!Number.isInteger(exp) || exp < 0 || exp > MAX_EXP)
+          throw new Error("exp")
+        if (Math.abs(v) > 1000 && exp > 8)
+          throw new Error("exp")
+        v = Math.pow(v, exp)
+        _check(v)
+      }
+      return v
+    }
+    function parseUnary() {
+      if (peek() === "+") { take(); return parseUnary() }
+      if (peek() === "-") { take(); return -parseUnary() }
+      return parsePrimary()
+    }
+    function parsePrimary() {
+      if (peek() === "(") {
+        take()
+        var v = parseExpr()
+        if (take() !== ")") throw new Error("paren")
+        return v
+      }
+      var t = take()
+      if (typeof t !== "number") throw new Error("num")
+      return t
+    }
+    var result = parseExpr()
+    if (idx !== tokens.length) throw new Error("trail")
+    if (typeof result !== "number" || !isFinite(result)) return null
+    _check(result)
+    return Number.isInteger(result) ? result.toLocaleString()
+           : result.toFixed(6).replace(/\.?0+$/, "")
   } catch (e) {}
   return null
+}
+
+function _check(v) {
+  if (typeof v !== "number" || !isFinite(v) || Math.abs(v) > MAX_NUMBER)
+    throw new Error("range")
+}
+
+function _tokenize(s) {
+  var out = [], i = 0
+  while (i < s.length) {
+    var c = s[i]
+    if (c === " " || c === "\t") { i++; continue }
+    if (c === "*" && s[i + 1] === "*") { out.push("**"); i += 2; continue }
+    if ("+-*/%()".indexOf(c) >= 0) { out.push(c); i++; continue }
+    if ((c >= "0" && c <= "9") || c === ".") {
+      var start = i
+      while (i < s.length && ((s[i] >= "0" && s[i] <= "9") || s[i] === "." || s[i] === "e" || s[i] === "E"
+             || ((s[i] === "+" || s[i] === "-") && i > start && (s[i - 1] === "e" || s[i - 1] === "E"))))
+        i++
+      var num = Number(s.slice(start, i))
+      if (!isFinite(num)) throw new Error("num")
+      if (Math.abs(num) > MAX_NUMBER) throw new Error("range")
+      out.push(num)
+      continue
+    }
+    throw new Error("tok")
+  }
+  return out
 }
 
 function tryColorEvaluation(query) {
@@ -51,7 +151,6 @@ function tryUnitConversion(query) {
   return (Math.abs(out) >= 100 ? out.toFixed(2) : out.toFixed(4)).replace(/\.?0+$/, "") + " " + to
 }
 
-// Rough offline FX vs USD: always treat as a guess; prefer Google for live rates.
 function tryCurrencyConversion(query) {
   if (!query) return null
   var m = query.trim().match(/^(-?[\d.]+)\s*(usd|eur|gbp|inr|jpy|aud|cad|\$|€|£|₹)\s*(?:to|in)\s*(usd|eur|gbp|inr|jpy|aud|cad|\$|€|£|₹)$/i)
@@ -67,18 +166,15 @@ function tryCurrencyConversion(query) {
     return c
   }
   var from = norm(m[2]), to = norm(m[3])
-  // Ballpark only (stale). Do not use for real money.
   var usd = { usd: 1, eur: 0.86, gbp: 0.74, inr: 94.4, jpy: 148.0, aud: 1.48, cad: 1.36 }
   if (usd[from] === undefined || usd[to] === undefined) return null
-  if (from === to)
-    return null
+  if (from === to) return null
   var out = n * (usd[to] / usd[from])
   var rounded = (Math.abs(out) >= 100 ? out.toFixed(2) : out.toFixed(4)).replace(/\.?0+$/, "")
-  var googleQ = n + " " + from.toUpperCase() + " to " + to.toUpperCase()
   return {
     approx: "≈ " + rounded + " " + to.toUpperCase() + " ?",
     copyValue: rounded + " " + to.toUpperCase(),
-    googleQuery: googleQ
+    googleQuery: n + " " + from.toUpperCase() + " to " + to.toUpperCase()
   }
 }
 
@@ -102,8 +198,7 @@ function tryDateEvaluation(query) {
   }
   if (q === "today") return fmt(now)
   if (q === "now") {
-    var hh = ("" + now.getHours())
-    var mm = ("" + now.getMinutes())
+    var hh = ("" + now.getHours()), mm = ("" + now.getMinutes())
     if (hh.length < 2) hh = "0" + hh
     if (mm.length < 2) mm = "0" + mm
     return fmt(now) + " " + hh + ":" + mm
@@ -121,8 +216,7 @@ function tryDateEvaluation(query) {
   if (m) {
     var base = parseYmd(m[1])
     if (!base) return null
-    var delta = parseInt(m[3], 10) * (m[2] === "-" ? -1 : 1)
-    base.setDate(base.getDate() + delta)
+    base.setDate(base.getDate() + parseInt(m[3], 10) * (m[2] === "-" ? -1 : 1))
     return fmt(base)
   }
   return null

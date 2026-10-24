@@ -1,8 +1,34 @@
 #!/usr/bin/env bash
-# Dismiss-friendly file open: portal picker → xdg-open.
+# Dismiss-friendly file open: portal picker → path_safety → xdg-open.
 # Used by Omnicast "Find Files" handoff.
 
 set -euo pipefail
+
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+SAFETY="$ROOT/src/backend/path_safety.py"
+
+_danger_ext() {
+  case "${1,,}" in
+    *.sh|*.bash|*.zsh|*.fish|*.py|*.rb|*.pl|*.js|*.mjs|*.cjs|*.exe|*.bin|*.run|*.appimage)
+      return 0 ;;
+  esac
+  return 1
+}
+
+_safe_open() {
+  local path="$1"
+  if ! python3 "$SAFETY" check "$path" >/dev/null 2>&1; then
+    command -v omarchy-notification-send >/dev/null 2>&1 && \
+      omarchy-notification-send -g "󰈔" -u critical "Open blocked" "Sensitive or out-of-home path" || true
+    return 1
+  fi
+  if _danger_ext "$path"; then
+    command -v omarchy-notification-send >/dev/null 2>&1 && \
+      omarchy-notification-send -g "󰈔" -u critical "Open blocked" "Script/binary not launched" || true
+    return 1
+  fi
+  xdg-open "$path" >/dev/null 2>&1 &
+}
 
 picked="$(omarchy-file-select --title "Open file" 2>/dev/null)" || status=$?
 status=${status:-0}
@@ -23,6 +49,6 @@ while IFS= read -r line; do
     path="$(python3 -c "import sys,urllib.parse; print(urllib.parse.unquote(sys.argv[1][7:]))" "$path")"
   fi
   if [[ -e $path ]]; then
-    xdg-open "$path" >/dev/null 2>&1 &
+    _safe_open "$path" || true
   fi
 done <<<"$picked"

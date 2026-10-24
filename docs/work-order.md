@@ -11,15 +11,14 @@
 - [x] Docs: Omarchy integration checklist + OPR scaffold
 
 ## Now
-1. [ ] Merge `koustav` → `main` (plugin-add clones default branch)
-2. [ ] Dogfood: `omarchy plugin update` / re-add + setup on a clean Omarchy box
-3. [ ] `omarchy plugin validate` on fresh clone from `main`
-4. [ ] OPR PR to `omacom/omarchy-pkgs` (`packaging/opr/`)
+1. [x] Merge `koustav` → `main` (PR #66)
+2. [x] OPR PR opened: https://github.com/omacom/omarchy-pkgs/pull/1573
+3. [ ] OPR merge + publish to `pkgs.omarchy.org` (awaiting maintainer build approval)
 
 ## Later
-5. [ ] Index / handoff Omarchy plugin store in umbrella
-6. [ ] Optional: generic Ollama/BYOK gateway
-7. [ ] AUR only if targeting vanilla Arch (not Omarchy-default)
+4. [ ] Index / handoff Omarchy plugin store in umbrella
+5. [ ] Optional: generic Ollama/BYOK gateway
+6. [ ] AUR only if targeting vanilla Arch (not Omarchy-default)
 
 ## Out of band
 - Omarchy-LLM

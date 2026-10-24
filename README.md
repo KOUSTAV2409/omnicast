@@ -131,7 +131,8 @@ Full Raycast ↔ Omarchy map: [`docs/raycast-vs-omarchy.md`](docs/raycast-vs-oma
 |---|---|
 | [`bin/omnicast`](bin/omnicast) | Launch / IPC toggle |
 | [`src/`](src/) | Shell, views, services, backends |
-| [`src/views/root/`](src/views/root/) | Calc / PathSafety / Handoffs / WindowActions modules |
+| [`src/views/root/`](src/views/root/) | Calc / Handoffs / WindowActions modules |
+| [`src/services/PathSafety.js`](src/services/PathSafety.js) | Client-side sensitive-path checks (aligned with `path_safety.py`) |
 | [`tests/smoke_backends.sh`](tests/smoke_backends.sh) | Backend + packaging smoke |
 | [`packaging/opr/`](packaging/opr/) | OPR (`omarchy-pkgs`) recipe scaffold |
 | [`bin/omnicast-omarchy-setup`](bin/omnicast-omarchy-setup) | Post-plugin PATH + Alt+Space bind |

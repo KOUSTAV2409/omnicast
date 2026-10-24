@@ -99,11 +99,39 @@ else pass "no snippetd binary"
 fi
 
 # root JS modules present
-for f in Calc.js PathSafety.js Handoffs.js WindowActions.js; do
+for f in Calc.js Handoffs.js WindowActions.js; do
   if [[ -f "src/views/root/$f" ]]; then pass "module:$f"
   else bad "module:$f"
   fi
 done
+if [[ -f src/services/PathSafety.js ]]; then pass "module:PathSafety.js"
+else bad "module:PathSafety.js"
+fi
+
+# path_safety CLI: secrets denied, normal home file ok
+ssh_probe="${HOME}/.ssh/id_rsa"
+if [[ -e $ssh_probe ]] || mkdir -p "${HOME}/.ssh" 2>/dev/null; then
+  if python3 src/backend/path_safety.py check "$ssh_probe" >/dev/null 2>&1; then
+    bad "path_safety should deny ~/.ssh"
+  else
+    pass "path_safety denies ~/.ssh"
+  fi
+fi
+tmpf="$(mktemp "${HOME}/omnicast-smoke-XXXXXX.txt")"
+echo ok >"$tmpf"
+if python3 src/backend/path_safety.py check "$tmpf" >/dev/null 2>&1; then
+  pass "path_safety allows home tempfile"
+else
+  bad "path_safety allows home tempfile"
+fi
+rm -f "$tmpf"
+
+# ranking prune helpers import
+if python3 -c "from ranking import _prune, MAX_SCORES; d=_prune({'scores':{str(i):{'score':i,'last':0} for i in range(MAX_SCORES+50)},'aliases':{},'favorites':[],'recent':[]}); assert len(d['scores'])<=MAX_SCORES" 2>/dev/null; then
+  pass "ranking prune cap"
+else
+  (cd src/backend && python3 -c "from ranking import _prune, MAX_SCORES; d=_prune({'scores':{str(i):{'score':i,'last':0} for i in range(MAX_SCORES+50)},'aliases':{},'favorites':[],'recent':[]}); assert len(d['scores'])<=MAX_SCORES") && pass "ranking prune cap" || bad "ranking prune cap"
+fi
 
 # window snap backend
 if python3 src/backend/window_snap.py list 2>/dev/null | grep -q '"ok"[[:space:]]*:[[:space:]]*true\|"ok": true'; then
