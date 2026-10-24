@@ -2,6 +2,7 @@ pragma Singleton
 import QtQuick
 import Quickshell
 import Quickshell.Io
+import "./PathSafety.js" as PathSafety
 
 QtObject {
   id: root
@@ -137,9 +138,19 @@ QtObject {
     if (!path || !String(path).length)
       return
     var p = String(path)
+    if (PathSafety.isSensitivePath(p)) {
+      console.error("[Exec] blocked open of sensitive path")
+      return
+    }
     var low = p.toLowerCase()
+    // Editor-safe types: open in editor (never rely on xdg-open for scripts).
     if (/\.(md|markdown|mdown|txt|text|json|jsonc|yaml|yml|toml|ini|conf|cfg|lua|py|pyi|js|ts|jsx|tsx|html|css|scss|rs|go|c|cpp|h|hpp|sh|bash|zsh|diff|patch)$/i.test(low)) {
       detached(["omarchy-launch-editor", p])
+      return
+    }
+    // Binaries / remaining script-like: never hand to xdg-open.
+    if (/\.(exe|bin|run|appimage|fish|rb|pl|mjs|cjs)$/i.test(low)) {
+      console.error("[Exec] blocked open of script/binary")
       return
     }
     detached(["xdg-open", p])
@@ -155,8 +166,17 @@ QtObject {
     if (!path || !String(path).length)
       return
     var p = String(path).replace(/\/$/, "")
+    // Block revealing secret files *and* secret parent dirs (e.g. ~/.ssh).
+    if (PathSafety.isSensitivePath(p)) {
+      console.error("[Exec] blocked reveal of sensitive path")
+      return
+    }
     var slash = p.lastIndexOf("/")
     var parent = slash > 0 ? p.substring(0, slash) : "/"
+    if (PathSafety.isSensitivePath(parent)) {
+      console.error("[Exec] blocked reveal into sensitive directory")
+      return
+    }
     detached(["xdg-open", parent])
   }
 

@@ -12,9 +12,13 @@ Usage:
 from __future__ import annotations
 
 import json
+import re
 import subprocess
 import sys
 from typing import Any
+
+# Hyprland window addresses are hex pointers (e.g. 0x56a1b2c3).
+_ADDR_RE = re.compile(r"^0x[0-9a-fA-F]{1,16}$")
 
 # Small inset so snapped floats don't kiss the bar / edges.
 GAP = 8
@@ -115,8 +119,8 @@ def apply(preset: str) -> dict[str, Any]:
         return {"ok": False, "error": f"unknown preset: {preset}", "presets": sorted(PRESETS)}
 
     win = _hypr_json("activewindow")
-    addr = win.get("address")
-    if not addr or addr in ("0x0", "0"):
+    addr = str(win.get("address") or "")
+    if not addr or addr in ("0x0", "0") or not _ADDR_RE.fullmatch(addr):
         return {"ok": False, "error": "no active window"}
 
     monitors = _hypr_json("monitors")
@@ -130,6 +134,9 @@ def apply(preset: str) -> dict[str, Any]:
     # Keep last pixel inside usable rect
     w = max(80, min(w, ux + uw - x))
     h = max(80, min(h, uy + uh - y))
+    # Geometry is int-only in Lua strings below — never interpolate raw strings
+    # except the already-validated hex address.
+    x, y, w, h = int(x), int(y), int(w), int(h)
 
     window = f"address:{addr}"
 

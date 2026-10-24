@@ -4,7 +4,7 @@ import Quickshell.Io
 import "../services"
 import "../components"
 import "root/Calc.js" as Calc
-import "root/PathSafety.js" as PathSafety
+import "../services/PathSafety.js" as PathSafety
 import "root/Handoffs.js" as Handoffs
 import "root/WindowActions.js" as WindowActions
 
@@ -491,6 +491,10 @@ Item {
         Hud.success("Copied path")
       }},
       { title: "Reveal", icon: "󰉋", callback: function() {
+        if (PathSafety.isSensitivePath(item.path)) {
+          Hud.error("Blocked: sensitive credentials or session data")
+          return
+        }
         Ranking.bump(item.id)
         root.requestDismiss()
         if (item.isDir)

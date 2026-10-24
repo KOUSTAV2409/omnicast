@@ -2,6 +2,7 @@ import QtQuick
 import Quickshell
 import "../services"
 import "../components"
+import "../services/PathSafety.js" as PathSafety
 
 Item {
   id: root
@@ -34,12 +35,15 @@ Item {
 
   function buildActions() {
     var acts = []
-    acts.push({
-      title: root.primaryLabel(),
-      icon: "󰈔",
-      shortcut: "↵",
-      callback: function() { root.openExternal() }
-    })
+    var blocked = pane.kind === "blocked" || PathSafety.isSensitivePath(root.filePath)
+    if (!blocked) {
+      acts.push({
+        title: root.primaryLabel(),
+        icon: "󰈔",
+        shortcut: "↵",
+        callback: function() { root.openExternal() }
+      })
+    }
     if (siblingPaths && siblingPaths.length > 1) {
       acts.push({
         title: "Next File",
@@ -52,34 +56,36 @@ Item {
         callback: function() { root.goSibling(-1) }
       })
     }
-    acts.push({
-      title: "Copy Path",
-      icon: "",
-      callback: function() {
-        Exec.copyText(root.filePath)
-        Hud.success("Copied path")
-      }
-    })
-    acts.push({
-      title: "Reveal in Folder",
-      icon: "󰉋",
-      callback: function() {
-        if (pane.kind === "dir")
-          Exec.openPath(root.filePath)
-        else
-          Exec.revealPath(root.filePath)
-        root.requestDismiss()
-      }
-    })
-    if (pane.kind !== "dir") {
+    if (!blocked) {
       acts.push({
-        title: "Open with xdg-open",
-        icon: "󰏌",
+        title: "Copy Path",
+        icon: "",
         callback: function() {
-          Ranking.bump("file-open-xdg")
-          root.openExternal()
+          Exec.copyText(root.filePath)
+          Hud.success("Copied path")
         }
       })
+      acts.push({
+        title: "Reveal in Folder",
+        icon: "󰉋",
+        callback: function() {
+          if (pane.kind === "dir")
+            Exec.openPath(root.filePath)
+          else
+            Exec.revealPath(root.filePath)
+          root.requestDismiss()
+        }
+      })
+      if (pane.kind !== "dir") {
+        acts.push({
+          title: "Open with xdg-open",
+          icon: "󰏌",
+          callback: function() {
+            Ranking.bump("file-open-xdg")
+            root.openExternal()
+          }
+        })
+      }
     }
     return acts
   }
