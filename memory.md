@@ -43,9 +43,9 @@ Whenever any agent or developer touches this project, the following rules MUST b
 
 ## 4. Current Working State
 
-* **System Status**: Umbrella pivot: Omnicast is the Omarchy command surface. Manhattan = non-AI tools first. AI deferred; Omarchy-LLM is a separate mission (ADR 015).
+* **System Status**: Manhattan taken (2026-10-24). Omarchy-first hardening then OPR (not AUR). AI deferred; Omarchy-LLM out of band (ADR 015).
 * **Live hotkey**: `ALT + SPACE` → `bin/omnicast`
-* **Snippet daemon** (optional): `bin/omnicast-snippetd` (needs `python-evdev` + `input` group)
+* **Snippets**: in-launcher only (`SnippetsView` + `snippet_manager.py`). Global expander daemon removed.
 * **Site**: https://omnicast.best
 * **File search / preview (2026-09-05, branch `koustav`)**: typed Files in root (`fd` + scopes), selection-follow side preview, colored markdown/code HTML, OnlyOffice-aware open, content search opt-in via `content:` only (keeps name search fast).
 
@@ -93,3 +93,19 @@ Whenever any agent or developer touches this project, the following rules MUST b
   2. **Real AI gateway** (Ollama/BYOK) is deferred until after Manhattan; optional Berlin+.
   3. **Omarchy-LLM** is not an Omnicast milestone and must not block or reshape M4-M6 planning.
 * **Consequences**: Clear build order; AI research can proceed in another track without coupling.
+
+### ADR 016: Extension strategy (scripts-first; never Raycast Store clone)
+* **Status**: Accepted (2026-10-24)
+* **Context**: Berlin needs a clear extensibility story. Cloning Raycast’s React extension API / Store is a multi-year trap and fights Omarchy’s CLI culture. Vicinae already competes on Store-compat.
+* **Decision**:
+  1. **Tier 0 (now):** Script Commands in `~/.config/omnicast/commands/` with `@raycast.*` / `@omarchy.*` frontmatter (see `docs/script-commands.md`).
+  2. **Tier 1 (Berlin):** Deeplinks (`omnicast://…`) so Hyprland binds and external tools can summon search, views, and snaps without a plugin SDK.
+  3. **Tier 2 (later):** Index / handoff community packages from the Omarchy plugin registry ([omarchyplugins.com](https://omarchyplugins.com)); prefer “open native plugin” over re-hosting.
+  4. **Never:** full Raycast Store / React extension host inside Omnicast as a goal.
+* **Consequences**: Extensions stay shell-native and reviewable; Omnicast stays the umbrella, not an app store.
+
+### ADR 017: Hyprland float snaps as Berlin killer workflow
+* **Status**: Accepted (2026-10-24)
+* **Context**: Raycast window management is approximate (Accessibility). Omarchy Hyprland exposes exact Lua `hl.dsp.window.*` geometry.
+* **Decision:** Ship `window_snap.py` presets (halves, thirds, quarters, center, maximize) as Omnicast-owned actions + `omnicast snap <preset>` / `omnicast://snap?layout=…` for binds. Prefer Lua dispatch; never classic `setfloating` batches.
+* **Consequences:** A workflow that is objectively better than Raycast Free WM on this OS.

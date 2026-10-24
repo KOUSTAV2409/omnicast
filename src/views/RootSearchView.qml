@@ -3,6 +3,10 @@ import Quickshell
 import Quickshell.Io
 import "../services"
 import "../components"
+import "root/Calc.js" as Calc
+import "root/PathSafety.js" as PathSafety
+import "root/Handoffs.js" as Handoffs
+import "root/WindowActions.js" as WindowActions
 
 Item {
   id: root
@@ -329,51 +333,37 @@ Item {
     return item
   }
 
+  function launchHandoff(def) {
+    switch (def.launch) {
+      case "clipboard": Exec.omarchyClipboard(); break
+      case "emoji": Exec.omarchyEmoji(); break
+      case "theme": Exec.omarchyThemePicker(); break
+      case "background": Exec.omarchyBackgroundPicker(); break
+      case "images": Exec.omarchyImages(); break
+      case "files": Exec.omarchyFileOpen(); break
+      case "keybindings": Exec.omarchyKeybindings(); break
+      case "menu": Exec.omarchyMenu(def.menuRoute || "root"); break
+    }
+  }
+
   function omarchyHandoffs() {
-    return [
-      handoffTool("clipboard", "Clipboard History", "Super+Ctrl+V",
-                  "", "Omarchy", "Omarchy", "Open Clipboard",
-                  function() { Exec.omarchyClipboard() }),
-      handoffTool("emoji", "Emoji", "Super+Ctrl+E",
-                  "", "Omarchy", "Omarchy", "Open Emoji",
-                  function() { Exec.omarchyEmoji() }),
-      handoffTool("theme", "Theme", "Switch Omarchy theme",
-                  "󰸌", "Omarchy", "Omarchy", "Open Themes",
-                  function() { Exec.omarchyThemePicker() }),
-      handoffTool("background", "Background", "Wallpaper",
-                  "", "Omarchy", "Omarchy", "Open Backgrounds",
-                  function() { Exec.omarchyBackgroundPicker() }),
-      handoffTool("images", "Images", "Browse Pictures",
-                  "󰋫", "Omarchy", "Omarchy", "Open Images",
-                  function() { Exec.omarchyImages() }),
-      handoffTool("files", "Find Files", "Type a name here · in:projects · Ctrl+Shift+P",
-                  "󰈔", "Omarchy", "Omarchy", "Open Files",
-                  function() { Exec.omarchyFileOpen() }),
-      handoffTool("keybindings", "Keybindings", "Super+K",
-                  "", "Omarchy", "Omarchy", "Open Keybindings",
-                  function() { Exec.omarchyKeybindings() }),
-      handoffTool("omarchy-menu", "Menu", "Super+Space",
-                  "󰣇", "Omarchy", "Omarchy", "Open Menu",
-                  function() { Exec.omarchyMenu("root") }),
-      handoffTool("capture", "Capture", "Screenshot & record",
-                  "", "Omarchy", "Omarchy", "Open Capture",
-                  function() { Exec.omarchyMenu("capture") }),
-      handoffTool("share", "Share", "Clipboard, file, folder",
-                  "", "Omarchy", "Omarchy", "Open Share",
-                  function() { Exec.omarchyMenu("share") }),
-      handoffTool("reminders", "Reminders", "Super+Ctrl+R",
-                  "󰢻", "Omarchy", "Omarchy", "Open Reminders",
-                  function() { Exec.omarchyMenu("reminder-set") })
-    ]
+    var defs = Handoffs.omarchyHandoffDefs()
+    var out = []
+    for (var i = 0; i < defs.length; i++) {
+      var d = defs[i]
+      out.push(handoffTool(d.id, d.title, d.subtitle, d.icon, d.badge, d.category, d.primary,
+                           (function(def) { return function() { root.launchHandoff(def) } })(d)))
+    }
+    return out
   }
 
   function omnicastTools() {
     return [
-      pushTool("snippets", "Snippets", "Text expansion",
+      pushTool("snippets", "Snippets", "Insert & manage from launcher",
                "󰅍", "Omnicast", "Omnicast", "Open Snippets", root.snippetsComp, "Snippets"),
       pushTool("window", "Windows", "Pop · float · gaps · Omarchy hypr",
                "󰖯", "Omnicast", "Omnicast", "Window Management", root.windowTilerComp, "Window Management"),
-      pushTool("ai", "Ask AI", "Local / BYOK",
+      pushTool("ai", "Ask AI", "Mock UI · AI deferred (post-Manhattan)",
                "󰚩", "Omnicast", "Omnicast", "Ask AI", root.aiAssistComp, "Ask AI"),
       pushTool("quicklinks-mgr", "Quicklinks", "URL bookmarks",
                "󰌷", "Omnicast", "Omnicast", "Quicklinks", null, "")
@@ -513,36 +503,9 @@ Item {
     return item
   }
 
-  function isSensitivePath(path) {
-    var p = String(path || "").toLowerCase().replace(/\\/g, "/")
-    if (!p.length)
-      return true
-    var parts = [
-      "/.ssh/", "/.gnupg/", "/.aws/", "/.azure/", "/.kube/", "/.docker/",
-      "/.password-store/", "/.config/gcloud/", "/.config/chromium/",
-      "/.config/google-chrome/", "/.mozilla/firefox/", "/.local/share/keyrings/",
-      "/.config/keepassxc/", "/.config/bitwarden/", "/.config/1password/",
-      "/.config/signal/", "/.config/element/"
-    ]
-    for (var i = 0; i < parts.length; i++) {
-      if (p.indexOf(parts[i]) >= 0)
-        return true
-    }
-    var base = p.split("/").pop()
-    if (base === ".env" || base.indexOf(".env.") === 0)
-      return true
-    if (base.indexOf("id_rsa") === 0 || base.indexOf("id_ed25519") === 0 || base.indexOf("id_ecdsa") === 0)
-      return true
-    if (/\.(pem|key|p12|pfx|kdbx)$/.test(base))
-      return true
-    if (base === ".netrc" || base === ".git-credentials" || base === "credentials.json")
-      return true
-    return false
-  }
-
   function openFileSmart(path) {
     var p = String(path || "")
-    if (root.isSensitivePath(p)) {
+    if (PathSafety.isSensitivePath(p)) {
       Hud.error("Blocked: sensitive credentials or session data")
       return false
     }
@@ -931,87 +894,6 @@ Item {
     }
   }
 
-  function tryMathEvaluation(query) {
-    if (!query) return null
-    var clean = query.trim()
-    if (!/^[0-9.\s+\-*/()%^eE]+$/.test(clean) || !/[0-9]/.test(clean) || !/[+\-*/%^]/.test(clean))
-      return null
-    try {
-      var result = Function('"use strict"; return (' + clean.replace(/\^/g, "**") + ')')()
-      if (typeof result === "number" && isFinite(result))
-        return Number.isInteger(result) ? result.toLocaleString()
-               : result.toFixed(6).replace(/\.?0+$/, "")
-    } catch (e) {}
-    return null
-  }
-
-  function tryColorEvaluation(query) {
-    if (!query) return null
-    var clean = query.trim()
-    var m = clean.match(/^#([0-9a-fA-F]{6}|[0-9a-fA-F]{3})$/)
-    if (m) {
-      var hex = m[1]
-      if (hex.length === 3)
-        hex = hex[0] + hex[0] + hex[1] + hex[1] + hex[2] + hex[2]
-      hex = "#" + hex.toUpperCase()
-      return { hex: hex, label: "Color " + hex }
-    }
-    m = clean.match(/^rgba?\(\s*(\d{1,3})\s*,\s*(\d{1,3})\s*,\s*(\d{1,3})(?:\s*,\s*[\d.]+)?\s*\)$/i)
-    if (!m) return null
-    var r = Math.min(255, parseInt(m[1], 10)), g = Math.min(255, parseInt(m[2], 10)), b = Math.min(255, parseInt(m[3], 10))
-    var h = "#" + ((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1).toUpperCase()
-    return { hex: h, label: "Color " + h + "  ·  rgb(" + r + ", " + g + ", " + b + ")" }
-  }
-
-  function tryUnitConversion(query) {
-    if (!query) return null
-    var m = query.trim().match(/^(-?[\d.]+)\s*(km|mi|m|ft|kg|lb|lbs|c|f|°c|°f)\s+to\s+(km|mi|m|ft|kg|lb|lbs|c|f|°c|°f)$/i)
-    if (!m) return null
-    var n = parseFloat(m[1])
-    if (!isFinite(n)) return null
-    var from = m[2].toLowerCase().replace("°", "").replace("lbs", "lb")
-    var to = m[3].toLowerCase().replace("°", "").replace("lbs", "lb")
-    var factors = { "km:mi": 0.621371, "mi:km": 1.60934, "m:ft": 3.28084, "ft:m": 0.3048, "kg:lb": 2.20462, "lb:kg": 0.453592 }
-    var out = null
-    if (factors[from + ":" + to] !== undefined) out = n * factors[from + ":" + to]
-    else if (from === "c" && to === "f") out = n * 9 / 5 + 32
-    else if (from === "f" && to === "c") out = (n - 32) * 5 / 9
-    else if (from === to) out = n
-    if (out === null || !isFinite(out)) return null
-    return (Math.abs(out) >= 100 ? out.toFixed(2) : out.toFixed(4)).replace(/\.?0+$/, "") + " " + to
-  }
-
-  // Rough offline FX vs USD: always treat as a guess; prefer Google for live rates.
-  function tryCurrencyConversion(query) {
-    if (!query) return null
-    var m = query.trim().match(/^(-?[\d.]+)\s*(usd|eur|gbp|inr|jpy|aud|cad|\$|€|£|₹)\s*(?:to|in)\s*(usd|eur|gbp|inr|jpy|aud|cad|\$|€|£|₹)$/i)
-    if (!m) return null
-    var n = parseFloat(m[1])
-    if (!isFinite(n)) return null
-    function norm(c) {
-      c = String(c).toLowerCase()
-      if (c === "$") return "usd"
-      if (c === "€") return "eur"
-      if (c === "£") return "gbp"
-      if (c === "₹") return "inr"
-      return c
-    }
-    var from = norm(m[2]), to = norm(m[3])
-    // Ballpark only (stale). Do not use for real money.
-    var usd = { usd: 1, eur: 0.86, gbp: 0.74, inr: 94.4, jpy: 148.0, aud: 1.48, cad: 1.36 }
-    if (usd[from] === undefined || usd[to] === undefined) return null
-    if (from === to)
-      return null
-    var out = n * (usd[to] / usd[from])
-    var rounded = (Math.abs(out) >= 100 ? out.toFixed(2) : out.toFixed(4)).replace(/\.?0+$/, "")
-    var googleQ = n + " " + from.toUpperCase() + " to " + to.toUpperCase()
-    return {
-      approx: "≈ " + rounded + " " + to.toUpperCase() + " ?",
-      copyValue: rounded + " " + to.toUpperCase(),
-      googleQuery: googleQ
-    }
-  }
-
   function fxGoogleRow(googleQuery) {
     var q = googleQuery
     var item = {
@@ -1027,52 +909,6 @@ Item {
     }
     item.actions = [{ title: "Search Google", icon: "󰍉", shortcut: "↵", callback: item.action }]
     return item
-  }
-
-  function tryDateEvaluation(query) {
-    if (!query) return null
-    var q = query.trim().toLowerCase()
-    var now = new Date()
-    function fmt(d) {
-      var y = d.getFullYear()
-      var m = ("" + (d.getMonth() + 1))
-      var day = ("" + d.getDate())
-      if (m.length < 2) m = "0" + m
-      if (day.length < 2) day = "0" + day
-      return y + "-" + m + "-" + day
-    }
-    function parseYmd(s) {
-      var p = s.match(/^(\d{4})-(\d{2})-(\d{2})$/)
-      if (!p) return null
-      var d = new Date(parseInt(p[1], 10), parseInt(p[2], 10) - 1, parseInt(p[3], 10))
-      return isNaN(d.getTime()) ? null : d
-    }
-    if (q === "today") return fmt(now)
-    if (q === "now") {
-      var hh = ("" + now.getHours())
-      var mm = ("" + now.getMinutes())
-      if (hh.length < 2) hh = "0" + hh
-      if (mm.length < 2) mm = "0" + mm
-      return fmt(now) + " " + hh + ":" + mm
-    }
-    var m = q.match(/^days\s+(until|since)\s+(\d{4}-\d{2}-\d{2})$/)
-    if (m) {
-      var target = parseYmd(m[2])
-      if (!target) return null
-      var start = new Date(now.getFullYear(), now.getMonth(), now.getDate())
-      var diff = Math.round((target - start) / 86400000)
-      if (m[1] === "since") diff = -diff
-      return String(diff) + " day" + (Math.abs(diff) === 1 ? "" : "s")
-    }
-    m = q.match(/^(\d{4}-\d{2}-\d{2})\s*([+-])\s*(\d+)\s*days?$/)
-    if (m) {
-      var base = parseYmd(m[1])
-      if (!base) return null
-      var delta = parseInt(m[3], 10) * (m[2] === "-" ? -1 : 1)
-      base.setDate(base.getDate() + delta)
-      return fmt(base)
-    }
-    return null
   }
 
   function calcRow(id, title, subtitle, copyValue) {
@@ -1120,45 +956,34 @@ Item {
   // Root-indexed Omarchy window helpers only (no classic hyprctl batches :
   // those break on Lua Hyprland and left windows floating/overlapping).
   function windowCatalog() {
-    function wrap(id, title, subtitle, icon, run) {
+    var defs = WindowActions.rootIndexDefs()
+    var out = []
+    for (var i = 0; i < defs.length; i++) {
+      var d = defs[i]
       var item = {
-        id: id, title: title, subtitle: subtitle, icon: icon,
-        badge: "", category: "Windows", primaryActionTitle: title, actions: []
+        id: d.id, title: d.title, subtitle: d.subtitle, icon: d.icon,
+        badge: "", category: "Windows", primaryActionTitle: d.title, actions: []
       }
-      item.action = run
-      item.actions = [{ title: title, icon: icon, shortcut: "↵", callback: run }]
-      return item
+      item.action = (function(def) {
+        return function() {
+          Ranking.bump(def.id)
+          root.requestDismiss()
+          if (def.kind === "snap")
+            Exec.afterDismiss(
+              ["python3", Paths.py("window_snap.py"), "apply", String(def.preset || "")],
+              100
+            )
+          else if (def.kind === "omarchy")
+            Exec.afterDismiss(def.argv, 80)
+          else
+            Exec.afterDismiss(["hyprctl", "dispatch", def.expr], 80)
+          Hud.success(def.title)
+        }
+      })(d)
+      item.actions = [{ title: d.title, icon: d.icon, shortcut: "↵", callback: item.action }]
+      out.push(item)
     }
-    function oma(id, title, subtitle, icon, argv) {
-      return wrap(id, title, subtitle, icon, function() {
-        Ranking.bump(id)
-        root.requestDismiss()
-        Exec.afterDismiss(argv, 80)
-        Hud.success(title)
-      })
-    }
-    function lua(id, title, subtitle, icon, expr) {
-      return wrap(id, title, subtitle, icon, function() {
-        Ranking.bump(id)
-        root.requestDismiss()
-        Exec.afterDismiss(["hyprctl", "dispatch", expr], 80)
-        Hud.success(title)
-      })
-    }
-    return [
-      oma("om-pop", "Pop Window", "Super+O · float & pin (toggle)", "󰖯",
-          ["omarchy-hyprland-window-pop"]),
-      oma("om-gaps", "Toggle Gaps", "No gaps ↔ default", "󰝘",
-          ["omarchy-hyprland-window-gaps-toggle"]),
-      oma("om-trans", "Toggle Transparency", "Active window opacity", "󰗔",
-          ["omarchy-hyprland-window-transparency-toggle"]),
-      oma("om-tfs", "Tiled Fullscreen", "Borderless tiled fullscreen", "󰊓",
-          ["omarchy-hyprland-window-tiled-fullscreen-toggle"]),
-      lua("win-float", "Toggle Float", "Super+T · tile ↔ float", "󰖲",
-          "hl.dsp.window.float({ action = \"toggle\" })"),
-      lua("win-full", "Fullscreen", "Super+F", "󰊓",
-          "hl.dsp.window.fullscreen({ mode = \"fullscreen\" })")
-    ]
+    return out
   }
 
   function fallbackItems(query) {
@@ -1175,7 +1000,7 @@ Item {
     web.actions = [{ title: "Search Web", icon: "󰍉", shortcut: "↵", callback: web.action }]
 
     var ai = {
-      id: "fallback-ai", title: "Ask AI", subtitle: q,
+      id: "fallback-ai", title: "Ask AI (mock)", subtitle: q + " · AI deferred",
       icon: "󰚩", badge: "", category: "Fallback", primaryActionTitle: "Ask", actions: []
     }
     ai.action = function() {
@@ -1222,29 +1047,29 @@ Item {
     if (q.length >= 2)
       syncScopeFromName(scopeFromQuery(q))
 
-    var mathResult = tryMathEvaluation(q)
+    var mathResult = Calc.tryMathEvaluation(q)
     if (mathResult !== null) {
       results.push(header("Calculator"))
       results.push(calcRow("calc-result", "= " + mathResult, "↵ to copy", String(mathResult)))
     }
-    var colorResult = tryColorEvaluation(q)
+    var colorResult = Calc.tryColorEvaluation(q)
     if (colorResult) {
       if (!results.length) results.push(header("Calculator"))
       results.push(calcRow("calc-color", colorResult.label, "↵ to copy hex", colorResult.hex))
     }
-    var unitResult = tryUnitConversion(q)
+    var unitResult = Calc.tryUnitConversion(q)
     if (unitResult) {
       if (!results.length) results.push(header("Calculator"))
       results.push(calcRow("calc-unit", "= " + unitResult, "↵ to copy", unitResult))
     }
-    var fxResult = tryCurrencyConversion(q)
+    var fxResult = Calc.tryCurrencyConversion(q)
     if (fxResult) {
       if (!results.length) results.push(header("Calculator"))
       results.push(calcRow("calc-fx", fxResult.approx,
                            "⚠️ stale offline guess: prefer Google", fxResult.copyValue))
       results.push(fxGoogleRow(fxResult.googleQuery))
     }
-    var dateResult = tryDateEvaluation(q)
+    var dateResult = Calc.tryDateEvaluation(q)
     if (dateResult) {
       if (!results.length) results.push(header("Calculator"))
       results.push(calcRow("calc-date", dateResult, "date · ↵ to copy", dateResult))
@@ -1336,28 +1161,30 @@ Item {
       })
     }
 
-    if (!scored.length && !(fileQuery === q && fileHits.length) && !(fileQuery === q && q.length >= 2)) {
-      if (root.isLoading || (q.length >= 2 && filesSearching)) {
-        if (!results.length || (results.length && results[results.length - 1].id !== "loading-files")) {
-          if (!(q.length >= 2 && filesSearching)) {
-            results.push(header("Loading"))
-            results.push({
-              id: "loading-catalog", title: "Indexing commands…", subtitle: "Try again in a moment",
-              icon: "󰔟", badge: "", category: "System", isHeader: false,
-              primaryActionTitle: "", actions: [], action: function() {}
-            })
-          }
+    // Catalog honesty: never show Web/AI fallbacks while indexes or files are still loading.
+    var hasFileHits = (fileQuery === q && fileHits.length > 0)
+    var fileSettledEmpty = (fileQuery === q && q.length >= 2 && !filesSearching && !fileHits.length)
+    var waitingOnWork = root.isLoading || (q.length >= 2 && filesSearching)
+
+    if (!scored.length && !hasFileHits) {
+      if (waitingOnWork) {
+        if (!(q.length >= 2 && filesSearching)) {
+          results.push(header("Loading"))
+          results.push({
+            id: "loading-catalog", title: "Indexing commands…", subtitle: "Try again in a moment",
+            icon: "󰔟", badge: "", category: "System", isHeader: false,
+            primaryActionTitle: "", actions: [], action: function() {}
+          })
         }
-      } else if (!(fileQuery === q && q.length >= 2 && !fileHits.length)) {
+      } else if (fileSettledEmpty) {
+        results.push(header("Also"))
+        var fb2 = fallbackItems(q)
+        for (var f2 = 0; f2 < fb2.length; f2++) results.push(fb2[f2])
+      } else {
         results.push(header("Fallback"))
         var fb = fallbackItems(q)
         for (var f = 0; f < fb.length; f++) results.push(fb[f])
       }
-    } else if (!scored.length && fileQuery === q && q.length >= 2 && !fileHits.length && !filesSearching) {
-      // Keep empty-files; still offer web fallback below
-      results.push(header("Also"))
-      var fb2 = fallbackItems(q)
-      for (var f2 = 0; f2 < fb2.length; f2++) results.push(fb2[f2])
     }
 
     filteredItems = results

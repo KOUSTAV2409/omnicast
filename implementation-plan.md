@@ -192,11 +192,11 @@ Adjust if dogfooding reveals a broken hero path: **always prioritize trust (A/B)
 - [x] Loading bar (`SearchBar.busy`), accurate footer labels (`primaryActionTitle`)
 
 ### M3: “Daily driver Free-tier” (= Phase C exit)
-- [x] Global snippet expansion (`bin/omnicast-snippetd` + evdev best-effort)
+- [x] In-launcher snippets (CRUD + insert/copy; global snippetd removed)
 - [x] Quicklinks (`quicklinks.py` + root section)
-- [x] WM halves/thirds/quarters
-- [x] Calc units/colors
-- [x] Clipboard keyboard filters (`Ctrl+P` cycle) + plain-text paste
+- [x] Curated Omarchy/Hyprland Windows palette (Lua-safe; not Raycast halves/thirds clone)
+- [x] Calc units/colors/FX/dates
+- [x] Clipboard via Omarchy handoff (ADR 011 / 014)
 
 ### M4: “AI-native launcher” (= Phase D exit): **DEFERRED**
 - [ ] Streaming Ollama/BYOK
@@ -204,25 +204,29 @@ Adjust if dogfooding reveals a broken hero path: **always prioritize trust (A/B)
 - [ ] Clipboard/selection context actions (explain / summarize)
 *(Not required for Manhattan. Not Omarchy-LLM. Revisit after M5.)*
 
-### M5: “Manhattan complete” (non-AI umbrella)
+### M5: “Manhattan complete” (non-AI umbrella) — **DONE 2026-10-24**
 - [x] Handoff Omarchy-strong tools (clipboard, emoji, theme, images, menu, capture, share, reminders, keybindings)
 - [x] Own calc / quicklinks / scripts / ranking / snippets surface
 - [x] Curate Hyprland + `omarchy-hyprland-*` into searchable Windows palette + root index
 - [x] No-match fallbacks (web search; Ask AI stub OK)
 - [x] File search handoff (`Find Files` → omarchy-file-select)
 - [x] Typed file search in Root (`fd` / `plocate` under `$HOME`)
-- [x] Snippetd reliability (delay/backend settings, wtype/ydotool, failure notify/HUD)
+- [x] Catalog honesty (no false Web/AI fallbacks while indexes load)
 - [x] Calc depth (currency approx + dates)
-- [ ] Non-AI dogfood pass: close remaining handoff/own/curate gaps from the crosswalk
-- [ ] Declare Manhattan taken (without real AI)
+- [x] Non-AI dogfood pass: backends + Omarchy helper binaries verified; honesty gaps closed
+- [x] Declare Manhattan taken (without real AI)
 
 **Manhattan daily loop (umbrella):** Alt+Space → apps/commands/calc → handoff clipboard/emoji/theme/files → Windows pop/float/gaps → scripts/quicklinks/snippets → web fallback → Esc.
 
 ### M6: “Berlin underway” (= Phase F)
-- [ ] Packaging / install path
-- [ ] Deeplinks (`omnicast://…`)
-- [ ] One Hyprland-only workflow clearly better than Raycast
-- [ ] Extension strategy ADR accepted
+- [x] Public clone + Omarchy plugin path
+- [x] Omarchy plugin path airtight (plugin-local bin + omarchy-setup)
+- [ ] Merge `koustav` → `main` (plugin-add default branch)
+- [ ] OPR submit (`packaging/opr/` → `omacom/omarchy-pkgs`)
+- [x] CI smoke (`tests/smoke_backends.sh` + `.github/workflows/smoke.yml`)
+- [x] Deeplinks (`omnicast://…` + CLI; `docs/deeplinks.md`)
+- [x] Hyprland float snaps (`window_snap.py`: halves/thirds/quarters)
+- [x] Extension strategy ADR 016 accepted
 - [ ] Optional: generic AI gateway (Ollama/BYOK): still separate from Omarchy-LLM
 
 Plain-language backlog: [`roadmap.md`](roadmap.md) → **What’s left to build**.
@@ -256,13 +260,13 @@ Plain-language backlog: [`roadmap.md`](roadmap.md) → **What’s left to build*
 
 ## 8. Immediate next actions (start here)
 
-1. **Non-AI dogfood**: run the Manhattan daily loop; file gaps against the crosswalk  
-2. **Close non-AI gaps**: handoff / own / curate only (no model work)  
-3. **Declare M5** when the loop is trustworthy without Ask AI  
-4. **Berlin** packaging / plugins; optional generic AI gateway later  
-5. **Never** schedule Omarchy-LLM inside Omnicast M4-M6
+1. **Merge to `main`** so Omarchy plugin installs are current  
+2. **OPR PR** to `omacom/omarchy-pkgs`  
+3. **Plugin-store umbrella** handoff  
+4. **Optional later:** generic Ollama/BYOK gateway  
+5. **Never** schedule Omarchy-LLM inside Omnicast M4-M6  
 
-Do not start Store / Pro-adjacent surfaces before M5. Do not block M5 on AI.
+Manhattan is closed. AUR is not the Omarchy packaging path (OPR is).
 
 ---
 

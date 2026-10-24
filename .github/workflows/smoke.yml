@@ -1,0 +1,43 @@
+name: Smoke
+
+on:
+  push:
+    branches: [main, master, koustav]
+  pull_request:
+
+jobs:
+  backends:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install soft deps used by file search
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq fd-find ripgrep plocate || true
+          # Ubuntu packages fd as fdfind; backends look for `fd`
+          if command -v fdfind >/dev/null && ! command -v fd >/dev/null; then
+            sudo ln -sf "$(command -v fdfind)" /usr/local/bin/fd
+          fi
+
+      - name: Backend + packaging smoke
+        run: |
+          chmod +x tests/smoke_backends.sh
+          # Omarchy binaries are not on GitHub runners
+          OMNICAST_REQUIRE_OMARCHY=0 ./tests/smoke_backends.sh
+
+      - name: PKGBUILD syntax (bash -n)
+        run: bash -n packaging/aur/PKGBUILD
+
+      - name: RootSearch modules import paths exist
+        run: |
+          test -f src/views/RootSearchView.qml
+          grep -q 'root/Calc.js' src/views/RootSearchView.qml
+          grep -q 'root/Handoffs.js' src/views/RootSearchView.qml
+          ! grep -q 'omnicast-snippetd' README.md
+          ! test -e bin/omnicast-snippetd

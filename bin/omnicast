@@ -2,6 +2,16 @@
 # Toggle / launch Omnicast: Alt+Space umbrella launcher for Omarchy.
 # IPC form mirrors omarchy-shell: `qs ipc call -- <target> <method>`
 # The `--` is required so methods like `show` are not eaten as qs subcommands.
+#
+# Deeplinks (Berlin):
+#   omnicast
+#   omnicast toggle|show|dismiss
+#   omnicast search <query>
+#   omnicast snap <preset>
+#   omnicast://show
+#   omnicast://search?q=foot
+#   omnicast://snap?layout=left
+#   omnicast://windows | omnicast://snippets
 
 SOURCE="${BASH_SOURCE[0]}"
 while [ -h "$SOURCE" ]; do
@@ -23,32 +33,159 @@ ipc() {
   qs ipc -n -p "$CONFIG_PATH" call -- omnicast "$@" 2>/dev/null
 }
 
-# Toggle existing instance
-if out=$(ipc toggle); then
-  case "$out" in
-    "Target not found."|"Function not found."|"Not ready to accept queries yet"*)
+ensure_running() {
+  if out=$(ipc ping 2>/dev/null); then
+    case "$out" in
+      pong) return 0 ;;
+    esac
+  fi
+  qs -n -d -p "$CONFIG_PATH"
+  for _ in 1 2 3 4 5 6 7 8 9 10; do
+    sleep 0.15
+    if out=$(ipc ping 2>/dev/null); then
+      case "$out" in
+        pong) return 0 ;;
+      esac
+    fi
+  done
+  echo "omnicast: failed to start" >&2
+  return 1
+}
+
+# --- Deeplink / argv parsing -------------------------------------------------
+raw="${1-}"
+action="toggle"
+query=""
+layout=""
+view=""
+
+urldecode() {
+  # shellcheck disable=SC3060
+  local s="${1//+/ }"
+  printf '%b' "${s//%/\\x}"
+}
+
+parse_uri() {
+  local uri="$1"
+  # Strip scheme
+  local rest="${uri#omnicast://}"
+  rest="${rest#omnicast:}"
+  # path?query
+  local path="${rest%%\?*}"
+  local qs=""
+  if [[ "$rest" == *\?* ]]; then
+    qs="${rest#*\?}"
+  fi
+  path="${path#/}"
+  case "$path" in
+    ""|toggle) action="toggle" ;;
+    show|open) action="show" ;;
+    dismiss|hide|close) action="dismiss" ;;
+    search)
+      action="search"
+      ;;
+    snap|layout)
+      action="snap"
+      ;;
+    windows|window)
+      action="view"; view="windows" ;;
+    snippets|snippet)
+      action="view"; view="snippets" ;;
+    *)
+      # omnicast://foot → search for foot
+      action="search"
+      query="$path"
+      ;;
+  esac
+  # query string
+  if [[ -n "$qs" ]]; then
+    IFS='&' read -ra pairs <<< "$qs"
+    for pair in "${pairs[@]}"; do
+      local k="${pair%%=*}"
+      local v="${pair#*=}"
+      v="$(urldecode "$v")"
+      case "$k" in
+        q|query|text) query="$v"; [[ "$action" == "toggle" || "$action" == "show" ]] && action="search" ;;
+        layout|preset|snap) layout="$v"; action="snap" ;;
+        view) view="$v"; action="view" ;;
+      esac
+    done
+  fi
+}
+
+if [[ -n "$raw" ]]; then
+  case "$raw" in
+    omnicast://*|omnicast:*)
+      parse_uri "$raw"
+      ;;
+    toggle|show|dismiss|hide|close)
+      action="$raw"
+      [[ "$action" == "hide" || "$action" == "close" ]] && action="dismiss"
+      ;;
+    search)
+      action="search"
+      query="${*:2}"
+      ;;
+    snap)
+      action="snap"
+      layout="${2-}"
+      ;;
+    windows|snippets)
+      action="view"
+      view="$raw"
+      ;;
+    -h|--help|help)
+      cat <<'EOF'
+Omnicast — Alt+Space for Omarchy
+
+Usage:
+  omnicast                         Toggle launcher
+  omnicast show|dismiss|toggle
+  omnicast search <query>
+  omnicast snap <preset>           left|right|top|bottom|*-third|top-left|…|center|maximize
+  omnicast windows|snippets
+  omnicast://search?q=foot
+  omnicast://snap?layout=left
+  omnicast://windows
+EOF
+      exit 0
       ;;
     *)
-      exit 0
+      # Bare query → search
+      action="search"
+      query="$*"
       ;;
   esac
 fi
 
-# Spawn daemonized quickshell, then show
-qs -n -d -p "$CONFIG_PATH"
-for _ in 1 2 3 4 5 6 7 8; do
-  sleep 0.15
-  if out=$(ipc show); then
-    case "$out" in
-      "Target not found."|"Function not found."|"Not ready to accept queries yet"*)
-        continue
-        ;;
-      *)
-        exit 0
-        ;;
-    esac
+# Snap can run without UI (Hyprland killer workflow from binds)
+if [[ "$action" == "snap" ]]; then
+  if [[ -z "$layout" ]]; then
+    echo "omnicast: snap needs a layout (e.g. left)" >&2
+    exit 1
   fi
-done
+  exec python3 "$ROOT/src/backend/window_snap.py" apply "$layout"
+fi
 
-echo "omnicast: failed to start or show" >&2
+ensure_running || exit 1
+
+case "$action" in
+  toggle)
+    ipc toggle >/dev/null && exit 0
+    ;;
+  show)
+    ipc show >/dev/null && exit 0
+    ;;
+  dismiss)
+    ipc dismiss >/dev/null && exit 0
+    ;;
+  search)
+    ipc search "$query" >/dev/null && exit 0
+    ;;
+  view)
+    ipc openView "$view" >/dev/null && exit 0
+    ;;
+esac
+
+echo "omnicast: ipc call failed for action=$action" >&2
 exit 1

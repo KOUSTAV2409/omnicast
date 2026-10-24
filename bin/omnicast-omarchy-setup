@@ -1,0 +1,65 @@
+#!/usr/bin/env bash
+# Wire Omnicast into an Omarchy session after `omarchy plugin add`.
+# - Symlink plugin-local bin → ~/.local/bin/omnicast
+# - Bind Alt+Space to the plugin launcher (keeps Super+Space for Omarchy menu)
+set -euo pipefail
+
+SOURCE="${BASH_SOURCE[0]}"
+while [ -h "$SOURCE" ]; do
+  DIR="$(cd -P "$(dirname "$SOURCE")" && pwd)"
+  SOURCE="$(readlink "$SOURCE")"
+  [[ $SOURCE != /* ]] && SOURCE="$DIR/$SOURCE"
+done
+ROOT="$(cd -P "$(dirname "$SOURCE")/.." && pwd)"
+LAUNCHER="$ROOT/bin/omnicast"
+BIN_DIR="${XDG_BIN_HOME:-$HOME/.local/bin}"
+
+if [[ ! -x "$LAUNCHER" ]]; then
+  echo "omnicast-omarchy-setup: missing launcher at $LAUNCHER" >&2
+  exit 1
+fi
+
+mkdir -p "$BIN_DIR"
+ln -sfn "$LAUNCHER" "$BIN_DIR/omnicast"
+echo "✓ Symlinked $BIN_DIR/omnicast → $LAUNCHER"
+
+HYPR_BINDINGS="$HOME/.config/hypr/bindings.lua"
+HYPR_CONF="$HOME/.config/hypr/hyprland.conf"
+BIND_LINE="o.bind(\"ALT + SPACE\", \"Omnicast\", \"$LAUNCHER\")"
+
+if [[ -f "$HYPR_BINDINGS" ]]; then
+  if grep -q "omnicast" "$HYPR_BINDINGS"; then
+    # Refresh path if an older bind pointed elsewhere
+    if ! grep -Fq "$LAUNCHER" "$HYPR_BINDINGS"; then
+      tmp="$(mktemp)"
+      # Drop prior Omnicast bind lines, append current
+      grep -v -E 'Omnicast|omnicast' "$HYPR_BINDINGS" >"$tmp" || true
+      printf '\n-- Omnicast Launcher (Alt+Space)\n%s\n' "$BIND_LINE" >>"$tmp"
+      mv "$tmp" "$HYPR_BINDINGS"
+      echo "✓ Updated Alt+Space bind in $HYPR_BINDINGS"
+    else
+      echo "✓ Alt+Space already bound to plugin launcher"
+    fi
+  else
+    printf '\n-- Omnicast Launcher (Alt+Space)\n%s\n' "$BIND_LINE" >>"$HYPR_BINDINGS"
+    echo "✓ Bound Alt+Space in $HYPR_BINDINGS"
+  fi
+  command -v hyprctl >/dev/null && hyprctl reload >/dev/null 2>&1 || true
+elif [[ -f "$HYPR_CONF" ]]; then
+  if grep -q "omnicast" "$HYPR_CONF"; then
+    echo "✓ Hyprland conf already mentions omnicast"
+  else
+    printf '\n# Omnicast Launcher\nbind = ALT, SPACE, exec, %s\n' "$LAUNCHER" >>"$HYPR_CONF"
+    echo "✓ Bound Alt+Space in $HYPR_CONF"
+    command -v hyprctl >/dev/null && hyprctl reload >/dev/null 2>&1 || true
+  fi
+else
+  echo "▲ No Hyprland bindings file found. Bind manually:"
+  echo "   $BIND_LINE"
+fi
+
+echo
+echo "Omarchy setup complete."
+echo "  Bar widget: click the search icon (uses plugin-local bin)"
+echo "  Hotkey:     Alt+Space"
+echo "  CLI:        omnicast   (via $BIN_DIR)"

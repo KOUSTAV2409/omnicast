@@ -2,7 +2,7 @@
 
 > **Document Type:** Agent & LLM Knowledge Base / Core Context  
 > **Status:** Active: Omarchy umbrella (ADR 014)  
-> **Last Updated:** 2026-09-04  
+> **Last Updated:** 2026-10-24  
 
 ---
 
@@ -45,11 +45,11 @@ Hotkey: **Alt+Space** → `bin/omnicast` (Super+Space stays Omarchy menu).
 |---|---|
 | Apps, Omarchy commands, scripts | Own |
 | Calc (math / color / units) | Own |
-| Quicklinks, snippets (+ optional snippetd) | Own |
+| Quicklinks, in-launcher snippets | Own |
 | Windows (pop, gaps, float, fullscreen, …) | Curate / own |
 | Clipboard, emoji, theme, images, keybindings, menu | Handoff |
-| Ask AI | Mock UI only |
-| File search | Prefer Omarchy handoff |
+| Ask AI | Mock UI only (deferred) |
+| File search | Own (typed) + Omarchy Find Files handoff |
 
 ---
 
@@ -67,7 +67,7 @@ omnicast/
 │   ├── script-commands.md
 │   └── spec/
 ├── bin/omnicast              # Launch / toggle
-├── bin/omnicast-snippetd     # Optional global expander
+├── src/views/root/           # Calc / PathSafety / Handoffs / WindowActions modules
 └── src/                      # QML + Python backends
 ```
 

@@ -40,6 +40,18 @@ ShellRoot {
       Hud.success(message || "")
       return "ok"
     }
+
+    // Berlin deeplinks: omnicast://search?q=… · omnicast search …
+    function search(query: string): string {
+      omnicastWindow.showWithQuery(query || "")
+      return "visible"
+    }
+
+    // omnicast://windows | omnicast://snippets
+    function openView(name: string): string {
+      omnicastWindow.openNamedView(name || "")
+      return "visible"
+    }
   }
 
   Component.onCompleted: {

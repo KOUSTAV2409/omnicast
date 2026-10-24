@@ -1,0 +1,25 @@
+pkgbase = omnicast-git
+	pkgdesc = Alt+Space productivity umbrella for Omarchy (Hyprland / Quickshell)
+	pkgver = 0.2.0.r0.g0000000
+	pkgrel = 1
+	url = https://omnicast.best
+	arch = any
+	license = MIT
+	makedepends = git
+	depends = quickshell
+	depends = python
+	depends = wl-clipboard
+	depends = xdg-utils
+	optdepends = fd: fast file name search
+	optdepends = ripgrep: content: file search
+	optdepends = plocate: locate-backed file search
+	optdepends = ghostty: default terminal
+	optdepends = imv: image preview
+	optdepends = onlyoffice-desktopeditors: office document viewer
+	optdepends = gtk3: gtk-launch for .desktop apps
+	provides = omnicast
+	conflicts = omnicast
+	source = git+https://github.com/KOUSTAV2409/omnicast.git
+	sha256sums = SKIP
+
+pkgname = omnicast-git

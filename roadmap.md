@@ -1,17 +1,15 @@
 # Master Roadmap: Omnicast (Omarchy umbrella)
 
-> **Last Updated:** 2026-09-05  
+> **Last Updated:** 2026-10-24  
 > **Plan:** [`implementation-plan.md`](implementation-plan.md) · **ADRs:** [`memory.md`](memory.md) · **Crosswalk:** [`docs/raycast-vs-omarchy.md`](docs/raycast-vs-omarchy.md)
 
 ---
 
 ## Doctrine (current)
 
-**Manhattan = non-AI umbrella.** Finish every handoff / own / curate tool that does not need a model. Do **not** ship real AI to close Manhattan.
+**Manhattan = non-AI umbrella.** Finished: handoff / own / curate without a model. Ask AI stays mocked.
 
-**AI is out of band.** Mock Ask AI may stay as a stub. Real streaming (Ollama/BYOK) is **after** Manhattan: and is **not** the Omarchy-LLM mission.
-
-**Omarchy-LLM** (ultra-light local model for Omarchy OS tasks) is a **separate mission**, outside this repo’s mainstream goal. Do not couple Omnicast Manhattan/Berlin to that research track.
+**AI is out of band.** Real streaming (Ollama/BYOK) is Berlin+. **Omarchy-LLM** is a separate mission (ADR 015).
 
 ---
 
@@ -22,10 +20,12 @@
 | **Identity** | Done | Omarchy umbrella: handoff native tools; match Omarchy menu UX |
 | **Shell & search** | Done | Fuzzy + frecency/favorites/aliases, Form, HUD, script modes, catalog cache |
 | **Omarchy handoffs** | Done | Clipboard, emoji, theme, background, images, keybindings, menu, capture, share, reminders, Find Files |
-| **Omnicast-owned** | Done | Apps, calc, **file search**, quicklinks, scripts, snippets, Windows (Lua/Omarchy), fallbacks |
-| **AI** | Deferred | Mock UI only: **not required for Manhattan**; real AI later; Omarchy-LLM elsewhere |
+| **Omnicast-owned** | Done | Apps, calc, file search, quicklinks, scripts, in-launcher snippets, Windows (Lua/Omarchy), fallbacks |
+| **Catalog honesty** | Done | No Web/AI fallbacks while indexes or files are still loading |
+| **AI** | Deferred | Mock UI only |
 | **Visual language** | Done | shell.toml menu/launcher tokens + Hyprland rounding |
-| **Public release** | Open | [omnicast.best](https://omnicast.best) + public clone-and-run; packaging later |
+| **Public release** | Done | [omnicast.best](https://omnicast.best) + plugin listing + clone-and-run |
+| **Packaging** | Plugin done · OPR next | Plugin is Omarchy-default; OPR scaffold in `packaging/opr/`; AUR demoted |
 
 ---
 
@@ -37,63 +37,26 @@
 | M2 | Ranking / fuzzy / HUD | Done |
 | M3 | Daily tools (calc, scripts, snippets, WM) | Done |
 | M4 | Real AI | **Deferred**: after Manhattan; separate from Omarchy-LLM |
-| M5 | Manhattan complete (non-AI umbrella) | **Next**: close remaining non-AI gaps |
-| M6 | Berlin underway | Later |
+| M5 | Manhattan complete (non-AI umbrella) | **Done** (2026-10-24) |
+| M6 | Berlin underway | **Next** |
 
 ---
 
 ## What’s left to build
 
-### Must finish for Manhattan (non-AI only)
-Ordered checklist: [`docs/work-order.md`](docs/work-order.md).
+### Berlin (M6)
+1. [x] **Omarchy plugin airtight**: plugin-local bar launcher + `omnicast-omarchy-setup` + integration doc
+2. **Merge to `main`** so `omarchy plugin add/update` gets current code
+3. **OPR package** PR to `omacom/omarchy-pkgs` (`packaging/opr/`)
+4. [x] **Deeplinks** + **Hyprland float snaps** + **ADR 016**
+5. **Omarchy plugin store in the umbrella**: [omarchyplugins.com](https://omarchyplugins.com) / [plugins.omarchy.org](https://plugins.omarchy.org)
+6. **Optional:** generic AI gateway (Ollama/BYOK): still not Omarchy-LLM
 
-Audit [`docs/raycast-vs-omarchy.md`](docs/raycast-vs-omarchy.md) and ship any remaining **handoff / own / curate** gaps that do not need a model. Candidate polish (reconfirm against dogfood):
-
-1. **Root / catalog honesty**: empty states, mid-scan UX, no false web/AI fallbacks while catalogs load  
-2. **Script commands polish**: arg forms, failure HUD, docs for `~/.config/omnicast/commands/`  
-3. **Windows / Hyprland helpers**: any broken or missing daily actions from the curated list  
-4. **Quicklinks / snippets / calc**: edge cases from real use (not new feature families)  
-5. **Dogfood pass**: Raycast-shaped daily loop without Ask AI: launch → clipboard → emoji → theme → files → snippets → windows → scripts → calc → web fallback  
-
-When that loop is trustworthy, **declare Manhattan taken**: even with mock AI.
-
-### File search / preview: saved backlog (post-ship polish)
-
-Shipped on `koustav` (2026-09-05): typed Files, side preview, colored markdown/code, scopes, fast name search (`content:` opt-in).
-
-**Optional later**
-- Richer highlight via pygments (optional dep)
-- PDF multi-page browse
-- Image zoom / pan
-- Deduplicate same basename across folders more smartly
-- Remember last file scope
-- Tiny “no results in this scope” empty state
-
-**Still behind Raycast (file loop only)**
-1. Content search as a first-class, fast index: not only opt-in `content:` over live `rg`
-2. Richer Quick Look: PDF/Office thumbnails, media scrubbing, smoother type coverage
-3. Search scopes UX: saved scopes, ignore rules, manage UI (we have cycle + `in:`)
-4. Actions depth: duplicate, Quicklink, AI attach, etc.
-5. Edge-case polish: weird encodings, huge trees, permissions, network mounts
-
-### Explicitly deferred (not Manhattan)
-- Real AI streaming (Ollama / BYOK)  
-- Quick AI from root / clipboard explain-summarize  
-- **Omarchy-LLM** (separate mission: do not plan inside Omnicast milestones)
-
-### Berlin (M6: after Manhattan)
-6. [x] **Public clone path**: omnicast.best + public repo  
-7. **Packaging / install path**: AUR / omarchy plugin  
-8. **Deeplinks**: `omnicast://…`  
-9. **One Hyprland-only killer workflow**  
-10. **Omarchy plugin store in the umbrella**: [omarchyplugins.com](https://omarchyplugins.com)  
-11. **Extension strategy ADR**: scripts-first; Omarchy registry next; never Raycast Store clone  
-12. **Optional:** wire real AI gateway (generic Ollama/BYOK): still not Omarchy-LLM  
-
-### Maps we already have (north star inputs)
-- Raycast feature matrix → [`docs/spec/raycast-feature-matrix.md`](docs/spec/raycast-feature-matrix.md) + [`docs/raycast-vs-omarchy.md`](docs/raycast-vs-omarchy.md)
-- Omarchy tools / handoffs → same crosswalk + `/usr/share/omarchy`
-- Eventual goal → umbrella: handoff · own · curate (including community plugins)
+### File search polish (optional)
+- Content search as a first-class fast index (not only live `content:` + `rg`)
+- Richer Quick Look (PDF/Office thumbnails, media scrubbing)
+- Saved scopes / ignore rules / manage UI
+- Edge-case polish (encodings, huge trees, mounts)
 
 ### Explicitly not building (for now)
 - Raycast extension store / full API clone  
@@ -101,6 +64,7 @@ Shipped on `koustav` (2026-09-05): typed Files, side preview, colored markdown/c
 - Dictation, Focus, Calendar, Notes  
 - Rewriting UI outside Quickshell  
 - Training or shipping a custom Omarchy LLM inside this repo  
+- Global keystroke snippet daemon (removed; in-launcher snippets only)
 
 Authoritative checkboxes: [`implementation-plan.md`](implementation-plan.md) §5 (M4-M6).
 
@@ -108,6 +72,6 @@ Authoritative checkboxes: [`implementation-plan.md`](implementation-plan.md) §5
 
 ## What “done” means
 
-**Manhattan:** Raycast power-user **non-AI** daily loop on Omarchy without friction: launch, clipboard, snippets, windows, scripts, calc, web fallback: with HUD and ranking. Ask AI may remain mocked.
+**Manhattan (taken):** Raycast power-user **non-AI** daily loop on Omarchy without friction: launch, clipboard, snippets, windows, scripts, calc, web fallback: with HUD and ranking. Ask AI may remain mocked.
 
 **Berlin:** Workflows that feel *better* than Raycast because of Hyprland/Omarchy (deep WM, free clipboard/themes, `omarchy` as OS API, community plugins). Local AI (generic gateway) is optional Berlin+; **Omarchy-LLM stays a separate mission.**

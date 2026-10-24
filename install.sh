@@ -80,10 +80,14 @@ install_repository() {
     log_done "Downloaded Omnicast repository"
   fi
 
-  # Symlink launcher to PATH
-  chmod +x "$INSTALL_DIR/bin/omnicast"
+  # Symlink launcher to PATH (+ Omarchy-aware bind helper)
+  chmod +x "$INSTALL_DIR/bin/omnicast" "$INSTALL_DIR/bin/omnicast-omarchy-setup" 2>/dev/null || chmod +x "$INSTALL_DIR/bin/omnicast"
   ln -sf "$INSTALL_DIR/bin/omnicast" "$BIN_DIR/omnicast"
   log_done "Symlinked ${BOLD}$BIN_DIR/omnicast${RESET}"
+  if [[ -x "$INSTALL_DIR/bin/omnicast-omarchy-setup" ]]; then
+    log_info "Running Omarchy setup (Alt+Space bind)…"
+    bash "$INSTALL_DIR/bin/omnicast-omarchy-setup" || log_warn "omnicast-omarchy-setup reported an issue"
+  fi
 
   # Verify PATH
   if [[ ":$PATH:" != *":$BIN_DIR:"* ]]; then
@@ -101,15 +105,23 @@ install_desktop_entry() {
 [Desktop Entry]
 Name=Omnicast
 Comment=Alt+Space Productivity Umbrella for Omarchy
-Exec=omnicast
+Exec=omnicast %u
 Icon=preferences-system-search
 Terminal=false
 Type=Application
 Categories=Utility;System;
+MimeType=x-scheme-handler/omnicast;
 StartupNotify=false
 DESKTOP
 
-  log_done "Registered desktop application launcher"
+  if command -v xdg-mime >/dev/null 2>&1; then
+    xdg-mime default omnicast.desktop x-scheme-handler/omnicast >/dev/null 2>&1 || true
+  fi
+  if command -v update-desktop-database >/dev/null 2>&1; then
+    update-desktop-database "$APP_DIR" >/dev/null 2>&1 || true
+  fi
+
+  log_done "Registered desktop application launcher (+ omnicast:// handler)"
 }
 
 # --- 4. User Config & Commands Directory ---
