@@ -2,5 +2,5 @@
   "source": "local",
   "sync": false,
   "release_ring": "fast",
-  "auto_merge": true
+  "auto_merge": false
 }

@@ -1,12 +1,12 @@
 # Maintainer: Koustav Ganguly <koustavganguly24@gmail.com>
 pkgname=omnicast
 pkgver=0.2.1
-pkgrel=1
+pkgrel=2
 pkgdesc='Alt+Space productivity umbrella for Omarchy (Hyprland / Quickshell)'
 arch=('any')
 url='https://omnicast.best'
 license=('MIT')
-_commit='bf646385b6a02244318d57fb8ed77e1be8a1d1ed'
+_commit='8ae8e275f623da31d10f87a0574cbc72c5eed336'
 depends=(
   'omarchy'
   'python'
