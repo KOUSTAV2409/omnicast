@@ -14,7 +14,7 @@
 1. [ ] Merge `koustav` → `main` (plugin-add clones default branch)
 2. [ ] Dogfood: `omarchy plugin update` / re-add + setup on a clean Omarchy box
 3. [ ] `omarchy plugin validate` on fresh clone from `main`
-4. [ ] OPR PR to `omacom/omarchy-pkgs` (`packaging/opr/`)
+4. [x] OPR PR to `omacom/omarchy-pkgs` (`packaging/opr/`)
 
 ## Later
 5. [ ] Index / handoff Omarchy plugin store in umbrella
