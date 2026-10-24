@@ -25,7 +25,7 @@
 | **AI** | Deferred | Mock UI only |
 | **Visual language** | Done | shell.toml menu/launcher tokens + Hyprland rounding |
 | **Public release** | Done | [omnicast.best](https://omnicast.best) + plugin listing + clone-and-run |
-| **AUR** | Draft | `packaging/aur/PKGBUILD` ready; submit is Berlin |
+| **Packaging** | Plugin done · OPR next | Plugin is Omarchy-default; OPR scaffold in `packaging/opr/`; AUR demoted |
 
 ---
 
@@ -45,11 +45,11 @@
 ## What’s left to build
 
 ### Berlin (M6)
-1. **Submit AUR** `omnicast-git` (PKGBUILD ready; needs AUR account push — see `packaging/aur/README.md`)
-2. [x] **Deeplinks**: `omnicast://…` + CLI (`docs/deeplinks.md`)
-3. [x] **Hyprland float snaps**: halves / thirds / quarters via Lua (`window_snap.py`)
-4. **Omarchy plugin store in the umbrella**: [omarchyplugins.com](https://omarchyplugins.com)
-5. [x] **Extension strategy ADR 016**: scripts-first; Omarchy registry next; never Raycast Store clone
+1. [x] **Omarchy plugin airtight**: plugin-local bar launcher + `omnicast-omarchy-setup` + integration doc
+2. **Merge to `main`** so `omarchy plugin add/update` gets current code
+3. **OPR package** PR to `omacom/omarchy-pkgs` (`packaging/opr/`)
+4. [x] **Deeplinks** + **Hyprland float snaps** + **ADR 016**
+5. **Omarchy plugin store in the umbrella**: [omarchyplugins.com](https://omarchyplugins.com) / [plugins.omarchy.org](https://plugins.omarchy.org)
 6. **Optional:** generic AI gateway (Ollama/BYOK): still not Omarchy-LLM
 
 ### File search polish (optional)

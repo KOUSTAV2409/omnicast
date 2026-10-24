@@ -1,23 +1,25 @@
-# Work order: Berlin (post-Manhattan)
+# Work order: Omarchy-first, then OPR
 
-> Manhattan (non-AI) declared taken 2026-10-24. AI and Omarchy-LLM stay out of band (ADR 015).
+> Manhattan taken 2026-10-24. Default packaging path is **Omarchy plugin + OPR**, not AUR.
 
-## Done (Manhattan)
-- [x] Non-AI dogfood: backends smoke + Omarchy handoff/window binaries present
-- [x] Catalog honesty: no Web/AI fallbacks while catalogs/files load
-- [x] Doc sync: remove snippetd promises; honest Ask AI = mock
-- [x] News: Manhattan taken
-- [x] RootSearch split: `src/views/root/{Calc,PathSafety,Handoffs,WindowActions}.js`
-- [x] CI smoke + AUR PKGBUILD draft
+## Done
+- [x] Manhattan non-AI loop + news
+- [x] Catalog honesty, RootSearch modules, CI smoke
+- [x] Hyprland float snaps + deeplinks + ADR 016/017
+- [x] Bar widget uses plugin-local `bin/omnicast` (no PATH loophole)
+- [x] `bin/omnicast-omarchy-setup` (CLI symlink + Alt+Space)
+- [x] Docs: Omarchy integration checklist + OPR scaffold
 
-## Berlin next
-1. [ ] Submit AUR `omnicast-git` (PKGBUILD + README ready in `packaging/aur/`)
-2. [x] Deeplinks `omnicast://…` (`docs/deeplinks.md`)
-3. [x] Hyprland float snaps (`window_snap.py` + Windows palette)
-4. [x] Extension strategy ADR 016
-5. [ ] Optional: generic Ollama/BYOK gateway (still not Omarchy-LLM)
-6. [ ] Index / handoff Omarchy plugin store in umbrella
+## Now
+1. [ ] Merge `koustav` → `main` (plugin-add clones default branch)
+2. [ ] Dogfood: `omarchy plugin update` / re-add + setup on a clean Omarchy box
+3. [ ] `omarchy plugin validate` on fresh clone from `main`
+4. [ ] OPR PR to `omacom/omarchy-pkgs` (`packaging/opr/`)
+
+## Later
+5. [ ] Index / handoff Omarchy plugin store in umbrella
+6. [ ] Optional: generic Ollama/BYOK gateway
+7. [ ] AUR only if targeting vanilla Arch (not Omarchy-default)
 
 ## Out of band
-- Real AI streaming for Manhattan (already closed without it)
-- Omarchy-LLM training / research
+- Omarchy-LLM

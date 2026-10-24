@@ -220,7 +220,9 @@ Adjust if dogfooding reveals a broken hero path: **always prioritize trust (A/B)
 
 ### M6: “Berlin underway” (= Phase F)
 - [x] Public clone + Omarchy plugin path
-- [ ] AUR submit (`packaging/aur/PKGBUILD` + README; needs maintainer AUR push)
+- [x] Omarchy plugin path airtight (plugin-local bin + omarchy-setup)
+- [ ] Merge `koustav` → `main` (plugin-add default branch)
+- [ ] OPR submit (`packaging/opr/` → `omacom/omarchy-pkgs`)
 - [x] CI smoke (`tests/smoke_backends.sh` + `.github/workflows/smoke.yml`)
 - [x] Deeplinks (`omnicast://…` + CLI; `docs/deeplinks.md`)
 - [x] Hyprland float snaps (`window_snap.py`: halves/thirds/quarters)
@@ -258,14 +260,13 @@ Plain-language backlog: [`roadmap.md`](roadmap.md) → **What’s left to build*
 
 ## 8. Immediate next actions (start here)
 
-1. **Submit AUR** `omnicast-git`  
-2. **One Hyprland-only killer workflow**  
-3. **Deeplinks** `omnicast://…`  
-4. **Extension strategy ADR**  
-5. **Optional later:** generic Ollama/BYOK gateway  
-6. **Never** schedule Omarchy-LLM inside Omnicast M4-M6
+1. **Merge to `main`** so Omarchy plugin installs are current  
+2. **OPR PR** to `omacom/omarchy-pkgs`  
+3. **Plugin-store umbrella** handoff  
+4. **Optional later:** generic Ollama/BYOK gateway  
+5. **Never** schedule Omarchy-LLM inside Omnicast M4-M6  
 
-Manhattan is closed. Do not reopen M5 for AI.
+Manhattan is closed. AUR is not the Omarchy packaging path (OPR is).
 
 ---
 

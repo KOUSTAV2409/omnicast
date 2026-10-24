@@ -16,53 +16,49 @@ Paste this to Cursor / Claude / ChatGPT on an Omarchy machine:
 
 ```text
 Set up Omnicast on this Omarchy box:
-Run: omarchy plugin add https://github.com/KOUSTAV2409/omnicast.git --enable
+1. omarchy plugin add https://github.com/KOUSTAV2409/omnicast.git --enable
+2. ~/.config/omarchy/plugins/koustav.omnicast/bin/omnicast-omarchy-setup
+3. Confirm Alt+Space toggles Omnicast; Super+Space stays the Omarchy menu
 ```
 
 ---
 
 ## Quick start (Omarchy only)
 
-**Needs:** Omarchy (Hyprland) + Quickshell (`qs` on PATH).
+**Needs:** Omarchy (Hyprland + Quickshell). Omnicast is an **Omarchy shell plugin**, not an AUR app.
 
-### Recommended: Install as Omarchy Shell Plugin
+### Recommended: Omarchy Plugins (marketplace path)
 
 ```bash
 omarchy plugin add https://github.com/KOUSTAV2409/omnicast.git --enable
+~/.config/omarchy/plugins/koustav.omnicast/bin/omnicast-omarchy-setup
 ```
 
----
+What that does:
+1. Installs the plugin under `~/.config/omarchy/plugins/koustav.omnicast/`
+2. Enables the bar widget (search icon). The widget always calls the **plugin-local** `bin/omnicast` (no PATH dependency)
+3. `omnicast-omarchy-setup` symlinks CLI to `~/.local/bin/omnicast` and binds **Alt+Space** (leaves **Super+Space** for the Omarchy menu)
 
-### Standalone Launcher Installation
+Update later: `omarchy plugin update koustav.omnicast` then re-run setup if the bind path changed.
+
+Listing: [Omarchy Plugins · koustav.omnicast](https://omarchyplugins.com/plugin.html?id=koustav.omnicast)
+
+### Optional later: OPR system package
+
+Omarchy’s package repo is **OPR** (`pkgs.omarchy.org` via [`omacom/omarchy-pkgs`](https://github.com/omacom/omarchy-pkgs)), not the AUR. Scaffold: [`packaging/opr/`](packaging/opr/). Submit after the plugin path is airtight.
+
+### Standalone clone (developers)
 
 ```bash
 git clone --depth=1 https://github.com/KOUSTAV2409/omnicast.git ~/.local/share/omnicast
 bash ~/.local/share/omnicast/install.sh
 ```
 
-The installer automatically:
-1. Symlinks `omnicast` to `~/.local/bin/omnicast`
-2. Registers `ALT + SPACE` in `~/.config/hypr/bindings.lua` (keeping `SUPER + SPACE` for the Omarchy menu)
-3. Adds the desktop entry and populates sample script commands in `~/.config/omnicast/commands/`
-
----
-
-### Manual Clone (Developers)
-
-```bash
-git clone https://github.com/KOUSTAV2409/omnicast.git
-cd omnicast
-./bin/omnicast
-```
-
-Bind `Alt+Space` in `~/.config/hypr/bindings.lua`:
-```lua
-o.bind("ALT + SPACE", "Omnicast", os.getenv("HOME") .. "/omnicast/bin/omnicast")
-```
+Or from a working tree: `./bin/omnicast` and `./bin/omnicast-omarchy-setup`.
 
 Script commands: drop executables in `~/.config/omnicast/commands/`. See [`docs/script-commands.md`](docs/script-commands.md).
 
-Snippets are managed inside the launcher (no global keystroke expander; that path was removed).
+Snippets are managed inside the launcher (no global keystroke expander).
 
 **Stuck?** [Open an issue](https://github.com/KOUSTAV2409/omnicast/issues). Feedback from Raycast → Omarchy users is especially welcome.
 
@@ -112,9 +108,9 @@ Omnicast dismisses and opens the native surface:
 
 ### Not ready yet
 - **AI**: UI stub only; **deferred** (post-Manhattan). Custom Omarchy-LLM is a separate mission outside this repo.  
-- **AUR publish**: `packaging/aur/PKGBUILD` is ready to submit; clone / Omarchy plugin remain the primary install paths
+- **OPR package**: scaffold under `packaging/opr/` (Omarchy pkg repo). AUR is not the Omarchy default path.
 
-Full Raycast ↔ Omarchy map: [`docs/raycast-vs-omarchy.md`](docs/raycast-vs-omarchy.md)
+Full Raycast ↔ Omarchy map: [`docs/raycast-vs-omarchy.md`](docs/raycast-vs-omarchy.md) · Omarchy integration: [`docs/omarchy-integration.md`](docs/omarchy-integration.md)
 
 ---
 
@@ -137,7 +133,8 @@ Full Raycast ↔ Omarchy map: [`docs/raycast-vs-omarchy.md`](docs/raycast-vs-oma
 | [`src/`](src/) | Shell, views, services, backends |
 | [`src/views/root/`](src/views/root/) | Calc / PathSafety / Handoffs / WindowActions modules |
 | [`tests/smoke_backends.sh`](tests/smoke_backends.sh) | Backend + packaging smoke |
-| [`packaging/aur/`](packaging/aur/) | AUR `omnicast-git` PKGBUILD |
+| [`packaging/opr/`](packaging/opr/) | OPR (`omarchy-pkgs`) recipe scaffold |
+| [`bin/omnicast-omarchy-setup`](bin/omnicast-omarchy-setup) | Post-plugin PATH + Alt+Space bind |
 | [`docs/work-order.md`](docs/work-order.md) | Ordered next actions (Berlin) |
 | [`site/`](site/) | Public landing + news |
 | [`docs/script-commands.md`](docs/script-commands.md) | Script command API |
@@ -153,7 +150,7 @@ Full Raycast ↔ Omarchy map: [`docs/raycast-vs-omarchy.md`](docs/raycast-vs-oma
 
 **Manhattan (non-AI umbrella): taken.** Daily loop works without real AI. Ask AI stays mocked.
 
-**Berlin underway:** float snaps + deeplinks shipped; AUR submit + optional AI gateway next. Omarchy-LLM stays out of band. Deeplinks: [`docs/deeplinks.md`](docs/deeplinks.md). Public site: [omnicast.best](https://omnicast.best).
+**Berlin:** Omarchy-first hardening, then OPR. Float snaps + deeplinks shipped. Omarchy-LLM stays out of band. Deeplinks: [`docs/deeplinks.md`](docs/deeplinks.md). Public site: [omnicast.best](https://omnicast.best).
 
 Full leftover backlog: [`roadmap.md`](roadmap.md) → **What’s left to build**.
 

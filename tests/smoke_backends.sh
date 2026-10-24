@@ -83,6 +83,16 @@ if [[ -x bin/omnicast ]]; then pass "bin/omnicast executable"
 else bad "bin/omnicast executable"
 fi
 
+if [[ -x bin/omnicast-omarchy-setup ]]; then pass "omarchy-setup executable"
+else bad "omarchy-setup executable"
+fi
+
+if grep -q 'omnicastBin\|resolvedUrl("bin/omnicast")' BarWidget.qml; then
+  pass "BarWidget plugin-local bin"
+else
+  bad "BarWidget plugin-local bin"
+fi
+
 # snippet daemon must NOT exist (removed for security)
 if [[ -e bin/omnicast-snippetd ]]; then bad "snippetd should be removed"
 else pass "no snippetd binary"

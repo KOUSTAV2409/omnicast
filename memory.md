@@ -43,7 +43,7 @@ Whenever any agent or developer touches this project, the following rules MUST b
 
 ## 4. Current Working State
 
-* **System Status**: Manhattan taken (2026-10-24, non-AI). Berlin next (AUR, deeplinks, Hyprland-only workflows). AI deferred; Omarchy-LLM is a separate mission (ADR 015).
+* **System Status**: Manhattan taken (2026-10-24). Omarchy-first hardening then OPR (not AUR). AI deferred; Omarchy-LLM out of band (ADR 015).
 * **Live hotkey**: `ALT + SPACE` → `bin/omnicast`
 * **Snippets**: in-launcher only (`SnippetsView` + `snippet_manager.py`). Global expander daemon removed.
 * **Site**: https://omnicast.best

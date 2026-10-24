@@ -80,10 +80,14 @@ install_repository() {
     log_done "Downloaded Omnicast repository"
   fi
 
-  # Symlink launcher to PATH
-  chmod +x "$INSTALL_DIR/bin/omnicast"
+  # Symlink launcher to PATH (+ Omarchy-aware bind helper)
+  chmod +x "$INSTALL_DIR/bin/omnicast" "$INSTALL_DIR/bin/omnicast-omarchy-setup" 2>/dev/null || chmod +x "$INSTALL_DIR/bin/omnicast"
   ln -sf "$INSTALL_DIR/bin/omnicast" "$BIN_DIR/omnicast"
   log_done "Symlinked ${BOLD}$BIN_DIR/omnicast${RESET}"
+  if [[ -x "$INSTALL_DIR/bin/omnicast-omarchy-setup" ]]; then
+    log_info "Running Omarchy setup (Alt+Space bind)…"
+    bash "$INSTALL_DIR/bin/omnicast-omarchy-setup" || log_warn "omnicast-omarchy-setup reported an issue"
+  fi
 
   # Verify PATH
   if [[ ":$PATH:" != *":$BIN_DIR:"* ]]; then
