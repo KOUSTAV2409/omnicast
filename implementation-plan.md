@@ -198,11 +198,11 @@ Adjust if dogfooding reveals a broken hero path: **always prioritize trust (A/B)
 - [x] Calc units/colors/FX/dates
 - [x] Clipboard via Omarchy handoff (ADR 011 / 014)
 
-### M4: “AI-native launcher” (= Phase D exit): **DEFERRED**
-- [ ] Streaming Ollama/BYOK
-- [ ] Quick AI fallback (root / no-match → real model)
-- [ ] Clipboard/selection context actions (explain / summarize)
-*(Not required for Manhattan. Not Omarchy-LLM. Revisit after M5.)*
+### M4: “AI-native launcher” (= Phase D exit)
+- [x] Streaming Ollama / OpenAI-compatible endpoint
+- [x] Quick AI fallback (root / no-match → real model)
+- [x] Clipboard/selection context actions (explain / summarize)
+*(Not Omarchy-LLM. A key is optional and stays in `~/.config/omnicast/ai.json`.)*
 
 ### M5: “Manhattan complete” (non-AI umbrella) — **DONE 2026-10-24**
 - [x] Handoff Omarchy-strong tools (clipboard, emoji, theme, images, menu, capture, share, reminders, keybindings)
@@ -227,7 +227,8 @@ Adjust if dogfooding reveals a broken hero path: **always prioritize trust (A/B)
 - [x] Deeplinks (`omnicast://…` + CLI; `docs/deeplinks.md`)
 - [x] Hyprland float snaps (`window_snap.py`: halves/thirds/quarters)
 - [x] Extension strategy ADR 016 accepted
-- [ ] Optional: generic AI gateway (Ollama/BYOK): still separate from Omarchy-LLM
+- [x] Generic AI gateway (Ollama / OpenAI-compatible): still separate from Omarchy-LLM
+- [x] Plugin-directory handoff (search, listing, `omarchy plugin` actions)
 
 Plain-language backlog: [`roadmap.md`](roadmap.md) → **What’s left to build**.
 
@@ -262,8 +263,8 @@ Plain-language backlog: [`roadmap.md`](roadmap.md) → **What’s left to build*
 
 1. [x] **Merge to `main`** so Omarchy plugin installs are current  
 2. [x] **OPR PR** to `omacom/omarchy-pkgs` ([#1573](https://github.com/omacom/omarchy-pkgs/pull/1573); awaiting maintainer publish)  
-3. **Plugin-store umbrella** handoff  
-4. **Optional later:** generic Ollama/BYOK gateway  
+3. [x] **Plugin-directory** handoff  
+4. [x] Generic Ollama / OpenAI-compatible gateway  
 5. **Never** schedule Omarchy-LLM inside Omnicast M4-M6  
 
 Manhattan is closed. AUR is not the Omarchy packaging path (OPR is).

@@ -103,12 +103,16 @@ Omnicast dismisses and opens the native surface:
   - Try: open **Snippets** → Enter to insert into active window, or Ctrl+C to copy
 - **Windows**: Hyprland **float snaps** (left/right/thirds/quarters) + Omarchy helpers (pop, gaps, transparency, layout)  
   - Try: `snap left`, open **Windows**, or `omnicast snap left` / `omnicast://snap?layout=left`
+- **Plugins**: search the Omarchy plugin directory, open the listing, install with `omarchy plugin add`  
+  - Try: open **Plugins**, or `omnicast plugins` / `omnicast://plugins`
+- **Ask AI**: streams from local Ollama, or an OpenAI-compatible endpoint if you set a key  
+  - Try: open **Ask AI**, or type `how does …?` · settings in `~/.config/omnicast/ai.json` (Ctrl+K → Settings)
 - **Fallbacks**: no match → Search Web or Ask AI  
   - Try: type nonsense → **Search Web** / **Ask AI** rows appear
 
 ### Not ready yet
-- **AI**: UI stub only; **deferred** (post-Manhattan). Custom Omarchy-LLM is a separate mission outside this repo.  
 - **OPR package**: scaffold under `packaging/opr/` (Omarchy pkg repo). AUR is not the Omarchy default path.
+- A custom Omarchy model is a separate mission outside this repo.
 
 Full Raycast ↔ Omarchy map: [`docs/raycast-vs-omarchy.md`](docs/raycast-vs-omarchy.md) · Omarchy integration: [`docs/omarchy-integration.md`](docs/omarchy-integration.md)
 
@@ -149,7 +153,7 @@ Full Raycast ↔ Omarchy map: [`docs/raycast-vs-omarchy.md`](docs/raycast-vs-oma
 
 ## Status
 
-**Manhattan (non-AI umbrella): taken.** Daily loop works without real AI. Ask AI stays mocked.
+**Manhattan (non-AI umbrella): taken.** Daily loop works without a model. Ask AI streams from Ollama or an OpenAI-compatible endpoint. The Omarchy plugin directory is searchable from the launcher.
 
 **Berlin:** Omarchy-first hardening, then OPR. Float snaps + deeplinks shipped. Omarchy-LLM stays out of band. Deeplinks: [`docs/deeplinks.md`](docs/deeplinks.md). Public site: [omnicast.best](https://omnicast.best).
 

@@ -20,6 +20,7 @@ Item {
   property var omarchyCommands: []
   property var desktopApps: []
   property var quickLinkItems: []
+  property var pluginRecords: []
   property var fileHits: []
   property string fileQuery: ""
   property var itemById: ({})
@@ -85,6 +86,7 @@ Item {
 
   property Component windowTilerComp: Component { WindowTilerView {} }
   property Component snippetsComp: Component { SnippetsView {} }
+  property Component pluginsComp: Component { PluginsView {} }
   property Component aiAssistComp: Component { AiAssistView {} }
   property Component scriptResultComp: Component { ScriptResultView {} }
   property Component formViewComp: Component { FormView {} }
@@ -127,6 +129,27 @@ Item {
     command: ["python3", Paths.py("quicklinks.py"), "list"]
     running: false
     stdout: StdioCollector { waitForEnd: true; onStreamFinished: text => root.handleQuicklinkScanMeta(text) }
+  }
+
+  Process {
+    id: pluginScanner
+    command: ["python3", Paths.py("plugin_catalog.py"), "scan"]
+    running: false
+    stdout: StdioCollector { waitForEnd: true; onStreamFinished: text => root.handlePluginScanMeta(text, false) }
+  }
+
+  Process {
+    id: pluginRefresh
+    command: ["python3", Paths.py("plugin_catalog.py"), "refresh"]
+    running: false
+    stdout: StdioCollector { waitForEnd: true; onStreamFinished: text => root.handlePluginScanMeta(text, true) }
+  }
+
+  FileView {
+    id: pluginsCacheFile
+    path: Paths.cacheFile("plugins.json")
+    blockLoading: true
+    printErrors: false
   }
 
   Process {
@@ -363,7 +386,9 @@ Item {
                "󰅍", "Omnicast", "Omnicast", "Open Snippets", root.snippetsComp, "Snippets"),
       pushTool("window", "Windows", "Pop · float · gaps · Omarchy hypr",
                "󰖯", "Omnicast", "Omnicast", "Window Management", root.windowTilerComp, "Window Management"),
-      pushTool("ai", "Ask AI", "Mock UI · AI deferred (post-Manhattan)",
+      pushTool("plugins", "Plugins", "Omarchy plugin directory",
+               "󰏗", "Omnicast", "Omnicast", "Open Plugins", root.pluginsComp, "Plugins"),
+      pushTool("ai", "Ask AI", "Ollama · OpenAI-compatible key optional",
                "󰚩", "Omnicast", "Omnicast", "Ask AI", root.aiAssistComp, "Ask AI"),
       pushTool("quicklinks-mgr", "Quicklinks", "URL bookmarks",
                "󰌷", "Omnicast", "Omnicast", "Quicklinks", null, "")
@@ -775,6 +800,161 @@ Item {
     buildFullItemList()
   }
 
+  function handlePluginScanMeta(raw, fromRefresh) {
+    var meta = {}
+    try { meta = JSON.parse((raw || "").trim() || "{}") } catch (e) { meta = {} }
+    pluginsCacheFile.path = ""
+    pluginsCacheFile.path = Paths.cacheFile("plugins.json")
+    var text = ""
+    try { text = pluginsCacheFile.text() || "" } catch (e2) { text = "" }
+    try {
+      var data = JSON.parse(text || "{}")
+      var plugins = Array.isArray(data) ? data : (data.plugins || [])
+      pluginRecords = Array.isArray(plugins) ? plugins : []
+    } catch (e3) {
+      pluginRecords = []
+    }
+    if (fromRefresh && meta.error)
+      Hud.info("Plugin directory unavailable: " + meta.error)
+    if (!fromRefresh && meta.stale && !pluginRefresh.running)
+      pluginRefresh.running = true
+    if ((filterText || "").trim().length)
+      filter(filterText)
+  }
+
+  function looksLikeQuestion(query) {
+    var q = (query || "").trim()
+    if (q.length < 8)
+      return false
+    if (/^(content:|in:\w+\s)/i.test(q))
+      return false
+    if (q.indexOf("?") >= 0)
+      return true
+    return /^(who|what|why|how|when|where|explain|summarize|summarise|translate)\s+\S+/i.test(q)
+  }
+
+  function openPluginListing(id) {
+    if (!/^[A-Za-z0-9][A-Za-z0-9._-]*$/.test(id || "")) {
+      Hud.error("Invalid plugin id")
+      return
+    }
+    root.requestDismiss()
+    Exec.openUrl("https://omarchyplugins.com/plugin.html?id=" + encodeURIComponent(id))
+  }
+
+  function openHttps(url) {
+    var u = String(url || "")
+    if (u.indexOf("https://") !== 0)
+      return
+    root.requestDismiss()
+    Exec.openUrl(u)
+  }
+
+  function makePluginItem(p) {
+    var id = p.id || ""
+    var installed = !!p.installed
+    var enabled = !!p.enabled
+    var canToggle = installed && p.canDisable !== false
+    var primary = (installed && !enabled && canToggle) ? "Enable" : "Open Listing"
+    var item = {
+      id: "plugin-" + id,
+      title: p.title || id,
+      subtitle: p.subtitle || p.description || id,
+      icon: "󰏗",
+      category: "Plugins",
+      badge: installed ? (enabled ? "On" : "Off") : "Store",
+      keyword: id,
+      primaryActionTitle: primary,
+      actions: []
+    }
+    item.action = function() {
+      if (installed && !enabled && canToggle)
+        PluginOps.run("enable", id)
+      else
+        root.openPluginListing(id)
+    }
+    var acts = [
+      { title: primary, icon: "󰏗", shortcut: "↵", callback: item.action },
+      { title: "Open in Plugins", icon: "󰏗", callback: function() {
+        root.requestPushView("Plugins", root.pluginsComp)
+      }},
+      { title: "Open Listing", icon: "󰖟", callback: function() { root.openPluginListing(id) } }
+    ]
+    if (p.repo)
+      acts.push({ title: "Open Repository", icon: "󰊤", callback: function() { root.openHttps(p.repo) } })
+    if (!installed && p.installable)
+      acts.push({ title: "Install and Enable", icon: "󰏗", callback: function() { PluginOps.run("install", id) } })
+    if (canToggle && enabled)
+      acts.push({ title: "Disable", icon: "󰒭", callback: function() { PluginOps.run("disable", id) } })
+    if (installed && !p.firstParty && p.canDisable !== false)
+      acts.push({ title: "Remove", icon: "󰆴", callback: function() { PluginOps.run("remove", id) } })
+    item.actions = withMetaActions(item, acts)
+    return item
+  }
+
+  function pluginMatchesFor(query) {
+    var q = (query || "").trim()
+    if (q.length < 2 || !pluginRecords.length || root.isQuicklinkKeywordQuery(q))
+      return []
+    var scored = []
+    var ql = q.toLowerCase()
+    for (var i = 0; i < pluginRecords.length; i++) {
+      var p = pluginRecords[i]
+      var blob = ((p.title || "") + " " + (p.id || "") + " " + (p.tags || "") + " " + (p.subtitle || "")).toLowerCase()
+      if (blob.indexOf(ql) < 0)
+        continue
+      var probe = {
+        title: p.title || "",
+        subtitle: p.subtitle || p.description || "",
+        category: "Plugins",
+        keyword: p.id || "",
+        badge: p.tags || ""
+      }
+      var s = Fuzzy.itemScore(q, probe)
+      if (s < 700)
+        continue
+      if (p.firstParty && !p.installed && s < 900)
+        continue
+      if (p.installed)
+        s += 60
+      scored.push({ p: p, score: s })
+    }
+    scored.sort(function(a, b) { return b.score - a.score })
+    var out = []
+    var cap = Math.min(scored.length, 6)
+    for (var j = 0; j < cap; j++)
+      out.push(makePluginItem(scored[j].p))
+    return out
+  }
+
+  function askRow(query) {
+    var q = query
+    var item = {
+      id: "ask-ai-query",
+      title: "Ask AI",
+      subtitle: q,
+      icon: "󰚩",
+      badge: "AI",
+      category: "AI",
+      primaryActionTitle: "Ask",
+      actions: []
+    }
+    item.action = function() {
+      Ranking.bump("ask-ai-query")
+      root.requestPushViewWithProps("Ask AI", root.aiAssistComp, { queryPrompt: q, autoSend: true })
+    }
+    item.actions = withMetaActions(item, [
+      { title: "Ask", icon: "󰚩", shortcut: "↵", callback: item.action },
+      { title: "Explain Clipboard", icon: "", callback: function() {
+        root.requestPushViewWithProps("Ask AI", root.aiAssistComp, { preset: "explain" })
+      }},
+      { title: "Summarize Clipboard", icon: "󰨸", callback: function() {
+        root.requestPushViewWithProps("Ask AI", root.aiAssistComp, { preset: "summarize" })
+      }}
+    ])
+    return item
+  }
+
   function handleQuicklinkScan(raw) {
     try {
       var links = JSON.parse(raw || "[]")
@@ -990,7 +1170,7 @@ Item {
     return out
   }
 
-  function fallbackItems(query) {
+  function fallbackItems(query, includeAi) {
     var q = query
     var web = {
       id: "fallback-web", title: "Search Web", subtitle: "Google · " + q,
@@ -1004,14 +1184,24 @@ Item {
     web.actions = [{ title: "Search Web", icon: "󰍉", shortcut: "↵", callback: web.action }]
 
     var ai = {
-      id: "fallback-ai", title: "Ask AI (mock)", subtitle: q + " · AI deferred",
+      id: "fallback-ai", title: "Ask AI", subtitle: q + " · Ollama or your endpoint",
       icon: "󰚩", badge: "", category: "Fallback", primaryActionTitle: "Ask", actions: []
     }
     ai.action = function() {
       Ranking.bump("fallback-ai")
-      root.requestPushViewWithProps("Ask AI", root.aiAssistComp, {})
+      root.requestPushViewWithProps("Ask AI", root.aiAssistComp, { queryPrompt: q, autoSend: true })
     }
-    ai.actions = [{ title: "Ask AI", icon: "󰚩", shortcut: "↵", callback: ai.action }]
+    ai.actions = [
+      { title: "Ask AI", icon: "󰚩", shortcut: "↵", callback: ai.action },
+      { title: "Explain Clipboard", icon: "", callback: function() {
+        root.requestPushViewWithProps("Ask AI", root.aiAssistComp, { preset: "explain" })
+      }},
+      { title: "Summarize Clipboard", icon: "󰨸", callback: function() {
+        root.requestPushViewWithProps("Ask AI", root.aiAssistComp, { preset: "summarize" })
+      }}
+    ]
+    if (includeAi === false)
+      return [web]
     return [web, ai]
   }
 
@@ -1079,6 +1269,11 @@ Item {
       results.push(calcRow("calc-date", dateResult, "date · ↵ to copy", dateResult))
     }
 
+    if (root.looksLikeQuestion(q)) {
+      results.push(header("Ask"))
+      results.push(askRow(q))
+    }
+
     if (!q.length) {
       fileSearchDebounce.stop()
       fileSearchStartTimer.stop()
@@ -1138,6 +1333,13 @@ Item {
       }
     }
 
+    var pluginMatches = pluginMatchesFor(q)
+    if (pluginMatches.length) {
+      results.push(header("Plugins"))
+      for (var pi = 0; pi < pluginMatches.length; pi++)
+        results.push(pluginMatches[pi])
+    }
+
     var contentMark = fileHits.some(function(h){ return h.contentMatch }) ? " · content" : ""
     var filesHeader = "Files · " + activeFileScope + contentMark
 
@@ -1170,7 +1372,7 @@ Item {
     var fileSettledEmpty = (fileQuery === q && q.length >= 2 && !filesSearching && !fileHits.length)
     var waitingOnWork = root.isLoading || (q.length >= 2 && filesSearching)
 
-    if (!scored.length && !hasFileHits) {
+    if (!scored.length && !hasFileHits && !pluginMatches.length) {
       if (waitingOnWork) {
         if (!(q.length >= 2 && filesSearching)) {
           results.push(header("Loading"))
@@ -1182,11 +1384,11 @@ Item {
         }
       } else if (fileSettledEmpty) {
         results.push(header("Also"))
-        var fb2 = fallbackItems(q)
+        var fb2 = fallbackItems(q, !root.looksLikeQuestion(q))
         for (var f2 = 0; f2 < fb2.length; f2++) results.push(fb2[f2])
       } else {
         results.push(header("Fallback"))
-        var fb = fallbackItems(q)
+        var fb = fallbackItems(q, !root.looksLikeQuestion(q))
         for (var f = 0; f < fb.length; f++) results.push(fb[f])
       }
     }
@@ -1375,9 +1577,11 @@ Item {
 
   Component.onCompleted: {
     buildFullItemList()
+    PluginOps.finished.connect(function() { pluginScanner.running = true })
     scriptScanner.running = true
     appScanner.running = true
     omarchyScanner.running = true
     quicklinkScanner.running = true
+    pluginScanner.running = true
   }
 }

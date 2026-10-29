@@ -43,7 +43,7 @@ Whenever any agent or developer touches this project, the following rules MUST b
 
 ## 4. Current Working State
 
-* **System Status**: Manhattan taken (2026-10-24). Omarchy-first hardening then OPR (not AUR). AI deferred; Omarchy-LLM out of band (ADR 015).
+* **System Status**: Manhattan taken (2026-10-24). Plugin directory + Ollama/OpenAI-compatible gateway shipped. Omarchy-LLM stays out of band (ADR 015, ADR 018).
 * **Live hotkey**: `ALT + SPACE` → `bin/omnicast`
 * **Snippets**: in-launcher only (`SnippetsView` + `snippet_manager.py`). Global expander daemon removed.
 * **Site**: https://omnicast.best
@@ -109,3 +109,12 @@ Whenever any agent or developer touches this project, the following rules MUST b
 * **Context**: Raycast window management is approximate (Accessibility). Omarchy Hyprland exposes exact Lua `hl.dsp.window.*` geometry.
 * **Decision:** Ship `window_snap.py` presets (halves, thirds, quarters, center, maximize) as Omnicast-owned actions + `omnicast snap <preset>` / `omnicast://snap?layout=…` for binds. Prefer Lua dispatch; never classic `setfloating` batches.
 * **Consequences:** A workflow that is objectively better than Raycast Free WM on this OS.
+
+### ADR 018: Plugin directory handoff + local AI gateway
+* **Status**: Accepted (2026-10-30)
+* **Context**: Berlin’s remaining umbrella work was the community plugin directory and a real model path. A Raycast-style store and a custom Omarchy model are still out of scope.
+* **Decision**:
+  1. **Plugins** search `omarchy plugin list` plus the public catalog. Enter opens the listing. Install, enable, disable, and remove call `omarchy plugin` with a checked id or https git URL. The catalog `installCommand` string is never executed.
+  2. **Ask AI** streams from loopback Ollama by default. An OpenAI-compatible endpoint is optional. The key lives in `~/.config/omnicast/ai.json` (mode 0600) and is never printed or placed on a command line.
+  3. **Omarchy-LLM** remains a separate mission.
+* **Consequences**: The launcher can find and hand off community plugins, and answer from a local model, without hosting a store or shipping a model.

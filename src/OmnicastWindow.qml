@@ -353,6 +353,12 @@ PanelWindow {
       } else if (n === "snippets" || n === "snippet") {
         if (rootView.snippetsComp)
           root.pushSubView("Snippets", rootView.snippetsComp)
+      } else if (n === "plugins" || n === "plugin") {
+        if (rootView.pluginsComp)
+          root.pushSubView("Plugins", rootView.pluginsComp)
+      } else if (n === "ai" || n === "ask") {
+        if (rootView.aiAssistComp)
+          root.pushSubView("Ask AI", rootView.aiAssistComp)
       } else if (n.length) {
         root.showWithQuery(n)
       }

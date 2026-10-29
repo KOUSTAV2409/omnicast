@@ -91,6 +91,10 @@ parse_uri() {
       action="view"; view="windows" ;;
     snippets|snippet)
       action="view"; view="snippets" ;;
+    plugins|plugin)
+      action="view"; view="plugins" ;;
+    ai|ask)
+      action="view"; view="ai" ;;
     *)
       # omnicast://foot → search for foot
       action="search"
@@ -130,7 +134,7 @@ if [[ -n "$raw" ]]; then
       action="snap"
       layout="${2-}"
       ;;
-    windows|snippets)
+    windows|snippets|plugins|ai)
       action="view"
       view="$raw"
       ;;
@@ -143,7 +147,7 @@ Usage:
   omnicast show|dismiss|toggle
   omnicast search <query>
   omnicast snap <preset>           left|right|top|bottom|*-third|top-left|…|center|maximize
-  omnicast windows|snippets
+  omnicast windows|snippets|plugins|ai
   omnicast://search?q=foot
   omnicast://snap?layout=left
   omnicast://windows

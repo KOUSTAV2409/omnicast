@@ -16,8 +16,8 @@
 3. [ ] OPR merge + publish to `pkgs.omarchy.org` (awaiting maintainer build approval)
 
 ## Later
-4. [ ] Index / handoff Omarchy plugin store in umbrella
-5. [ ] Optional: generic Ollama/BYOK gateway
+4. [x] Index / handoff Omarchy plugin store in umbrella
+5. [x] Generic Ollama / OpenAI-compatible gateway (not Omarchy-LLM)
 6. [ ] AUR only if targeting vanilla Arch (not Omarchy-default)
 
 ## Out of band

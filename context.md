@@ -48,7 +48,8 @@ Hotkey: **Alt+Space** → `bin/omnicast` (Super+Space stays Omarchy menu).
 | Quicklinks, in-launcher snippets | Own |
 | Windows (pop, gaps, float, fullscreen, …) | Curate / own |
 | Clipboard, emoji, theme, images, keybindings, menu | Handoff |
-| Ask AI | Mock UI only (deferred) |
+| Ask AI | Own (Ollama default, OpenAI-compatible key optional) |
+| Omarchy plugins | Curate (search + listing handoff + `omarchy plugin`) |
 | File search | Own (typed) + Omarchy Find Files handoff |
 
 ---

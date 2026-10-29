@@ -4,3 +4,4 @@ singleton Exec 1.0 Exec.qml
 singleton Fuzzy 1.0 Fuzzy.qml
 singleton Ranking 1.0 Ranking.qml
 singleton Hud 1.0 Hud.qml
+singleton PluginOps 1.0 PluginOps.qml

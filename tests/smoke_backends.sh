@@ -147,6 +147,61 @@ else
   bad "omnicast --help"
 fi
 
+if ./bin/omnicast --help 2>&1 | grep -q plugins; then
+  pass "omnicast help lists plugins"
+else
+  bad "omnicast help lists plugins"
+fi
+
+run_meta "plugin_catalog scan" python3 src/backend/plugin_catalog.py scan
+
+if echo '{"op":"enable","id":"../etc/passwd"}' | python3 src/backend/plugin_catalog.py op-json | grep -q '"ok": false'; then
+  pass "plugin_catalog rejects bad id"
+else
+  bad "plugin_catalog rejects bad id"
+fi
+
+if (cd src/backend && python3 -c "
+import plugin_catalog as p
+assert p.extract_git_url('omarchy plugin add https://github.com/a/b.git --enable').endswith('.git')
+assert p.extract_git_url('omarchy plugin add https://github.com/a/b.git;id') == ''
+assert not p.git_url_ok('http://github.com/a/b.git')
+assert not p.git_url_ok('https://user:pw@github.com/a/b.git')
+assert p.valid_id('koustav.omnicast')
+assert not p.valid_id('../x')
+"); then
+  pass "plugin_catalog url guards"
+else
+  bad "plugin_catalog url guards"
+fi
+
+run_meta "ai_gateway status" python3 src/backend/ai_gateway.py status
+
+if echo '{"prompt":"","mode":"ask"}' | python3 src/backend/ai_gateway.py chat | grep -q '"type": "error"'; then
+  pass "ai_gateway rejects empty prompt"
+else
+  bad "ai_gateway rejects empty prompt"
+fi
+
+if (cd src/backend && python3 -c "
+import json
+import ai_gateway as a
+pub = a.public_config({'provider':'ollama','model':'x','api_key':'secret-key','ollama_url':'http://127.0.0.1:11434','openai_base':'https://api.openai.com/v1'})
+blob = json.dumps(pub)
+assert 'secret-key' not in blob
+assert 'api_key' not in blob
+assert a.ollama_url_ok('http://127.0.0.1:11434')
+assert not a.ollama_url_ok('http://169.254.169.254/')
+assert a.openai_base_ok('https://api.openai.com/v1')
+assert a.openai_base_ok('http://127.0.0.1:8080/v1')
+assert not a.openai_base_ok('http://evil.example/v1')
+assert a.looks_secret('-----BEGIN OPENSSH PRIVATE KEY-----\nabc')
+"); then
+  pass "ai_gateway guards"
+else
+  bad "ai_gateway guards"
+fi
+
 # PKGBUILD sanity
 if [[ -f packaging/aur/PKGBUILD ]]; then
   if grep -q 'python-evdev' packaging/aur/PKGBUILD; then

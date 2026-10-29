@@ -11,6 +11,8 @@ omnicast search foot
 omnicast snap left               # no UI: snap active window
 omnicast windows
 omnicast snippets
+omnicast plugins
+omnicast ai
 ```
 
 ## URI scheme (`omnicast://`)
@@ -27,6 +29,8 @@ Registered by `install.sh` via `omnicast.desktop` (`MimeType=x-scheme-handler/om
 | `omnicast://snap?layout=left` | Snap active window (no UI) |
 | `omnicast://windows` | Open Windows palette |
 | `omnicast://snippets` | Open Snippets |
+| `omnicast://plugins` | Open the Omarchy plugin directory |
+| `omnicast://ai` | Open Ask AI |
 
 ### Snap presets
 
