@@ -15,9 +15,15 @@ need_cmd() {
   fi
 }
 
-# Core runtime (soft on CI without Omarchy; hard when OMNICAST_REQUIRE_OMARCHY=1)
+# Core runtime. Quickshell is required on Omarchy; GitHub runners do not have it.
 need_cmd python3
-need_cmd qs || true
+if command -v qs >/dev/null 2>&1; then
+  pass "cmd:qs"
+elif [[ "${OMNICAST_REQUIRE_OMARCHY:-0}" == "1" ]]; then
+  bad "cmd:qs missing"
+else
+  printf 'skip cmd:qs (not on this machine)\n'
+fi
 
 if [[ "${OMNICAST_REQUIRE_OMARCHY:-0}" == "1" ]]; then
   for c in qs hyprctl omarchy fd wl-copy \
@@ -47,7 +53,13 @@ run_meta "app_indexer" python3 src/backend/app_indexer.py
 run_meta "omarchy_commands" python3 src/backend/omarchy_commands.py
 run_meta "script_runner scan" python3 src/backend/script_runner.py scan
 run_meta "quicklinks list" python3 src/backend/quicklinks.py list
-run_meta "ranking dump" python3 src/backend/ranking.py dump
+# Empty ranking is a JSON object with no "ok" or "count". Accept the schema.
+ranking_out="$(python3 src/backend/ranking.py dump)"
+if echo "$ranking_out" | grep -q '"favorites"' && echo "$ranking_out" | grep -q '"scores"'; then
+  pass "ranking dump"
+else
+  bad "ranking dump"
+fi
 
 # snippet list prints JSON array
 if python3 src/backend/snippet_manager.py list >/dev/null 2>&1; then
